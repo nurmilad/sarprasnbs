@@ -1,962 +1,1028 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sarpras NBS - Nurmilad</title>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
-  </script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
-  </script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f8faf8;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .header {
-      background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
-      color: #fff;
-      padding: 16px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .header h1 {
-      font-size: 22px;
-    }
-    .header .back {
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
-      padding: 6px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 30px;
-      transition: 0.2s;
-    }
-    .header .back:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sarpras NBS - Nurmilad</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
+    </script>
+    <style>
+        /* (CSS sama seperti sebelumnya, tidak diubah) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f8faf8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
+            color: #fff;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .header h1 {
+            font-size: 22px;
+        }
+        .header .right-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header .back {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 6px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            transition: 0.2s;
+        }
+        .header .back:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .header .logout-btn {
+            background: #b03a2e;
+            color: #fff;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: none;
+            font-size: 14px;
+        }
+        .header .logout-btn:hover {
+            background: #8a2e24;
+        }
+        .header .logout-btn.show {
+            display: inline-block;
+        }
 
-    .container {
-      flex: 1;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px;
-      width: 100%;
-    }
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            width: 100%;
+        }
 
-    /* top bar */
-    .top-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .top-bar .left-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      flex: 1;
-      align-items: center;
-    }
-    .top-bar input {
-      padding: 10px 18px;
-      border: 1px solid #ccc;
-      border-radius: 30px;
-      flex: 1;
-      min-width: 160px;
-      font-size: 15px;
-    }
-    .top-bar select {
-      padding: 10px 16px;
-      border: 1px solid #ccc;
-      border-radius: 30px;
-      font-size: 15px;
-      background: #fff;
-      min-width: 150px;
-      cursor: pointer;
-    }
-    .top-bar .admin-btn {
-      padding: 10px 24px;
-      background: #2d6a4f;
-      color: #fff;
-      border: none;
-      border-radius: 30px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      white-space: nowrap;
-    }
-    .top-bar .admin-btn:hover {
-      background: #1a4d2e;
-    }
-    .top-bar .admin-btn.active {
-      background: #b03a2e;
-    }
-    .top-bar .def-btn {
-      background: #5c6b7a;
-    }
-    .top-bar .def-btn:hover {
-      background: #3a4a5a;
-    }
-    .top-bar .reset-filter {
-      background: transparent;
-      border: none;
-      color: #b03a2e;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 14px;
-      padding: 4px 8px;
-    }
-    .top-bar .reset-filter:hover {
-      text-decoration: underline;
-    }
-    .filter-info {
-      font-size: 14px;
-      color: #3a5a3a;
-      background: #e8f0e8;
-      padding: 4px 16px;
-      border-radius: 30px;
-      display: inline-block;
-      margin-right: 8px;
-    }
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .top-bar .left-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            flex: 1;
+            align-items: center;
+        }
+        .top-bar input {
+            padding: 10px 18px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            flex: 1;
+            min-width: 160px;
+            font-size: 15px;
+        }
+        .top-bar select {
+            padding: 10px 16px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            font-size: 15px;
+            background: #fff;
+            min-width: 150px;
+            cursor: pointer;
+        }
+        .top-bar .admin-btn {
+            padding: 10px 24px;
+            background: #2d6a4f;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .top-bar .admin-btn:hover {
+            background: #1a4d2e;
+        }
+        .top-bar .admin-btn.active {
+            background: #b03a2e;
+        }
+        .top-bar .def-btn {
+            background: #5c6b7a;
+        }
+        .top-bar .def-btn:hover {
+            background: #3a4a5a;
+        }
+        .top-bar .reset-filter {
+            background: transparent;
+            border: none;
+            color: #b03a2e;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+        }
+        .top-bar .reset-filter:hover {
+            text-decoration: underline;
+        }
+        .filter-info {
+            font-size: 14px;
+            color: #3a5a3a;
+            background: #e8f0e8;
+            padding: 4px 16px;
+            border-radius: 30px;
+            display: inline-block;
+            margin-right: 8px;
+        }
 
-    /* table */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-    th {
-      background: #eaf0ea;
-      padding: 12px 16px;
-      text-align: left;
-      font-weight: 600;
-      color: #1a3d2e;
-      font-size: 13px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.15s;
-    }
-    th:hover {
-      background: #dce8dc;
-    }
-    th .sort-icon {
-      display: inline-block;
-      margin-left: 6px;
-      font-size: 12px;
-      opacity: 0.6;
-    }
-    th .sort-icon.active {
-      opacity: 1;
-      font-weight: bold;
-    }
-    td {
-      padding: 10px 16px;
-      border-bottom: 1px solid #eef4ee;
-      font-size: 14px;
-    }
-    tr:hover {
-      background: #f6faf6;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        th {
+            background: #eaf0ea;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #1a3d2e;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+        th:hover {
+            background: #dce8dc;
+        }
+        th .sort-icon {
+            display: inline-block;
+            margin-left: 6px;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+        th .sort-icon.active {
+            opacity: 1;
+            font-weight: bold;
+        }
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #eef4ee;
+            font-size: 14px;
+        }
+        tr:hover {
+            background: #f6faf6;
+        }
 
-    .actions {
-      display: flex;
-      gap: 8px;
-    }
-    .actions button {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: 0.2s;
-    }
-    .actions button.edit {
-      color: #2d6a4f;
-    }
-    .actions button.edit:hover {
-      background: #e0f0e0;
-    }
-    .actions button.delete {
-      color: #b03a2e;
-    }
-    .actions button.delete:hover {
-      background: #f0e0e0;
-    }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .actions button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .actions button.edit {
+            color: #2d6a4f;
+        }
+        .actions button.edit:hover {
+            background: #e0f0e0;
+        }
+        .actions button.delete {
+            color: #b03a2e;
+        }
+        .actions button.delete:hover {
+            background: #f0e0e0;
+        }
 
-    .no-data {
-      text-align: center;
-      padding: 40px;
-      color: #7a8a7a;
-      font-size: 16px;
-    }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7a8a7a;
+            font-size: 16px;
+        }
 
-    /* modal */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .modal.show {
-      display: flex;
-    }
-    .modal-content {
-      background: #fff;
-      border-radius: 20px;
-      padding: 32px;
-      width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    }
-    .modal-content h2 {
-      margin-bottom: 16px;
-      color: #1a3d2e;
-    }
-    .modal-content .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .modal-content .form-grid .full {
-      grid-column: 1/3;
-    }
-    .modal-content label {
-      display: block;
-      margin: 8px 0 4px;
-      font-weight: 600;
-      color: #2a4a3a;
-      font-size: 14px;
-    }
-    .modal-content input,
-    .modal-content select {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 15px;
-    }
-    .modal-content .btn-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-      justify-content: flex-end;
-    }
-    .modal-content .btn-group button {
-      padding: 10px 28px;
-      border: none;
-      border-radius: 30px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .modal-content .btn-group .save {
-      background: #2d6a4f;
-      color: #fff;
-    }
-    .modal-content .btn-group .save:hover {
-      background: #1a4d2e;
-    }
-    .modal-content .btn-group .cancel {
-      background: #e0e8e0;
-      color: #2a4a3a;
-    }
-    .modal-content .btn-group .cancel:hover {
-      background: #d0d8d0;
-    }
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+        .modal-content h2 {
+            margin-bottom: 16px;
+            color: #1a3d2e;
+        }
+        .modal-content .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .modal-content .form-grid .full {
+            grid-column: 1/3;
+        }
+        .modal-content label {
+            display: block;
+            margin: 8px 0 4px;
+            font-weight: 600;
+            color: #2a4a3a;
+            font-size: 14px;
+        }
+        .modal-content input,
+        .modal-content select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        .modal-content .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+        .modal-content .btn-group button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .modal-content .btn-group .save {
+            background: #2d6a4f;
+            color: #fff;
+        }
+        .modal-content .btn-group .save:hover {
+            background: #1a4d2e;
+        }
+        .modal-content .btn-group .cancel {
+            background: #e0e8e0;
+            color: #2a4a3a;
+        }
+        .modal-content .btn-group .cancel:hover {
+            background: #d0d8d0;
+        }
 
-    .footer {
-      text-align: center;
-      padding: 16px;
-      color: #5a6a5a;
-      font-size: 14px;
-      border-top: 1px solid #dce4dc;
-      background: #fff;
-      margin-top: 20px;
-    }
+        .footer {
+            text-align: center;
+            padding: 16px;
+            color: #5a6a5a;
+            font-size: 14px;
+            border-top: 1px solid #dce4dc;
+            background: #fff;
+            margin-top: 20px;
+        }
 
-    /* toast & loading */
-    .toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .toast {
-      padding: 14px 28px;
-      border-radius: 12px;
-      color: #fff;
-      font-weight: 500;
-      font-size: 14px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-      animation: slideUp 0.3s ease;
-    }
-    .toast.success {
-      background: #2d6a4f;
-    }
-    .toast.error {
-      background: #c0392b;
-    }
-    .toast.info {
-      background: #2c6f9b;
-    }
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 14px 28px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.3s ease;
+        }
+        .toast.success {
+            background: #2d6a4f;
+        }
+        .toast.error {
+            background: #c0392b;
+        }
+        .toast.info {
+            background: #2c6f9b;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9998;
-      font-size: 18px;
-      color: #1a3d2e;
-      font-weight: 600;
-    }
-    .loading-overlay.hidden {
-      display: none;
-    }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #dce4dc;
-      border-top-color: #2d6a4f;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 14px;
-    }
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            font-size: 18px;
+            color: #1a3d2e;
+            font-weight: 600;
+        }
+        .loading-overlay.hidden {
+            display: none;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #dce4dc;
+            border-top-color: #2d6a4f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 14px;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-    @media (max-width: 600px) {
-      .header {
-        padding: 12px 16px;
-      }
-      .top-bar {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .top-bar .left-group {
-        flex-direction: column;
-      }
-      table {
-        font-size: 12px;
-      }
-      td,
-      th {
-        padding: 6px 8px;
-      }
-      .modal-content .form-grid {
-        grid-template-columns: 1fr;
-      }
-      .modal-content .form-grid .full {
-        grid-column: 1;
-      }
-    }
-  </style>
+        @media (max-width: 600px) {
+            .header {
+                padding: 12px 16px;
+            }
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .top-bar .left-group {
+                flex-direction: column;
+            }
+            table {
+                font-size: 12px;
+            }
+            td,
+            th {
+                padding: 6px 8px;
+            }
+            .modal-content .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .modal-content .form-grid .full {
+                grid-column: 1;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <header class="header">
-    <h1>🏗️ Sarpras NBS</h1>
-    <div><a href="index.html" class="back">← Kembali</a></div>
-  </header>
+    <header class="header">
+        <h1>🏗️ Sarpras NBS</h1>
+        <div class="right-group">
+            <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
+            <a href="index.html" class="back">← Kembali</a>
+        </div>
+    </header>
 
-  <div class="container">
-    <!-- top bar -->
-    <div class="top-bar">
-      <div class="left-group">
-        <input type="text" id="searchInput" placeholder="Cari barang, ruang, gedung..." />
-        <select id="filterRuang">
-          <option value="">🏢 Semua Ruang</option>
-        </select>
-        <span id="filterInfo" class="filter-info" style="display:none;"></span>
-        <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="admin-btn" id="adminToggle">🔐 Admin</button>
-        <button class="admin-btn def-btn" id="defBtn">📋 Definisi</button>
-      </div>
-    </div>
-
-    <!-- tambah button (akan dipindah oleh JS) -->
-    <div id="addButtonContainer" style="margin-bottom:16px;"></div>
-
-    <!-- table -->
-    <div id="tableWrapper">
-      <table>
-        <thead>
-          <tr>
-            <th data-field="no" style="cursor:default; width:40px;">No</th>
-            <th data-field="namaBarang">Nama Barang <span class="sort-icon">↕</span></th>
-            <th data-field="jumlahBarang">Jumlah <span class="sort-icon">↕</span></th>
-            <th data-field="tahunPerolehan">Tahun <span class="sort-icon">↕</span></th>
-            <th data-field="asalPerolehan">Asal <span class="sort-icon">↕</span></th>
-            <th data-field="baik">Baik <span class="sort-icon">↕</span></th>
-            <th data-field="rusakRingan">Rusak Ringan <span class="sort-icon">↕</span></th>
-            <th data-field="rusakBerat">Rusak Berat <span class="sort-icon">↕</span></th>
-            <th data-field="ruang">Ruang <span class="sort-icon">↕</span></th>
-            <th data-field="lokasiGedung">Gedung <span class="sort-icon">↕</span></th>
-            <th data-field="jenis">Jenis <span class="sort-icon">↕</span></th>
-            <th style="display:none;" class="admin-col">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="inventoryList"></tbody>
-      </table>
-    </div>
-    <div id="emptyMessage" class="no-data">Belum ada data inventaris. Masuk sebagai admin untuk menambahkan.</div>
-  </div>
-
-  <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
-
-  <!-- MODAL -->
-  <div class="modal" id="modal">
-    <div class="modal-content">
-      <h2 id="modalTitle">Tambah Barang</h2>
-      <input type="hidden" id="editId" />
-      <div class="form-grid">
-        <div class="full"><label>Nama Barang</label><input type="text" id="f_nama" /></div>
-        <div><label>Jumlah</label><input type="number" id="f_jumlah" /></div>
-        <div><label>Tahun Perolehan</label><input type="number" id="f_tahun" /></div>
-        <div class="full"><label>Asal Perolehan</label><input type="text" id="f_asal" /></div>
-        <div><label>Baik</label><input type="number" id="f_baik" /></div>
-        <div><label>Rusak Ringan</label><input type="number" id="f_ringan" /></div>
-        <div><label>Rusak Berat</label><input type="number" id="f_berat" /></div>
-        <div><label>Ruang</label><select id="f_ruang"><option value="">Pilih Ruang</option></select></div>
-        <div><label>Gedung</label><select id="f_gedung"><option value="">Pilih Gedung</option></select></div>
-        <div class="full"><label>Jenis</label><select id="f_jenis"><option value="">Pilih Jenis</option></select></div>
-        <div class="full"><label>Anggaran/Satuan</label><input type="text" id="f_anggaran" /></div>
-      </div>
-      <div class="btn-group">
-        <button class="cancel" id="modalCancel">Batal</button>
-        <button class="save" id="modalSave">Simpan</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="toast-container" id="toastContainer"></div>
-  <div class="loading-overlay hidden" id="loadingOverlay">
-    <div class="spinner"></div>
-    <span>Memuat…</span>
-  </div>
-
-  <script>
-    // ========================================
-    // FIREBASE CONFIG
-    // ========================================
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
-      authDomain: "sarprasnbs.firebaseapp.com",
-      projectId: "sarprasnbs",
-      storageBucket: "sarprasnbs.firebasestorage.app",
-      messagingSenderId: "604042513677",
-      appId: "1:604042513677:web:3d186ae98c9dd8fe09f444"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // ========================================
-    // HELPERS
-    // ========================================
-    function showToast(msg, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = 'toast ' + type;
-      toast.textContent = msg;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
-    }
-
-    function showLoading(show) {
-      document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
-    }
-
-    // ========================================
-    // ADMIN STATE
-    // ========================================
-    let isAdmin = false;
-    const ADMIN_PASS = 'sarpras123';
-
-    // ========================================
-    // SORT STATE
-    // ========================================
-    let sortField = 'namaBarang';
-    let sortAsc = true;
-
-    // ========================================
-    // FILTER STATE
-    // ========================================
-    let filterRuang = '';
-
-    // ========================================
-    // DOM REFS
-    // ========================================
-    const tbody = document.getElementById('inventoryList');
-    const searchInput = document.getElementById('searchInput');
-    const filterRuangSelect = document.getElementById('filterRuang');
-    const filterInfo = document.getElementById('filterInfo');
-    const resetFilterBtn = document.getElementById('resetFilterBtn');
-    const adminToggle = document.getElementById('adminToggle');
-    const defBtn = document.getElementById('defBtn');
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modalTitle');
-    const editId = document.getElementById('editId');
-    const f_nama = document.getElementById('f_nama');
-    const f_jumlah = document.getElementById('f_jumlah');
-    const f_tahun = document.getElementById('f_tahun');
-    const f_asal = document.getElementById('f_asal');
-    const f_baik = document.getElementById('f_baik');
-    const f_ringan = document.getElementById('f_ringan');
-    const f_berat = document.getElementById('f_berat');
-    const f_ruang = document.getElementById('f_ruang');
-    const f_gedung = document.getElementById('f_gedung');
-    const f_jenis = document.getElementById('f_jenis');
-    const f_anggaran = document.getElementById('f_anggaran');
-    const modalCancel = document.getElementById('modalCancel');
-    const modalSave = document.getElementById('modalSave');
-    const emptyMsg = document.getElementById('emptyMessage');
-    const addButtonContainer = document.getElementById('addButtonContainer');
-
-    const inventoryRef = db.collection('inventory');
-    let unsubscribe = null;
-    let allItems = [];
-    let definitions = { ruangan: [], gedung: [], jenis: [] };
-    let ruangList = [];
-
-    // ========================================
-    // LOAD DEFINITIONS
-    // ========================================
-    async function loadDefinitions() {
-      try {
-        const [ruangSnap, gedungSnap, jenisSnap] = await Promise.all([
-          db.collection('ruangan').get(),
-          db.collection('gedung').get(),
-          db.collection('jenis').get()
-        ]);
-        ruangList = ruangSnap.docs.map(d => d.data().nama).filter(Boolean).sort();
-        definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-        definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-        definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-        populateDropdowns();
-        populateFilterRuang();
-      } catch (err) {
-        console.error('Load definitions error:', err);
-      }
-    }
-
-    function populateDropdowns() {
-      // Ruang
-      const ruangSelect = f_ruang;
-      ruangSelect.innerHTML = '<option value="">Pilih Ruang</option>';
-      definitions.ruangan.forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r.nama;
-        opt.textContent = r.nama;
-        ruangSelect.appendChild(opt);
-      });
-      // Gedung
-      const gedungSelect = f_gedung;
-      gedungSelect.innerHTML = '<option value="">Pilih Gedung</option>';
-      definitions.gedung.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g.nama;
-        opt.textContent = g.nama;
-        gedungSelect.appendChild(opt);
-      });
-      // Jenis
-      const jenisSelect = f_jenis;
-      jenisSelect.innerHTML = '<option value="">Pilih Jenis</option>';
-      definitions.jenis.forEach(j => {
-        const opt = document.createElement('option');
-        opt.value = j.nama;
-        opt.textContent = j.nama;
-        jenisSelect.appendChild(opt);
-      });
-    }
-
-    function populateFilterRuang() {
-      filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
-      ruangList.forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r;
-        opt.textContent = r;
-        filterRuangSelect.appendChild(opt);
-      });
-      // restore previous selection if any
-      if (filterRuang) {
-        filterRuangSelect.value = filterRuang;
-      }
-    }
-
-    // ========================================
-    // LOAD INVENTORY
-    // ========================================
-    function loadInventory() {
-      if (unsubscribe) unsubscribe();
-      let query = inventoryRef.orderBy('namaBarang');
-      unsubscribe = query.onSnapshot(snapshot => {
-        allItems = [];
-        snapshot.forEach(doc => {
-          allItems.push({ id: doc.id, ...doc.data() });
-        });
-        applyFiltersAndSort();
-      }, err => {
-        showToast('Gagal memuat data: ' + err.message, 'error');
-      });
-    }
-
-    // ========================================
-    // FILTER & SORT
-    // ========================================
-    function applyFiltersAndSort() {
-      const search = searchInput.value.toLowerCase().trim();
-      const ruangFilter = filterRuangSelect.value;
-
-      let filtered = allItems;
-
-      // Filter ruang
-      if (ruangFilter) {
-        filtered = filtered.filter(item => item.ruang === ruangFilter);
-      }
-
-      // Filter search
-      if (search) {
-        filtered = filtered.filter(item =>
-          (item.namaBarang && item.namaBarang.toLowerCase().includes(search)) ||
-          (item.ruang && item.ruang.toLowerCase().includes(search)) ||
-          (item.lokasiGedung && item.lokasiGedung.toLowerCase().includes(search)) ||
-          (item.jenis && item.jenis.toLowerCase().includes(search))
-        );
-      }
-
-      // Sort
-      if (sortField) {
-        filtered.sort((a, b) => {
-          let valA = a[sortField] ?? '';
-          let valB = b[sortField] ?? '';
-          if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(sortField)) {
-            valA = Number(valA) || 0;
-            valB = Number(valB) || 0;
-            return sortAsc ? valA - valB : valB - valA;
-          } else {
-            valA = String(valA).toLowerCase();
-            valB = String(valB).toLowerCase();
-            return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-          }
-        });
-      }
-
-      renderItems(filtered);
-      updateSortIcons();
-      updateFilterInfo(ruangFilter);
-      updateAddButton(ruangFilter);
-    }
-
-    // ========================================
-    // RENDER
-    // ========================================
-    function renderItems(items) {
-      tbody.innerHTML = '';
-      if (items.length === 0) {
-        emptyMsg.style.display = 'block';
-        return;
-      }
-      emptyMsg.style.display = 'none';
-
-      items.forEach((item, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${item.namaBarang || ''}</td>
-          <td>${item.jumlahBarang || 0}</td>
-          <td>${item.tahunPerolehan || ''}</td>
-          <td>${item.asalPerolehan || ''}</td>
-          <td>${item.baik || 0}</td>
-          <td>${item.rusakRingan || 0}</td>
-          <td>${item.rusakBerat || 0}</td>
-          <td>${item.ruang || ''}</td>
-          <td>${item.lokasiGedung || ''}</td>
-          <td>${item.jenis || ''}</td>
-          <td style="display:${isAdmin ? 'table-cell' : 'none'};" class="admin-col">
-            <div class="actions">
-              <button class="edit" data-id="${item.id}" title="Edit">✏️</button>
-              <button class="delete" data-id="${item.id}" title="Hapus">🗑️</button>
+    <div class="container">
+        <div class="top-bar">
+            <div class="left-group">
+                <input type="text" id="searchInput" placeholder="Cari barang, ruang, gedung..." />
+                <select id="filterRuang">
+                    <option value="">🏢 Semua Ruang</option>
+                </select>
+                <span id="filterInfo" class="filter-info" style="display:none;"></span>
+                <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
             </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="admin-btn" id="adminToggle">🔐 Admin</button>
+                <button class="admin-btn def-btn" id="defBtn">📋 Definisi</button>
+            </div>
+        </div>
 
-      if (isAdmin) {
-        document.querySelectorAll('.edit').forEach(btn =>
-          btn.addEventListener('click', (e) => openEdit(e.target.closest('button').dataset.id))
-        );
-        document.querySelectorAll('.delete').forEach(btn =>
-          btn.addEventListener('click', (e) => deleteItem(e.target.closest('button').dataset.id))
-        );
-      }
-    }
+        <div id="addButtonContainer" style="margin-bottom:16px;"></div>
 
-    // ========================================
-    // SORT ICONS
-    // ========================================
-    function updateSortIcons() {
-      document.querySelectorAll('th[data-field]').forEach(th => {
-        const field = th.dataset.field;
-        const icon = th.querySelector('.sort-icon');
-        if (!icon) return;
-        if (field === sortField) {
-          icon.textContent = sortAsc ? ' ▲' : ' ▼';
-          icon.classList.add('active');
-        } else {
-          icon.textContent = ' ↕';
-          icon.classList.remove('active');
+        <div id="tableWrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th data-field="no" style="cursor:default; width:40px;">No</th>
+                        <th data-field="namaBarang">Nama Barang <span class="sort-icon">↕</span></th>
+                        <th data-field="jumlahBarang">Jumlah <span class="sort-icon">↕</span></th>
+                        <th data-field="tahunPerolehan">Tahun <span class="sort-icon">↕</span></th>
+                        <th data-field="asalPerolehan">Sumber Dana <span class="sort-icon">↕</span></th>
+                        <th data-field="baik">Baik <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakRingan">Rusak Ringan <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakBerat">Rusak Berat <span class="sort-icon">↕</span></th>
+                        <th data-field="ruang">Ruang <span class="sort-icon">↕</span></th>
+                        <th data-field="lokasiGedung">Gedung <span class="sort-icon">↕</span></th>
+                        <th data-field="jenis">Jenis <span class="sort-icon">↕</span></th>
+                        <th style="display:none;" class="admin-col">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryList"></tbody>
+            </table>
+        </div>
+        <div id="emptyMessage" class="no-data">Belum ada data inventaris. Masuk sebagai admin untuk menambahkan.</div>
+    </div>
+
+    <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
+
+    <!-- MODAL -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Tambah Barang</h2>
+            <input type="hidden" id="editId" />
+            <div class="form-grid">
+                <div class="full"><label>Nama Barang</label><input type="text" id="f_nama" /></div>
+                <div><label>Jumlah</label><input type="number" id="f_jumlah" /></div>
+                <div><label>Tahun Perolehan</label><input type="number" id="f_tahun" /></div>
+                <div class="full"><label>Sumber Dana</label>
+                    <select id="f_sumberDana"><option value="">Pilih Sumber Dana</option></select>
+                </div>
+                <div><label>Baik</label><input type="number" id="f_baik" /></div>
+                <div><label>Rusak Ringan</label><input type="number" id="f_ringan" /></div>
+                <div><label>Rusak Berat</label><input type="number" id="f_berat" /></div>
+                <div><label>Ruang</label><select id="f_ruang"><option value="">Pilih Ruang</option></select></div>
+                <div><label>Gedung</label><select id="f_gedung"><option value="">Pilih Gedung</option></select></div>
+                <div class="full"><label>Jenis</label><select id="f_jenis"><option value="">Pilih Jenis</option></select></div>
+                <div class="full"><label>Anggaran/Satuan</label><input type="text" id="f_anggaran" /></div>
+            </div>
+            <div class="btn-group">
+                <button class="cancel" id="modalCancel">Batal</button>
+                <button class="save" id="modalSave">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span>Memuat…</span>
+    </div>
+
+    <script>
+        // ========================================
+        // FIREBASE CONFIG
+        // ========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
+            authDomain: "sarprasnbs.firebaseapp.com",
+            projectId: "sarprasnbs",
+            storageBucket: "sarprasnbs.firebasestorage.app",
+            messagingSenderId: "604042513677",
+            appId: "1:604042513677:web:3d186ae98c9dd8fe09f444"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ========================================
+        // HELPERS
+        // ========================================
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
-      });
-    }
 
-    // ========================================
-    // FILTER INFO
-    // ========================================
-    function updateFilterInfo(ruang) {
-      if (ruang) {
-        filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
-        filterInfo.style.display = 'inline-block';
-        resetFilterBtn.style.display = 'inline-block';
-      } else {
-        filterInfo.style.display = 'none';
-        resetFilterBtn.style.display = 'none';
-      }
-    }
-
-    // ========================================
-    // ADD BUTTON
-    // ========================================
-    function updateAddButton(ruang) {
-      if (!isAdmin) {
-        addButtonContainer.innerHTML = '';
-        return;
-      }
-      let label = '➕ Tambah Barang';
-      if (ruang) {
-        label = `➕ Tambah Barang di ${ruang}`;
-      }
-      addButtonContainer.innerHTML = `<button class="admin-btn" id="addBtn">${label}</button>`;
-      document.getElementById('addBtn').addEventListener('click', () => {
-        if (ruang) {
-          openModal('Tambah Barang', { ruang: ruang });
-        } else {
-          openModal('Tambah Barang');
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
         }
-      });
-    }
 
-    // ========================================
-    // HEADER CLICK -> SORT
-    // ========================================
-    document.querySelectorAll('th[data-field]').forEach(th => {
-      th.addEventListener('click', () => {
-        const field = th.dataset.field;
-        if (field === 'no') return;
-        if (sortField === field) {
-          sortAsc = !sortAsc;
-        } else {
-          sortField = field;
-          sortAsc = true;
+        // ========================================
+        // ADMIN STATE (persisted in localStorage)
+        // ========================================
+        const ADMIN_PASS = 'sarpras123';
+        const SESSION_KEY = 'nbs_admin_session';
+
+        let isAdmin = false;
+
+        function getAdminSession() {
+            return localStorage.getItem(SESSION_KEY) === 'true';
         }
-        applyFiltersAndSort();
-      });
-    });
 
-    // ========================================
-    // FILTER CHANGE
-    // ========================================
-    filterRuangSelect.addEventListener('change', () => {
-      filterRuang = filterRuangSelect.value;
-      applyFiltersAndSort();
-    });
-
-    resetFilterBtn.addEventListener('click', () => {
-      filterRuangSelect.value = '';
-      filterRuang = '';
-      applyFiltersAndSort();
-    });
-
-    // ========================================
-    // SEARCH
-    // ========================================
-    searchInput.addEventListener('input', applyFiltersAndSort);
-
-    // ========================================
-    // ADMIN TOGGLE
-    // ========================================
-    adminToggle.addEventListener('click', () => {
-      if (isAdmin) {
-        isAdmin = false;
-        adminToggle.textContent = '🔐 Admin';
-        adminToggle.classList.remove('active');
-        document.querySelectorAll('.admin-col').forEach(el => el.style.display = 'none');
-        showToast('Mode admin dinonaktifkan', 'info');
-        applyFiltersAndSort();
-        return;
-      }
-      const pass = prompt('Masukkan password admin:');
-      if (pass === ADMIN_PASS) {
-        isAdmin = true;
-        adminToggle.textContent = '🔓 Admin (aktif)';
-        adminToggle.classList.add('active');
-        document.querySelectorAll('.admin-col').forEach(el => el.style.display = 'table-cell');
-        showToast('Mode admin aktif', 'success');
-        applyFiltersAndSort();
-      } else if (pass !== null) {
-        showToast('Password salah!', 'error');
-      }
-    });
-
-    // ========================================
-    // TOMBOL DEFINISI
-    // ========================================
-    defBtn.addEventListener('click', () => {
-      if (!isAdmin) {
-        showToast('Anda harus masuk sebagai admin terlebih dahulu', 'error');
-        return;
-      }
-      window.location.href = 'definisi.html';
-    });
-
-    // ========================================
-    // MODAL
-    // ========================================
-    function openModal(title, data = {}) {
-      modalTitle.textContent = title;
-      editId.value = data.id || '';
-      f_nama.value = data.namaBarang || '';
-      f_jumlah.value = data.jumlahBarang || 0;
-      f_tahun.value = data.tahunPerolehan || '';
-      f_asal.value = data.asalPerolehan || '';
-      f_baik.value = data.baik || 0;
-      f_ringan.value = data.rusakRingan || 0;
-      f_berat.value = data.rusakBerat || 0;
-      f_ruang.value = data.ruang || '';
-      f_gedung.value = data.lokasiGedung || '';
-      f_jenis.value = data.jenis || '';
-      f_anggaran.value = data.anggaranSatuan || '';
-      modal.classList.add('show');
-    }
-
-    function closeModal() {
-      modal.classList.remove('show');
-    }
-
-    modalCancel.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-    modalSave.addEventListener('click', async () => {
-      const id = editId.value;
-      const data = {
-        namaBarang: f_nama.value.trim(),
-        jumlahBarang: parseInt(f_jumlah.value) || 0,
-        tahunPerolehan: parseInt(f_tahun.value) || 0,
-        asalPerolehan: f_asal.value.trim(),
-        baik: parseInt(f_baik.value) || 0,
-        rusakRingan: parseInt(f_ringan.value) || 0,
-        rusakBerat: parseInt(f_berat.value) || 0,
-        ruang: f_ruang.value,
-        lokasiGedung: f_gedung.value,
-        jenis: f_jenis.value,
-        anggaranSatuan: f_anggaran.value.trim()
-      };
-      if (!data.namaBarang) {
-        showToast('Nama barang wajib diisi', 'error');
-        return;
-      }
-      try {
-        showLoading(true);
-        if (id) {
-          await inventoryRef.doc(id).update(data);
-          showToast('Data berhasil diperbarui', 'success');
-        } else {
-          await inventoryRef.add(data);
-          showToast('Data berhasil ditambahkan', 'success');
+        function setAdminSession(val) {
+            localStorage.setItem(SESSION_KEY, val ? 'true' : 'false');
+            isAdmin = val;
+            updateAdminUI();
         }
-        closeModal();
-        // refresh via snapshot
-      } catch (err) {
-        showToast('Gagal menyimpan: ' + err.message, 'error');
-      } finally {
-        showLoading(false);
-      }
-    });
 
-    function openEdit(id) {
-      inventoryRef.doc(id).get().then(doc => {
-        if (doc.exists) openModal('Edit Barang', { id: doc.id, ...doc.data() });
-        else showToast('Data tidak ditemukan', 'error');
-      }).catch(err => showToast('Error: ' + err.message, 'error'));
-    }
+        function logoutAdmin() {
+            setAdminSession(false);
+            showToast('Anda telah logout dari mode admin', 'info');
+            window.location.reload();
+        }
 
-    function deleteItem(id) {
-      if (!confirm('Yakin ingin menghapus data ini?')) return;
-      inventoryRef.doc(id).delete().then(() => {
-        showToast('Data dihapus', 'success');
-      }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
-    }
+        function updateAdminUI() {
+            const adminToggle = document.getElementById('adminToggle');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const adminCols = document.querySelectorAll('.admin-col');
 
-    // ========================================
-    // INIT
-    // ========================================
-    loadDefinitions();
-    loadInventory();
+            if (isAdmin) {
+                adminToggle.textContent = '🔓 Admin (aktif)';
+                adminToggle.classList.add('active');
+                logoutBtn.classList.add('show');
+                adminCols.forEach(el => el.style.display = 'table-cell');
+            } else {
+                adminToggle.textContent = '🔐 Admin';
+                adminToggle.classList.remove('active');
+                logoutBtn.classList.remove('show');
+                adminCols.forEach(el => el.style.display = 'none');
+            }
+            const ruangFilter = document.getElementById('filterRuang').value;
+            updateAddButton(ruangFilter);
+        }
 
-    // admin toggle also triggers add button update
-    adminToggle.addEventListener('click', () => {
-      setTimeout(() => {
-        applyFiltersAndSort();
-      }, 100);
-    });
-  </script>
+        // ========================================
+        // SORT & FILTER STATE
+        // ========================================
+        let sortField = 'namaBarang';
+        let sortAsc = true;
+        let filterRuang = '';
+
+        // ========================================
+        // DOM REFS
+        // ========================================
+        const tbody = document.getElementById('inventoryList');
+        const searchInput = document.getElementById('searchInput');
+        const filterRuangSelect = document.getElementById('filterRuang');
+        const filterInfo = document.getElementById('filterInfo');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const adminToggle = document.getElementById('adminToggle');
+        const defBtn = document.getElementById('defBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const editId = document.getElementById('editId');
+        const f_nama = document.getElementById('f_nama');
+        const f_jumlah = document.getElementById('f_jumlah');
+        const f_tahun = document.getElementById('f_tahun');
+        const f_sumberDana = document.getElementById('f_sumberDana');
+        const f_baik = document.getElementById('f_baik');
+        const f_ringan = document.getElementById('f_ringan');
+        const f_berat = document.getElementById('f_berat');
+        const f_ruang = document.getElementById('f_ruang');
+        const f_gedung = document.getElementById('f_gedung');
+        const f_jenis = document.getElementById('f_jenis');
+        const f_anggaran = document.getElementById('f_anggaran');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalSave = document.getElementById('modalSave');
+        const emptyMsg = document.getElementById('emptyMessage');
+        const addButtonContainer = document.getElementById('addButtonContainer');
+
+        const inventoryRef = db.collection('inventory');
+        let unsubscribe = null;
+        let allItems = [];
+        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [] };
+        let ruangList = [];
+
+        // ========================================
+        // LOAD DEFINITIONS
+        // ========================================
+        async function loadDefinitions() {
+            try {
+                const [ruangSnap, gedungSnap, jenisSnap, sumberSnap] = await Promise.all([
+                    db.collection('ruangan').get(),
+                    db.collection('gedung').get(),
+                    db.collection('jenis').get(),
+                    db.collection('sumber_dana').get()
+                ]);
+                ruangList = ruangSnap.docs.map(d => d.data().nama).filter(Boolean).sort();
+                definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                populateDropdowns();
+                populateFilterRuang();
+            } catch (err) {
+                console.error('Load definitions error:', err);
+                showToast('Gagal memuat definisi: ' + err.message, 'error');
+            }
+        }
+
+        function populateDropdowns() {
+            f_ruang.innerHTML = '<option value="">Pilih Ruang</option>';
+            definitions.ruangan.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.nama;
+                opt.textContent = r.nama;
+                f_ruang.appendChild(opt);
+            });
+
+            f_gedung.innerHTML = '<option value="">Pilih Gedung</option>';
+            definitions.gedung.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.nama;
+                opt.textContent = g.nama;
+                f_gedung.appendChild(opt);
+            });
+
+            f_jenis.innerHTML = '<option value="">Pilih Jenis</option>';
+            definitions.jenis.forEach(j => {
+                const opt = document.createElement('option');
+                opt.value = j.nama;
+                opt.textContent = j.nama;
+                f_jenis.appendChild(opt);
+            });
+
+            f_sumberDana.innerHTML = '<option value="">Pilih Sumber Dana</option>';
+            definitions.sumberDana.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.nama;
+                opt.textContent = s.nama;
+                f_sumberDana.appendChild(opt);
+            });
+        }
+
+        function populateFilterRuang() {
+            filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
+            ruangList.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                filterRuangSelect.appendChild(opt);
+            });
+            if (filterRuang) {
+                filterRuangSelect.value = filterRuang;
+            }
+        }
+
+        // ========================================
+        // LOAD INVENTORY (REALTIME)
+        // ========================================
+        function loadInventory() {
+            if (unsubscribe) unsubscribe();
+            // Tidak menggunakan orderBy agar semua data dapat diurutkan di client
+            unsubscribe = inventoryRef.onSnapshot(snapshot => {
+                allItems = [];
+                snapshot.forEach(doc => {
+                    allItems.push({ id: doc.id, ...doc.data() });
+                });
+                console.log('Data dimuat:', allItems.length, 'item');
+                applyFiltersAndSort();
+            }, err => {
+                console.error('Snapshot error:', err);
+                showToast('Gagal memuat data: ' + err.message, 'error');
+            });
+        }
+
+        // ========================================
+        // FILTER & SORT
+        // ========================================
+        function applyFiltersAndSort() {
+            const search = searchInput.value.toLowerCase().trim();
+            const ruangFilter = filterRuangSelect.value;
+
+            let filtered = allItems.slice(); // salin
+
+            if (ruangFilter) {
+                filtered = filtered.filter(item => item.ruang === ruangFilter);
+            }
+
+            if (search) {
+                filtered = filtered.filter(item =>
+                    (item.namaBarang && item.namaBarang.toLowerCase().includes(search)) ||
+                    (item.ruang && item.ruang.toLowerCase().includes(search)) ||
+                    (item.lokasiGedung && item.lokasiGedung.toLowerCase().includes(search)) ||
+                    (item.jenis && item.jenis.toLowerCase().includes(search)) ||
+                    (item.asalPerolehan && item.asalPerolehan.toLowerCase().includes(search))
+                );
+            }
+
+            if (sortField) {
+                filtered.sort((a, b) => {
+                    let valA = a[sortField] ?? '';
+                    let valB = b[sortField] ?? '';
+                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(sortField)) {
+                        valA = Number(valA) || 0;
+                        valB = Number(valB) || 0;
+                        return sortAsc ? valA - valB : valB - valA;
+                    } else {
+                        valA = String(valA).toLowerCase();
+                        valB = String(valB).toLowerCase();
+                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                });
+            }
+
+            renderItems(filtered);
+            updateSortIcons();
+            updateFilterInfo(ruangFilter);
+            updateAddButton(ruangFilter);
+        }
+
+        // ========================================
+        // RENDER
+        // ========================================
+        function renderItems(items) {
+            tbody.innerHTML = '';
+            if (items.length === 0) {
+                emptyMsg.style.display = 'block';
+                return;
+            }
+            emptyMsg.style.display = 'none';
+
+            items.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td>${item.namaBarang || ''}</td>
+                    <td>${item.jumlahBarang || 0}</td>
+                    <td>${item.tahunPerolehan || ''}</td>
+                    <td>${item.asalPerolehan || ''}</td>
+                    <td>${item.baik || 0}</td>
+                    <td>${item.rusakRingan || 0}</td>
+                    <td>${item.rusakBerat || 0}</td>
+                    <td>${item.ruang || ''}</td>
+                    <td>${item.lokasiGedung || ''}</td>
+                    <td>${item.jenis || ''}</td>
+                    <td style="display:${isAdmin ? 'table-cell' : 'none'};" class="admin-col">
+                        <div class="actions">
+                            <button class="edit" data-id="${item.id}" title="Edit">✏️</button>
+                            <button class="delete" data-id="${item.id}" title="Hapus">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (isAdmin) {
+                document.querySelectorAll('.edit').forEach(btn =>
+                    btn.addEventListener('click', (e) => openEdit(e.target.closest('button').dataset.id))
+                );
+                document.querySelectorAll('.delete').forEach(btn =>
+                    btn.addEventListener('click', (e) => deleteItem(e.target.closest('button').dataset.id))
+                );
+            }
+        }
+
+        // ========================================
+        // SORT ICONS
+        // ========================================
+        function updateSortIcons() {
+            document.querySelectorAll('th[data-field]').forEach(th => {
+                const field = th.dataset.field;
+                const icon = th.querySelector('.sort-icon');
+                if (!icon) return;
+                if (field === sortField) {
+                    icon.textContent = sortAsc ? ' ▲' : ' ▼';
+                    icon.classList.add('active');
+                } else {
+                    icon.textContent = ' ↕';
+                    icon.classList.remove('active');
+                }
+            });
+        }
+
+        // ========================================
+        // FILTER INFO
+        // ========================================
+        function updateFilterInfo(ruang) {
+            if (ruang) {
+                filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
+                filterInfo.style.display = 'inline-block';
+                resetFilterBtn.style.display = 'inline-block';
+            } else {
+                filterInfo.style.display = 'none';
+                resetFilterBtn.style.display = 'none';
+            }
+        }
+
+        // ========================================
+        // ADD BUTTON
+        // ========================================
+        function updateAddButton(ruang) {
+            if (!isAdmin) {
+                addButtonContainer.innerHTML = '';
+                return;
+            }
+            let label = '➕ Tambah Barang';
+            if (ruang) {
+                label = `➕ Tambah Barang di ${ruang}`;
+            }
+            addButtonContainer.innerHTML = `<button class="admin-btn" id="addBtn">${label}</button>`;
+            document.getElementById('addBtn').addEventListener('click', () => {
+                if (ruang) {
+                    openModal('Tambah Barang', { ruang: ruang });
+                } else {
+                    openModal('Tambah Barang');
+                }
+            });
+        }
+
+        // ========================================
+        // HEADER CLICK -> SORT
+        // ========================================
+        document.querySelectorAll('th[data-field]').forEach(th => {
+            th.addEventListener('click', () => {
+                const field = th.dataset.field;
+                if (field === 'no') return;
+                if (sortField === field) {
+                    sortAsc = !sortAsc;
+                } else {
+                    sortField = field;
+                    sortAsc = true;
+                }
+                applyFiltersAndSort();
+            });
+        });
+
+        // ========================================
+        // FILTER CHANGE
+        // ========================================
+        filterRuangSelect.addEventListener('change', () => {
+            filterRuang = filterRuangSelect.value;
+            applyFiltersAndSort();
+        });
+
+        resetFilterBtn.addEventListener('click', () => {
+            filterRuangSelect.value = '';
+            filterRuang = '';
+            applyFiltersAndSort();
+        });
+
+        // ========================================
+        // SEARCH
+        // ========================================
+        searchInput.addEventListener('input', applyFiltersAndSort);
+
+        // ========================================
+        // ADMIN TOGGLE
+        // ========================================
+        adminToggle.addEventListener('click', () => {
+            if (isAdmin) {
+                showToast('Anda sudah dalam mode admin. Klik Logout untuk keluar.', 'info');
+                return;
+            }
+            const pass = prompt('Masukkan password admin:');
+            if (pass === ADMIN_PASS) {
+                setAdminSession(true);
+                showToast('Mode admin aktif', 'success');
+                applyFiltersAndSort();
+            } else if (pass !== null) {
+                showToast('Password salah!', 'error');
+            }
+        });
+
+        // ========================================
+        // LOGOUT
+        // ========================================
+        logoutBtn.addEventListener('click', logoutAdmin);
+
+        // ========================================
+        // TOMBOL DEFINISI
+        // ========================================
+        defBtn.addEventListener('click', () => {
+            if (!isAdmin) {
+                showToast('Anda harus masuk sebagai admin terlebih dahulu', 'error');
+                return;
+            }
+            window.location.href = 'definisi.html';
+        });
+
+        // ========================================
+        // MODAL
+        // ========================================
+        function openModal(title, data = {}) {
+            modalTitle.textContent = title;
+            editId.value = data.id || '';
+            f_nama.value = data.namaBarang || '';
+            f_jumlah.value = data.jumlahBarang || 0;
+            f_tahun.value = data.tahunPerolehan || '';
+            f_sumberDana.value = data.asalPerolehan || '';
+            f_baik.value = data.baik || 0;
+            f_ringan.value = data.rusakRingan || 0;
+            f_berat.value = data.rusakBerat || 0;
+            f_ruang.value = data.ruang || '';
+            f_gedung.value = data.lokasiGedung || '';
+            f_jenis.value = data.jenis || '';
+            f_anggaran.value = data.anggaranSatuan || '';
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+
+        modalCancel.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        modalSave.addEventListener('click', async () => {
+            const id = editId.value;
+            const data = {
+                namaBarang: f_nama.value.trim(),
+                jumlahBarang: parseInt(f_jumlah.value) || 0,
+                tahunPerolehan: parseInt(f_tahun.value) || 0,
+                asalPerolehan: f_sumberDana.value,
+                baik: parseInt(f_baik.value) || 0,
+                rusakRingan: parseInt(f_ringan.value) || 0,
+                rusakBerat: parseInt(f_berat.value) || 0,
+                ruang: f_ruang.value,
+                lokasiGedung: f_gedung.value,
+                jenis: f_jenis.value,
+                anggaranSatuan: f_anggaran.value.trim()
+            };
+            if (!data.namaBarang) {
+                showToast('Nama barang wajib diisi', 'error');
+                return;
+            }
+            try {
+                showLoading(true);
+                if (id) {
+                    await inventoryRef.doc(id).update(data);
+                    showToast('Data berhasil diperbarui', 'success');
+                } else {
+                    await inventoryRef.add(data);
+                    showToast('Data berhasil ditambahkan', 'success');
+                }
+                closeModal();
+            } catch (err) {
+                showToast('Gagal menyimpan: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        function openEdit(id) {
+            inventoryRef.doc(id).get().then(doc => {
+                if (doc.exists) openModal('Edit Barang', { id: doc.id, ...doc.data() });
+                else showToast('Data tidak ditemukan', 'error');
+            }).catch(err => showToast('Error: ' + err.message, 'error'));
+        }
+
+        function deleteItem(id) {
+            if (!confirm('Yakin ingin menghapus data ini?')) return;
+            inventoryRef.doc(id).delete().then(() => {
+                showToast('Data dihapus', 'success');
+            }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
+        }
+
+        // ========================================
+        // INIT
+        // ========================================
+        isAdmin = getAdminSession();
+        updateAdminUI();
+
+        loadDefinitions().then(() => {
+            loadInventory();
+        }).catch(err => {
+            console.error('Init error:', err);
+            showToast('Gagal inisialisasi: ' + err.message, 'error');
+        });
+
+        // Re-apply admin UI after definitions loaded
+        setTimeout(() => {
+            updateAdminUI();
+        }, 500);
+    </script>
 </body>
 </html>
