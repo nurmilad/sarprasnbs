@@ -475,11 +475,19 @@
             <h2 id="modalTitle">Tambah Barang</h2>
             <input type="hidden" id="editId" />
             <div class="form-grid">
-                <div class="full"><label>Nama Barang</label><input type="text" id="f_nama" /></div>
+                <!-- Nama Barang dengan autocomplete -->
+                <div class="full">
+                    <label>Nama Barang</label>
+                    <input type="text" id="f_nama" list="barangList" placeholder="Ketik atau pilih barang" />
+                    <datalist id="barangList"></datalist>
+                </div>
                 <div><label>Jumlah</label><input type="number" id="f_jumlah" /></div>
                 <div><label>Tahun Perolehan</label><input type="number" id="f_tahun" /></div>
-                <div class="full"><label>Sumber Dana</label>
-                    <select id="f_sumberDana"><option value="">Pilih Sumber Dana</option></select>
+                <!-- Sumber Dana dengan autocomplete -->
+                <div class="full">
+                    <label>Sumber Dana</label>
+                    <input type="text" id="f_sumberDana" list="sumberDanaList" placeholder="Ketik atau pilih sumber dana" />
+                    <datalist id="sumberDanaList"></datalist>
                 </div>
                 <div><label>Baik</label><input type="number" id="f_baik" /></div>
                 <div><label>Rusak Ringan</label><input type="number" id="f_ringan" /></div>
@@ -617,10 +625,13 @@
         const emptyMsg = document.getElementById('emptyMessage');
         const addButtonContainer = document.getElementById('addButtonContainer');
 
+        const barangList = document.getElementById('barangList');
+        const sumberDanaList = document.getElementById('sumberDanaList');
+
         const inventoryRef = db.collection('inventory');
         let unsubscribe = null;
         let allItems = [];
-        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [] };
+        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [], barang: [] };
         let ruangList = [];
 
         // ========================================
@@ -628,19 +639,23 @@
         // ========================================
         async function loadDefinitions() {
             try {
-                const [ruangSnap, gedungSnap, jenisSnap, sumberSnap] = await Promise.all([
+                const [ruangSnap, gedungSnap, jenisSnap, sumberSnap, barangSnap] = await Promise.all([
                     db.collection('ruangan').get(),
                     db.collection('gedung').get(),
                     db.collection('jenis').get(),
-                    db.collection('sumber_dana').get()
+                    db.collection('sumber_dana').get(),
+                    db.collection('barang').get()
                 ]);
                 ruangList = ruangSnap.docs.map(d => d.data().nama).filter(Boolean).sort();
                 definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+
                 populateDropdowns();
                 populateFilterRuang();
+                populateDatalists();
             } catch (err) {
                 console.error('Load definitions error:', err);
                 showToast('Gagal memuat definisi: ' + err.message, 'error');
@@ -671,13 +686,22 @@
                 opt.textContent = j.nama;
                 f_jenis.appendChild(opt);
             });
+        }
 
-            f_sumberDana.innerHTML = '<option value="">Pilih Sumber Dana</option>';
+        function populateDatalists() {
+            // Barang
+            barangList.innerHTML = '';
+            definitions.barang.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.nama;
+                barangList.appendChild(opt);
+            });
+            // Sumber Dana
+            sumberDanaList.innerHTML = '';
             definitions.sumberDana.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.nama;
-                opt.textContent = s.nama;
-                f_sumberDana.appendChild(opt);
+                sumberDanaList.appendChild(opt);
             });
         }
 
@@ -699,7 +723,6 @@
         // ========================================
         function loadInventory() {
             if (unsubscribe) unsubscribe();
-            // Tidak menggunakan orderBy agar semua data dapat diurutkan di client
             unsubscribe = inventoryRef.onSnapshot(snapshot => {
                 allItems = [];
                 snapshot.forEach(doc => {
@@ -720,7 +743,7 @@
             const search = searchInput.value.toLowerCase().trim();
             const ruangFilter = filterRuangSelect.value;
 
-            let filtered = allItems.slice(); // salin
+            let filtered = allItems.slice();
 
             if (ruangFilter) {
                 filtered = filtered.filter(item => item.ruang === ruangFilter);
@@ -962,7 +985,7 @@
                 namaBarang: f_nama.value.trim(),
                 jumlahBarang: parseInt(f_jumlah.value) || 0,
                 tahunPerolehan: parseInt(f_tahun.value) || 0,
-                asalPerolehan: f_sumberDana.value,
+                asalPerolehan: f_sumberDana.value.trim(),
                 baik: parseInt(f_baik.value) || 0,
                 rusakRingan: parseInt(f_ringan.value) || 0,
                 rusakBerat: parseInt(f_berat.value) || 0,
@@ -1019,7 +1042,6 @@
             showToast('Gagal inisialisasi: ' + err.message, 'error');
         });
 
-        // Re-apply admin UI after definitions loaded
         setTimeout(() => {
             updateAdminUI();
         }, 500);
