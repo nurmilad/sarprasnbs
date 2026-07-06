@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Definisi - Nurmilad</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',sans-serif; background:#f8faf8; min-height:100vh; display:flex; flex-direction:column; }
+    .header { background:linear-gradient(135deg,#1a4d2e,#2d6a4f); color:#fff; padding:16px 32px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+    .header h1 { font-size:22px; }
+    .header .back { color:#fff; text-decoration:none; font-weight:600; padding:6px 16px; border:1px solid rgba(255,255,255,0.3); border-radius:30px; transition:0.2s; }
+    .header .back:hover { background:rgba(255,255,255,0.1); }
+    .container { flex:1; max-width:1000px; margin:0 auto; padding:24px; width:100%; }
+    .tabs { display:flex; gap:8px; margin-bottom:24px; border-bottom:2px solid #dce4dc; flex-wrap:wrap; }
+    .tabs button { padding:10px 24px; background:transparent; border:none; border-bottom:3px solid transparent; font-weight:600; font-size:15px; cursor:pointer; color:#5a6a5a; transition:0.2s; }
+    .tabs button.active { color:#1a3d2e; border-bottom-color:#2d6a4f; background:#f0f6f0; border-radius:8px 8px 0 0; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+    .top-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .top-bar input { padding:8px 16px; border:1px solid #ccc; border-radius:30px; flex:1; margin-right:12px; }
+    .top-bar button { padding:8px 20px; background:#2d6a4f; color:#fff; border:none; border-radius:30px; font-weight:600; cursor:pointer; }
+    .top-bar button:hover { background:#1a4d2e; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+    th { background:#eaf0ea; padding:10px 16px; text-align:left; font-weight:600; color:#1a3d2e; }
+    td { padding:8px 16px; border-bottom:1px solid #eef4ee; }
+    tr:hover { background:#f6faf6; }
+    .actions { display:flex; gap:6px; }
+    .actions button { background:transparent; border:none; cursor:pointer; font-size:16px; padding:4px 8px; border-radius:6px; }
+    .actions button.edit { color:#2d6a4f; }
+    .actions button.edit:hover { background:#e0f0e0; }
+    .actions button.delete { color:#b03a2e; }
+    .actions button.delete:hover { background:#f0e0e0; }
+    .no-data { text-align:center; padding:30px; color:#7a8a7a; }
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:1000; }
+    .modal.show { display:flex; }
+    .modal-content { background:#fff; border-radius:20px; padding:28px; width:100%; max-width:400px; }
+    .modal-content h2 { margin-bottom:16px; color:#1a3d2e; }
+    .modal-content label { display:block; margin:8px 0 4px; font-weight:600; }
+    .modal-content input { width:100%; padding:10px 14px; border:1px solid #ccc; border-radius:10px; font-size:15px; }
+    .modal-content .btn-group { display:flex; gap:12px; margin-top:20px; justify-content:flex-end; }
+    .modal-content .btn-group button { padding:10px 24px; border:none; border-radius:30px; font-weight:600; cursor:pointer; }
+    .modal-content .btn-group .save { background:#2d6a4f; color:#fff; }
+    .modal-content .btn-group .save:hover { background:#1a4d2e; }
+    .modal-content .btn-group .cancel { background:#e0e8e0; color:#2a4a3a; }
+    .modal-content .btn-group .cancel:hover { background:#d0d8d0; }
+    .footer { text-align:center; padding:16px; color:#5a6a5a; font-size:14px; border-top:1px solid #dce4dc; background:#fff; margin-top:20px; }
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:10px; }
+    .toast { padding:14px 28px; border-radius:12px; color:#fff; font-weight:500; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,0.15); animation:slideUp 0.3s ease; }
+    .toast.success { background:#2d6a4f; }
+    .toast.error { background:#c0392b; }
+    .toast.info { background:#2c6f9b; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .loading-overlay { position:fixed; inset:0; background:rgba(255,255,255,0.7); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9998; font-size:18px; color:#1a3d2e; font-weight:600; }
+    .loading-overlay.hidden { display:none; }
+    .spinner { width:40px; height:40px; border:4px solid #dce4dc; border-top-color:#2d6a4f; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:14px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media (max-width:600px) { .header { padding:12px 16px; } .tabs button { padding:8px 14px; font-size:14px; } .top-bar { flex-direction:column; align-items:stretch; } .top-bar input { margin-right:0; margin-bottom:8px; } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>📋 Kelola Definisi</h1>
+    <a href="sarpras.html" class="back">← Kembali ke Sarpras</a>
+  </header>
+  <div class="container">
+    <div class="tabs">
+      <button class="active" data-tab="ruangan">Ruangan</button>
+      <button data-tab="gedung">Gedung</button>
+      <button data-tab="barang">Barang</button>
+      <button data-tab="jenis">Jenis</button>
+    </div>
+    <!-- Ruangan -->
+    <div id="tab-ruangan" class="tab-content active">
+      <div class="top-bar"><input type="text" placeholder="Cari ruangan..." class="search-def" data-col="ruangan" /><button class="add-def" data-col="ruangan">➕ Tambah</button></div>
+      <table><thead><tr><th>No</th><th>Nama Ruangan</th><th>Aksi</th></tr></thead><tbody id="list-ruangan"></tbody></table>
+      <div class="no-data" id="empty-ruangan">Belum ada data ruangan.</div>
+    </div>
+    <!-- Gedung -->
+    <div id="tab-gedung" class="tab-content">
+      <div class="top-bar"><input type="text" placeholder="Cari gedung..." class="search-def" data-col="gedung" /><button class="add-def" data-col="gedung">➕ Tambah</button></div>
+      <table><thead><tr><th>No</th><th>Nama Gedung</th><th>Aksi</th></tr></thead><tbody id="list-gedung"></tbody></table>
+      <div class="no-data" id="empty-gedung">Belum ada data gedung.</div>
+    </div>
+    <!-- Barang -->
+    <div id="tab-barang" class="tab-content">
+      <div class="top-bar"><input type="text" placeholder="Cari barang..." class="search-def" data-col="barang" /><button class="add-def" data-col="barang">➕ Tambah</button></div>
+      <table><thead><tr><th>No</th><th>Nama Barang</th><th>Aksi</th></tr></thead><tbody id="list-barang"></tbody></table>
+      <div class="no-data" id="empty-barang">Belum ada data barang.</div>
+    </div>
+    <!-- Jenis -->
+    <div id="tab-jenis" class="tab-content">
+      <div class="top-bar"><input type="text" placeholder="Cari jenis..." class="search-def" data-col="jenis" /><button class="add-def" data-col="jenis">➕ Tambah</button></div>
+      <table><thead><tr><th>No</th><th>Nama Jenis</th><th>Aksi</th></tr></thead><tbody id="list-jenis"></tbody></table>
+      <div class="no-data" id="empty-jenis">Belum ada data jenis.</div>
+    </div>
+  </div>
+  <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Tambah</h2>
+      <input type="hidden" id="editId" />
+      <input type="hidden" id="editCol" />
+      <label>Nama</label><input type="text" id="f_name" />
+      <div class="btn-group"><button class="cancel" id="modalCancel">Batal</button><button class="save" id="modalSave">Simpan</button></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="loading-overlay hidden" id="loadingOverlay"><div class="spinner"></div><span>Memuat…</span></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
+      authDomain: "sarprasnbs.firebaseapp.com",
+      projectId: "sarprasnbs",
+      storageBucket: "sarprasnbs.firebasestorage.app",
+      messagingSenderId: "604042513677",
+      appId: "1:604042513677:web:3d186ae98c9dd8fe09f444"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function showToast(msg, type='info') { const c=document.getElementById('toastContainer'); const t=document.createElement('div'); t.className='toast '+type; t.textContent=msg; c.appendChild(t); setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300)},3500); }
+    function showLoading(show){ document.getElementById('loadingOverlay').classList.toggle('hidden',!show); }
+
+    // Tabs
+    const tabs = document.querySelectorAll('.tabs button');
+    const contents = {
+      ruangan: document.getElementById('tab-ruangan'),
+      gedung: document.getElementById('tab-gedung'),
+      barang: document.getElementById('tab-barang'),
+      jenis: document.getElementById('tab-jenis')
+    };
+    let currentTab = 'ruangan';
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        Object.keys(contents).forEach(key => contents[key].classList.toggle('active', key === tab));
+        currentTab = tab;
+        loadCollection(tab);
+      });
+    });
+
+    // Modal
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const editId = document.getElementById('editId');
+    const editCol = document.getElementById('editCol');
+    const f_name = document.getElementById('f_name');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalSave = document.getElementById('modalSave');
+
+    function openModal(title, col, data={}) {
+      modalTitle.textContent = title;
+      editId.value = data.id || '';
+      editCol.value = col;
+      f_name.value = data.nama || '';
+      modal.classList.add('show');
+    }
+    function closeModal() { modal.classList.remove('show'); }
+    modalCancel.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    modalSave.addEventListener('click', async () => {
+      const col = editCol.value;
+      const id = editId.value;
+      const nama = f_name.value.trim();
+      if (!nama) { showToast('Nama tidak boleh kosong', 'error'); return; }
+      try {
+        showLoading(true);
+        const ref = db.collection(col);
+        if (id) {
+          await ref.doc(id).update({ nama });
+          showToast('Data diperbarui', 'success');
+        } else {
+          await ref.add({ nama });
+          showToast('Data ditambahkan', 'success');
+        }
+        closeModal();
+        loadCollection(col);
+      } catch (err) { showToast('Gagal: '+err.message, 'error'); } finally { showLoading(false); }
+    });
+
+    // Load collection
+    let unsubs = {};
+
+    function loadCollection(col, filter='') {
+      if (unsubs[col]) unsubs[col]();
+      const ref = db.collection(col).orderBy('nama');
+      unsubs[col] = ref.onSnapshot(snapshot => {
+        const items = [];
+        snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+        renderList(col, items, filter);
+      }, err => showToast('Gagal memuat: '+err.message, 'error'));
+    }
+
+    function renderList(col, items, filter='') {
+      const f = filter.toLowerCase().trim();
+      let filtered = items;
+      if (f) filtered = items.filter(item => item.nama && item.nama.toLowerCase().includes(f));
+      const tbody = document.getElementById('list-'+col);
+      const empty = document.getElementById('empty-'+col);
+      tbody.innerHTML = '';
+      if (filtered.length === 0) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      filtered.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${item.nama || ''}</td>
+          <td><div class="actions"><button class="edit" data-id="${item.id}" data-col="${col}">✏️</button><button class="delete" data-id="${item.id}" data-col="${col}">🗑️</button></div></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      // Attach events
+      tbody.querySelectorAll('.edit').forEach(btn => btn.addEventListener('click', (e) => {
+        const id = e.target.dataset.id; const col = e.target.dataset.col;
+        db.collection(col).doc(id).get().then(doc => {
+          if (doc.exists) openModal('Edit '+col, col, { id: doc.id, ...doc.data() });
+        });
+      }));
+      tbody.querySelectorAll('.delete').forEach(btn => btn.addEventListener('click', (e) => {
+        const id = e.target.dataset.id; const col = e.target.dataset.col;
+        if (!confirm('Hapus data ini?')) return;
+        db.collection(col).doc(id).delete().then(() => {
+          showToast('Data dihapus', 'success');
+          loadCollection(col);
+        }).catch(err => showToast('Gagal hapus: '+err.message, 'error'));
+      }));
+    }
+
+    // Add button
+    document.querySelectorAll('.add-def').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const col = btn.dataset.col;
+        openModal('Tambah '+col, col);
+      });
+    });
+
+    // Search
+    document.querySelectorAll('.search-def').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const col = e.target.dataset.col;
+        loadCollection(col, e.target.value);
+      });
+    });
+
+    // Initial load for current tab
+    loadCollection('ruangan');
+
+    // Also load all tabs on first load? we'll load when tab activated.
+    // But we already load ruangan. For others, we'll load when tab clicked.
+    // Override tab click to load collection
+    const origTabClick = tabs.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        // already handled above, but we need to load collection after switch
+        const tab = this.dataset.tab;
+        // load after a short delay to allow DOM update
+        setTimeout(() => loadCollection(tab), 50);
+      });
+    });
+
+    // Ensure all tabs load on first visit? We'll load ruangan already.
+    // Also load other tabs when they become active via the click listener.
+  </script>
+</body>
+</html>
