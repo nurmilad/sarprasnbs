@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perpustakaan - Nurmilad</title>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    /* reset & base */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',sans-serif; background:#f8faf8; min-height:100vh; display:flex; flex-direction:column; }
+    .header { background:linear-gradient(135deg,#1a4d2e,#2d6a4f); color:#fff; padding:16px 32px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+    .header h1 { font-size:22px; }
+    .header .back { color:#fff; text-decoration:none; font-weight:600; padding:6px 16px; border:1px solid rgba(255,255,255,0.3); border-radius:30px; transition:0.2s; }
+    .header .back:hover { background:rgba(255,255,255,0.1); }
+    .container { flex:1; max-width:1200px; margin:0 auto; padding:24px; width:100%; }
+    .top-bar { display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; margin-bottom:24px; }
+    .top-bar input { padding:10px 18px; border:1px solid #ccc; border-radius:30px; flex:1; min-width:200px; font-size:15px; }
+    .top-bar .admin-btn { padding:10px 24px; background:#2d6a4f; color:#fff; border:none; border-radius:30px; font-weight:600; cursor:pointer; }
+    .top-bar .admin-btn:hover { background:#1a4d2e; }
+    .top-bar .admin-btn.active { background:#b03a2e; }
+    table { width:100%; border-collapse:collapse; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+    th { background:#eaf0ea; padding:12px 16px; text-align:left; font-weight:600; color:#1a3d2e; }
+    td { padding:10px 16px; border-bottom:1px solid #eef4ee; }
+    tr:hover { background:#f6faf6; }
+    .actions { display:flex; gap:8px; }
+    .actions button { background:transparent; border:none; cursor:pointer; font-size:18px; padding:4px 8px; border-radius:6px; transition:0.2s; }
+    .actions button.edit { color:#2d6a4f; }
+    .actions button.edit:hover { background:#e0f0e0; }
+    .actions button.delete { color:#b03a2e; }
+    .actions button.delete:hover { background:#f0e0e0; }
+    .no-data { text-align:center; padding:40px; color:#7a8a7a; font-size:16px; }
+    /* modal */
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:1000; }
+    .modal.show { display:flex; }
+    .modal-content { background:#fff; border-radius:20px; padding:32px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+    .modal-content h2 { margin-bottom:16px; color:#1a3d2e; }
+    .modal-content label { display:block; margin:10px 0 4px; font-weight:600; color:#2a4a3a; }
+    .modal-content input, .modal-content select { width:100%; padding:10px 14px; border:1px solid #ccc; border-radius:10px; font-size:15px; }
+    .modal-content .btn-group { display:flex; gap:12px; margin-top:20px; justify-content:flex-end; }
+    .modal-content .btn-group button { padding:10px 28px; border:none; border-radius:30px; font-weight:600; cursor:pointer; }
+    .modal-content .btn-group .save { background:#2d6a4f; color:#fff; }
+    .modal-content .btn-group .save:hover { background:#1a4d2e; }
+    .modal-content .btn-group .cancel { background:#e0e8e0; color:#2a4a3a; }
+    .modal-content .btn-group .cancel:hover { background:#d0d8d0; }
+    .footer { text-align:center; padding:16px; color:#5a6a5a; font-size:14px; border-top:1px solid #dce4dc; background:#fff; margin-top:20px; }
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:10px; }
+    .toast { padding:14px 28px; border-radius:12px; color:#fff; font-weight:500; font-size:14px; box-shadow:0 8px 24px rgba(0,0,0,0.15); animation:slideUp 0.3s ease; }
+    .toast.success { background:#2d6a4f; }
+    .toast.error { background:#c0392b; }
+    .toast.info { background:#2c6f9b; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .loading-overlay { position:fixed; inset:0; background:rgba(255,255,255,0.7); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9998; font-size:18px; color:#1a3d2e; font-weight:600; }
+    .loading-overlay.hidden { display:none; }
+    .spinner { width:40px; height:40px; border:4px solid #dce4dc; border-top-color:#2d6a4f; border-radius:50%; animation:spin 0.8s linear infinite; margin-right:14px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media (max-width:600px) { .header { padding:12px 16px; } .top-bar { flex-direction:column; } table { font-size:13px; } td,th { padding:8px 10px; } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>📚 Perpustakaan Andi Rohana Latunreng</h1>
+    <a href="index.html" class="back">← Kembali</a>
+  </header>
+  <div class="container">
+    <div class="top-bar">
+      <input type="text" id="searchInput" placeholder="Cari buku... (judul, penulis)" />
+      <button class="admin-btn" id="adminToggle">🔐 Admin</button>
+    </div>
+    <div id="tableWrapper">
+      <table>
+        <thead><tr><th>No</th><th>Judul</th><th>Penulis</th><th>Penerbit</th><th>Tahun</th><th>Jumlah</th><th style="display:none;" class="admin-col">Aksi</th></tr></thead>
+        <tbody id="bookList"></tbody>
+      </table>
+    </div>
+    <div id="emptyMessage" class="no-data">Belum ada data buku. Masuk sebagai admin untuk menambahkan.</div>
+  </div>
+  <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Tambah Buku</h2>
+      <input type="hidden" id="editId" />
+      <label>Judul Buku</label><input type="text" id="f_judul" />
+      <label>Penulis</label><input type="text" id="f_penulis" />
+      <label>Penerbit</label><input type="text" id="f_penerbit" />
+      <label>Tahun Terbit</label><input type="number" id="f_tahun" />
+      <label>Jumlah</label><input type="number" id="f_jumlah" />
+      <div class="btn-group"><button class="cancel" id="modalCancel">Batal</button><button class="save" id="modalSave">Simpan</button></div>
+    </div>
+  </div>
+
+  <!-- Toast & Loading -->
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="loading-overlay hidden" id="loadingOverlay"><div class="spinner"></div><span>Memuat…</span></div>
+
+  <script>
+    // Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
+      authDomain: "sarprasnbs.firebaseapp.com",
+      projectId: "sarprasnbs",
+      storageBucket: "sarprasnbs.firebasestorage.app",
+      messagingSenderId: "604042513677",
+      appId: "1:604042513677:web:3d186ae98c9dd8fe09f444"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Helpers
+    function showToast(msg, type='info') { const c=document.getElementById('toastContainer'); const t=document.createElement('div'); t.className='toast '+type; t.textContent=msg; c.appendChild(t); setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300)},3500); }
+    function showLoading(show){ document.getElementById('loadingOverlay').classList.toggle('hidden',!show); }
+
+    // Admin state
+    let isAdmin = false;
+    const ADMIN_PASS = 'sarpras123';
+
+    // DOM refs
+    const tbody = document.getElementById('bookList');
+    const searchInput = document.getElementById('searchInput');
+    const adminToggle = document.getElementById('adminToggle');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const editId = document.getElementById('editId');
+    const f_judul = document.getElementById('f_judul');
+    const f_penulis = document.getElementById('f_penulis');
+    const f_penerbit = document.getElementById('f_penerbit');
+    const f_tahun = document.getElementById('f_tahun');
+    const f_jumlah = document.getElementById('f_jumlah');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalSave = document.getElementById('modalSave');
+    const emptyMsg = document.getElementById('emptyMessage');
+
+    // Collection reference
+    const bukuRef = db.collection('buku');
+
+    // Real-time listener
+    let unsubscribe = null;
+
+    function loadBooks(filter='') {
+      if (unsubscribe) unsubscribe();
+      let query = bukuRef.orderBy('judul');
+      unsubscribe = query.onSnapshot(snapshot => {
+        const books = [];
+        snapshot.forEach(doc => { books.push({ id: doc.id, ...doc.data() }); });
+        renderBooks(books, filter);
+      }, err => { showToast('Gagal memuat data: '+err.message, 'error'); });
+    }
+
+    function renderBooks(books, filter='') {
+      const f = filter.toLowerCase().trim();
+      let filtered = books;
+      if (f) {
+        filtered = books.filter(b => 
+          (b.judul && b.judul.toLowerCase().includes(f)) ||
+          (b.penulis && b.penulis.toLowerCase().includes(f)) ||
+          (b.penerbit && b.penerbit.toLowerCase().includes(f))
+        );
+      }
+      tbody.innerHTML = '';
+      if (filtered.length === 0) {
+        emptyMsg.style.display = 'block';
+        // still show admin actions if admin
+        return;
+      }
+      emptyMsg.style.display = 'none';
+      filtered.forEach((b, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${b.judul || ''}</td>
+          <td>${b.penulis || ''}</td>
+          <td>${b.penerbit || ''}</td>
+          <td>${b.tahun || ''}</td>
+          <td>${b.jumlah || 0}</td>
+          <td style="display:${isAdmin?'table-cell':'none'};" class="admin-col">
+            <div class="actions">
+              <button class="edit" data-id="${b.id}" title="Edit">✏️</button>
+              <button class="delete" data-id="${b.id}" title="Hapus">🗑️</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      // Attach event listeners to edit/delete if admin
+      if (isAdmin) {
+        document.querySelectorAll('.edit').forEach(btn => btn.addEventListener('click', (e) => openEdit(e.target.closest('button').dataset.id)));
+        document.querySelectorAll('.delete').forEach(btn => btn.addEventListener('click', (e) => deleteBook(e.target.closest('button').dataset.id)));
+      }
+    }
+
+    // Admin toggle
+    adminToggle.addEventListener('click', () => {
+      if (isAdmin) {
+        isAdmin = false;
+        adminToggle.textContent = '🔐 Admin';
+        adminToggle.classList.remove('active');
+        document.querySelectorAll('.admin-col').forEach(el => el.style.display = 'none');
+        showToast('Mode admin dinonaktifkan', 'info');
+        return;
+      }
+      const pass = prompt('Masukkan password admin:');
+      if (pass === ADMIN_PASS) {
+        isAdmin = true;
+        adminToggle.textContent = '🔓 Admin (aktif)';
+        adminToggle.classList.add('active');
+        document.querySelectorAll('.admin-col').forEach(el => el.style.display = 'table-cell');
+        showToast('Mode admin aktif', 'success');
+        // Re-render to show action buttons
+        loadBooks(searchInput.value);
+      } else if (pass !== null) {
+        showToast('Password salah!', 'error');
+      }
+    });
+
+    // Modal functions
+    function openModal(title, data={}) {
+      modalTitle.textContent = title;
+      editId.value = data.id || '';
+      f_judul.value = data.judul || '';
+      f_penulis.value = data.penulis || '';
+      f_penerbit.value = data.penerbit || '';
+      f_tahun.value = data.tahun || '';
+      f_jumlah.value = data.jumlah || '';
+      modal.classList.add('show');
+    }
+
+    function closeModal() { modal.classList.remove('show'); }
+
+    modalCancel.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    modalSave.addEventListener('click', async () => {
+      const id = editId.value;
+      const data = {
+        judul: f_judul.value.trim(),
+        penulis: f_penulis.value.trim(),
+        penerbit: f_penerbit.value.trim(),
+        tahun: parseInt(f_tahun.value) || 0,
+        jumlah: parseInt(f_jumlah.value) || 0
+      };
+      if (!data.judul) { showToast('Judul buku wajib diisi', 'error'); return; }
+      try {
+        showLoading(true);
+        if (id) {
+          await bukuRef.doc(id).update(data);
+          showToast('Buku berhasil diperbarui', 'success');
+        } else {
+          await bukuRef.add(data);
+          showToast('Buku berhasil ditambahkan', 'success');
+        }
+        closeModal();
+        loadBooks(searchInput.value);
+      } catch (err) { showToast('Gagal menyimpan: '+err.message, 'error'); } finally { showLoading(false); }
+    });
+
+    function openEdit(id) {
+      bukuRef.doc(id).get().then(doc => {
+        if (doc.exists) openModal('Edit Buku', { id: doc.id, ...doc.data() });
+        else showToast('Data tidak ditemukan', 'error');
+      }).catch(err => showToast('Error: '+err.message, 'error'));
+    }
+
+    function deleteBook(id) {
+      if (!confirm('Yakin ingin menghapus buku ini?')) return;
+      bukuRef.doc(id).delete().then(() => {
+        showToast('Buku dihapus', 'success');
+        loadBooks(searchInput.value);
+      }).catch(err => showToast('Gagal hapus: '+err.message, 'error'));
+    }
+
+    // Search
+    searchInput.addEventListener('input', () => loadBooks(searchInput.value));
+
+    // Add button (admin only) – we'll add a floating button when admin active?
+    // Alternatively, we can add a "Tambah" button in top bar when admin.
+    // Add a plus button in top bar
+    const topBar = document.querySelector('.top-bar');
+    const addBtn = document.createElement('button');
+    addBtn.textContent = '➕ Tambah Buku';
+    addBtn.className = 'admin-btn';
+    addBtn.style.display = 'none';
+    addBtn.addEventListener('click', () => openModal('Tambah Buku'));
+    topBar.appendChild(addBtn);
+
+    // Observe admin state to show add button
+    const origAdminToggle = adminToggle.click;
+    adminToggle.addEventListener('click', () => {
+      // we already handle toggle, but we need to show/hide addBtn
+      setTimeout(() => {
+        addBtn.style.display = isAdmin ? 'inline-block' : 'none';
+      }, 50);
+    });
+
+    // Initial load
+    loadBooks();
+
+    // Also show add button if admin from previous session? we'll check localStorage
+    // Not needed, we start non-admin.
+  </script>
+</body>
+</html>
