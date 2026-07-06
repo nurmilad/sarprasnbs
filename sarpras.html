@@ -10,7 +10,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
   </script>
   <style>
-    /* reset & base */
     * {
       margin: 0;
       padding: 0;
@@ -23,8 +22,6 @@
       display: flex;
       flex-direction: column;
     }
-
-    /* header */
     .header {
       background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
       color: #fff;
@@ -50,7 +47,6 @@
       background: rgba(255, 255, 255, 0.1);
     }
 
-    /* container */
     .container {
       flex: 1;
       max-width: 1200px;
@@ -66,15 +62,31 @@
       gap: 12px;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
+    }
+    .top-bar .left-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      flex: 1;
+      align-items: center;
     }
     .top-bar input {
       padding: 10px 18px;
       border: 1px solid #ccc;
       border-radius: 30px;
       flex: 1;
-      min-width: 200px;
+      min-width: 160px;
       font-size: 15px;
+    }
+    .top-bar select {
+      padding: 10px 16px;
+      border: 1px solid #ccc;
+      border-radius: 30px;
+      font-size: 15px;
+      background: #fff;
+      min-width: 150px;
+      cursor: pointer;
     }
     .top-bar .admin-btn {
       padding: 10px 24px;
@@ -85,6 +97,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: 0.2s;
+      white-space: nowrap;
     }
     .top-bar .admin-btn:hover {
       background: #1a4d2e;
@@ -97,6 +110,27 @@
     }
     .top-bar .def-btn:hover {
       background: #3a4a5a;
+    }
+    .top-bar .reset-filter {
+      background: transparent;
+      border: none;
+      color: #b03a2e;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 8px;
+    }
+    .top-bar .reset-filter:hover {
+      text-decoration: underline;
+    }
+    .filter-info {
+      font-size: 14px;
+      color: #3a5a3a;
+      background: #e8f0e8;
+      padding: 4px 16px;
+      border-radius: 30px;
+      display: inline-block;
+      margin-right: 8px;
     }
 
     /* table */
@@ -117,7 +151,6 @@
       font-size: 13px;
       cursor: pointer;
       user-select: none;
-      position: relative;
       transition: background 0.15s;
     }
     th:hover {
@@ -142,7 +175,6 @@
       background: #f6faf6;
     }
 
-    /* actions */
     .actions {
       display: flex;
       gap: 8px;
@@ -254,7 +286,6 @@
       background: #d0d8d0;
     }
 
-    /* footer */
     .footer {
       text-align: center;
       padding: 16px;
@@ -265,7 +296,7 @@
       margin-top: 20px;
     }
 
-    /* toast */
+    /* toast & loading */
     .toast-container {
       position: fixed;
       bottom: 24px;
@@ -304,7 +335,6 @@
       }
     }
 
-    /* loading overlay */
     .loading-overlay {
       position: fixed;
       inset: 0;
@@ -336,12 +366,15 @@
       }
     }
 
-    /* responsive */
     @media (max-width: 600px) {
       .header {
         padding: 12px 16px;
       }
       .top-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .top-bar .left-group {
         flex-direction: column;
       }
       table {
@@ -362,22 +395,30 @@
 </head>
 <body>
 
-  <!-- ─── HEADER ─── -->
   <header class="header">
     <h1>🏗️ Sarpras NBS</h1>
     <div><a href="index.html" class="back">← Kembali</a></div>
   </header>
 
-  <!-- ─── MAIN ─── -->
   <div class="container">
     <!-- top bar -->
     <div class="top-bar">
-      <input type="text" id="searchInput" placeholder="Cari barang, ruang, gedung..." />
+      <div class="left-group">
+        <input type="text" id="searchInput" placeholder="Cari barang, ruang, gedung..." />
+        <select id="filterRuang">
+          <option value="">🏢 Semua Ruang</option>
+        </select>
+        <span id="filterInfo" class="filter-info" style="display:none;"></span>
+        <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
+      </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="admin-btn" id="adminToggle">🔐 Admin</button>
         <button class="admin-btn def-btn" id="defBtn">📋 Definisi</button>
       </div>
     </div>
+
+    <!-- tambah button (akan dipindah oleh JS) -->
+    <div id="addButtonContainer" style="margin-bottom:16px;"></div>
 
     <!-- table -->
     <div id="tableWrapper">
@@ -404,10 +445,9 @@
     <div id="emptyMessage" class="no-data">Belum ada data inventaris. Masuk sebagai admin untuk menambahkan.</div>
   </div>
 
-  <!-- ─── FOOTER ─── -->
   <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
 
-  <!-- ─── MODAL ─── -->
+  <!-- MODAL -->
   <div class="modal" id="modal">
     <div class="modal-content">
       <h2 id="modalTitle">Tambah Barang</h2>
@@ -432,14 +472,12 @@
     </div>
   </div>
 
-  <!-- ─── TOAST & LOADING ─── -->
   <div class="toast-container" id="toastContainer"></div>
   <div class="loading-overlay hidden" id="loadingOverlay">
     <div class="spinner"></div>
     <span>Memuat…</span>
   </div>
 
-  <!-- ─── SCRIPT ─── -->
   <script>
     // ========================================
     // FIREBASE CONFIG
@@ -487,10 +525,18 @@
     let sortAsc = true;
 
     // ========================================
+    // FILTER STATE
+    // ========================================
+    let filterRuang = '';
+
+    // ========================================
     // DOM REFS
     // ========================================
     const tbody = document.getElementById('inventoryList');
     const searchInput = document.getElementById('searchInput');
+    const filterRuangSelect = document.getElementById('filterRuang');
+    const filterInfo = document.getElementById('filterInfo');
+    const resetFilterBtn = document.getElementById('resetFilterBtn');
     const adminToggle = document.getElementById('adminToggle');
     const defBtn = document.getElementById('defBtn');
     const modal = document.getElementById('modal');
@@ -510,14 +556,16 @@
     const modalCancel = document.getElementById('modalCancel');
     const modalSave = document.getElementById('modalSave');
     const emptyMsg = document.getElementById('emptyMessage');
+    const addButtonContainer = document.getElementById('addButtonContainer');
 
     const inventoryRef = db.collection('inventory');
     let unsubscribe = null;
-    let allItems = []; // store all items for sorting
+    let allItems = [];
     let definitions = { ruangan: [], gedung: [], jenis: [] };
+    let ruangList = [];
 
     // ========================================
-    // LOAD DEFINITIONS FOR DROPDOWNS
+    // LOAD DEFINITIONS
     // ========================================
     async function loadDefinitions() {
       try {
@@ -526,10 +574,12 @@
           db.collection('gedung').get(),
           db.collection('jenis').get()
         ]);
+        ruangList = ruangSnap.docs.map(d => d.data().nama).filter(Boolean).sort();
         definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
         definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
         definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
         populateDropdowns();
+        populateFilterRuang();
       } catch (err) {
         console.error('Load definitions error:', err);
       }
@@ -565,10 +615,24 @@
       });
     }
 
+    function populateFilterRuang() {
+      filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
+      ruangList.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r;
+        opt.textContent = r;
+        filterRuangSelect.appendChild(opt);
+      });
+      // restore previous selection if any
+      if (filterRuang) {
+        filterRuangSelect.value = filterRuang;
+      }
+    }
+
     // ========================================
-    // LOAD INVENTORY (REAL-TIME)
+    // LOAD INVENTORY
     // ========================================
-    function loadInventory(filter = '') {
+    function loadInventory() {
       if (unsubscribe) unsubscribe();
       let query = inventoryRef.orderBy('namaBarang');
       unsubscribe = query.onSnapshot(snapshot => {
@@ -576,32 +640,41 @@
         snapshot.forEach(doc => {
           allItems.push({ id: doc.id, ...doc.data() });
         });
-        applySortAndFilter(filter);
+        applyFiltersAndSort();
       }, err => {
         showToast('Gagal memuat data: ' + err.message, 'error');
       });
     }
 
     // ========================================
-    // SORT & FILTER
+    // FILTER & SORT
     // ========================================
-    function applySortAndFilter(filter) {
-      const f = filter.toLowerCase().trim();
+    function applyFiltersAndSort() {
+      const search = searchInput.value.toLowerCase().trim();
+      const ruangFilter = filterRuangSelect.value;
+
       let filtered = allItems;
-      if (f) {
-        filtered = allItems.filter(item =>
-          (item.namaBarang && item.namaBarang.toLowerCase().includes(f)) ||
-          (item.ruang && item.ruang.toLowerCase().includes(f)) ||
-          (item.lokasiGedung && item.lokasiGedung.toLowerCase().includes(f)) ||
-          (item.jenis && item.jenis.toLowerCase().includes(f))
+
+      // Filter ruang
+      if (ruangFilter) {
+        filtered = filtered.filter(item => item.ruang === ruangFilter);
+      }
+
+      // Filter search
+      if (search) {
+        filtered = filtered.filter(item =>
+          (item.namaBarang && item.namaBarang.toLowerCase().includes(search)) ||
+          (item.ruang && item.ruang.toLowerCase().includes(search)) ||
+          (item.lokasiGedung && item.lokasiGedung.toLowerCase().includes(search)) ||
+          (item.jenis && item.jenis.toLowerCase().includes(search))
         );
       }
+
       // Sort
       if (sortField) {
         filtered.sort((a, b) => {
           let valA = a[sortField] ?? '';
           let valB = b[sortField] ?? '';
-          // handle numeric fields
           if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(sortField)) {
             valA = Number(valA) || 0;
             valB = Number(valB) || 0;
@@ -613,8 +686,11 @@
           }
         });
       }
+
       renderItems(filtered);
       updateSortIcons();
+      updateFilterInfo(ruangFilter);
+      updateAddButton(ruangFilter);
     }
 
     // ========================================
@@ -681,21 +757,76 @@
     }
 
     // ========================================
+    // FILTER INFO
+    // ========================================
+    function updateFilterInfo(ruang) {
+      if (ruang) {
+        filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
+        filterInfo.style.display = 'inline-block';
+        resetFilterBtn.style.display = 'inline-block';
+      } else {
+        filterInfo.style.display = 'none';
+        resetFilterBtn.style.display = 'none';
+      }
+    }
+
+    // ========================================
+    // ADD BUTTON
+    // ========================================
+    function updateAddButton(ruang) {
+      if (!isAdmin) {
+        addButtonContainer.innerHTML = '';
+        return;
+      }
+      let label = '➕ Tambah Barang';
+      if (ruang) {
+        label = `➕ Tambah Barang di ${ruang}`;
+      }
+      addButtonContainer.innerHTML = `<button class="admin-btn" id="addBtn">${label}</button>`;
+      document.getElementById('addBtn').addEventListener('click', () => {
+        if (ruang) {
+          openModal('Tambah Barang', { ruang: ruang });
+        } else {
+          openModal('Tambah Barang');
+        }
+      });
+    }
+
+    // ========================================
     // HEADER CLICK -> SORT
     // ========================================
     document.querySelectorAll('th[data-field]').forEach(th => {
       th.addEventListener('click', () => {
         const field = th.dataset.field;
-        if (field === 'no') return; // no sorting for "No"
+        if (field === 'no') return;
         if (sortField === field) {
           sortAsc = !sortAsc;
         } else {
           sortField = field;
           sortAsc = true;
         }
-        applySortAndFilter(searchInput.value);
+        applyFiltersAndSort();
       });
     });
+
+    // ========================================
+    // FILTER CHANGE
+    // ========================================
+    filterRuangSelect.addEventListener('change', () => {
+      filterRuang = filterRuangSelect.value;
+      applyFiltersAndSort();
+    });
+
+    resetFilterBtn.addEventListener('click', () => {
+      filterRuangSelect.value = '';
+      filterRuang = '';
+      applyFiltersAndSort();
+    });
+
+    // ========================================
+    // SEARCH
+    // ========================================
+    searchInput.addEventListener('input', applyFiltersAndSort);
 
     // ========================================
     // ADMIN TOGGLE
@@ -707,7 +838,7 @@
         adminToggle.classList.remove('active');
         document.querySelectorAll('.admin-col').forEach(el => el.style.display = 'none');
         showToast('Mode admin dinonaktifkan', 'info');
-        applySortAndFilter(searchInput.value);
+        applyFiltersAndSort();
         return;
       }
       const pass = prompt('Masukkan password admin:');
@@ -717,7 +848,7 @@
         adminToggle.classList.add('active');
         document.querySelectorAll('.admin-col').forEach(el => el.style.display = 'table-cell');
         showToast('Mode admin aktif', 'success');
-        applySortAndFilter(searchInput.value);
+        applyFiltersAndSort();
       } else if (pass !== null) {
         showToast('Password salah!', 'error');
       }
@@ -792,7 +923,7 @@
           showToast('Data berhasil ditambahkan', 'success');
         }
         closeModal();
-        // reload will happen via snapshot
+        // refresh via snapshot
       } catch (err) {
         showToast('Gagal menyimpan: ' + err.message, 'error');
       } finally {
@@ -811,39 +942,21 @@
       if (!confirm('Yakin ingin menghapus data ini?')) return;
       inventoryRef.doc(id).delete().then(() => {
         showToast('Data dihapus', 'success');
-        // refresh via snapshot
       }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
     }
 
     // ========================================
-    // SEARCH
-    // ========================================
-    searchInput.addEventListener('input', () => {
-      applySortAndFilter(searchInput.value);
-    });
-
-    // ========================================
-    // TAMBAH BUTTON (ADMIN ONLY)
-    // ========================================
-    const topBar = document.querySelector('.top-bar');
-    const addBtn = document.createElement('button');
-    addBtn.textContent = '➕ Tambah Barang';
-    addBtn.className = 'admin-btn';
-    addBtn.style.display = 'none';
-    addBtn.addEventListener('click', () => openModal('Tambah Barang'));
-    topBar.appendChild(addBtn);
-
-    adminToggle.addEventListener('click', () => {
-      setTimeout(() => {
-        addBtn.style.display = isAdmin ? 'inline-block' : 'none';
-      }, 50);
-    });
-
-    // ========================================
-    // INITIAL LOAD
+    // INIT
     // ========================================
     loadDefinitions();
     loadInventory();
+
+    // admin toggle also triggers add button update
+    adminToggle.addEventListener('click', () => {
+      setTimeout(() => {
+        applyFiltersAndSort();
+      }, 100);
+    });
   </script>
 </body>
 </html>
