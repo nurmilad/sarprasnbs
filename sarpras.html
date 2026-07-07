@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
     </script>
     <style>
-        /* (CSS sama seperti sebelumnya, tidak diubah) */
+        /* (CSS sama seperti sebelumnya) */
         * {
             margin: 0;
             padding: 0;
@@ -634,6 +634,29 @@
         let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [], barang: [] };
         let ruangList = [];
 
+        // Daftar lengkap opsi untuk autocomplete
+        let allBarangNames = [];
+        let allSumberDanaNames = [];
+
+        // ========================================
+        // FUNGSI AUTOFILTER DATALIST
+        // ========================================
+        function updateDatalist(inputElement, datalistElement, allOptions) {
+            const value = inputElement.value.toLowerCase().trim();
+            let filtered = allOptions;
+            if (value) {
+                filtered = allOptions.filter(name => name.toLowerCase().includes(value));
+            }
+            // Urutkan agar yang cocok di awal (opsional)
+            filtered.sort((a, b) => a.localeCompare(b));
+            datalistElement.innerHTML = '';
+            filtered.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                datalistElement.appendChild(opt);
+            });
+        }
+
         // ========================================
         // LOAD DEFINITIONS
         // ========================================
@@ -653,11 +676,24 @@
                 definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
 
-                console.log('Barang definitions:', definitions.barang); // DEBUG
+                // Simpan daftar nama untuk autocomplete
+                allBarangNames = definitions.barang.map(b => b.nama).filter(Boolean).sort();
+                allSumberDanaNames = definitions.sumberDana.map(s => s.nama).filter(Boolean).sort();
 
                 populateDropdowns();
                 populateFilterRuang();
-                populateDatalists();
+                // Isi datalist dengan semua opsi (saat pertama kali)
+                updateDatalist(f_nama, barangList, allBarangNames);
+                updateDatalist(f_sumberDana, sumberDanaList, allSumberDanaNames);
+
+                // Pasang event listener untuk filter dinamis
+                f_nama.addEventListener('input', function() {
+                    updateDatalist(this, barangList, allBarangNames);
+                });
+                f_sumberDana.addEventListener('input', function() {
+                    updateDatalist(this, sumberDanaList, allSumberDanaNames);
+                });
+
             } catch (err) {
                 console.error('Load definitions error:', err);
                 showToast('Gagal memuat definisi: ' + err.message, 'error');
@@ -688,24 +724,6 @@
                 opt.textContent = j.nama;
                 f_jenis.appendChild(opt);
             });
-        }
-
-        function populateDatalists() {
-            // Barang
-            barangList.innerHTML = '';
-            definitions.barang.forEach(b => {
-                const opt = document.createElement('option');
-                opt.value = b.nama;
-                barangList.appendChild(opt);
-            });
-            // Sumber Dana
-            sumberDanaList.innerHTML = '';
-            definitions.sumberDana.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.nama;
-                sumberDanaList.appendChild(opt);
-            });
-            console.log('Datalist barang diisi dengan', definitions.barang.length, 'item');
         }
 
         function populateFilterRuang() {
@@ -956,7 +974,6 @@
         // ========================================
         // MODAL
         // ========================================
-        // Fungsi untuk validasi input terhadap daftar
         function isValidOption(value, list) {
             return list.some(item => item.nama === value);
         }
@@ -975,6 +992,9 @@
             f_gedung.value = data.lokasiGedung || '';
             f_jenis.value = data.jenis || '';
             f_anggaran.value = data.anggaranSatuan || '';
+            // Saat modal dibuka, tampilkan semua opsi (tanpa filter)
+            updateDatalist(f_nama, barangList, allBarangNames);
+            updateDatalist(f_sumberDana, sumberDanaList, allSumberDanaNames);
             modal.classList.add('show');
         }
 
@@ -998,7 +1018,6 @@
                 f_nama.focus();
                 return;
             }
-            // Validasi: sumber dana harus ada di daftar sumber dana (opsional, jika diisi)
             if (sumberDana && !isValidOption(sumberDana, definitions.sumberDana)) {
                 showToast('Sumber dana harus dipilih dari daftar yang tersedia', 'error');
                 f_sumberDana.focus();
