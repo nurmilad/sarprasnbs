@@ -2,53 +2,58 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>Sarpras NBS - Nurmilad</title>
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
     </script>
     <style>
-        /* (CSS sama seperti sebelumnya) */
+        /* RESET & BASE */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f8faf8;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f4f7f4;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            font-size: 16px;
+            line-height: 1.5;
         }
+
+        /* HEADER */
         .header {
             background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
             color: #fff;
-            padding: 16px 32px;
+            padding: 14px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
         .header h1 {
-            font-size: 22px;
+            font-size: 20px;
+            font-weight: 600;
         }
         .header .right-group {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
         }
         .header .back {
             color: #fff;
             text-decoration: none;
             font-weight: 600;
-            padding: 6px 16px;
+            padding: 6px 14px;
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 30px;
+            font-size: 14px;
             transition: 0.2s;
         }
         .header .back:hover {
@@ -58,71 +63,102 @@
             background: #b03a2e;
             color: #fff;
             border: none;
-            padding: 6px 18px;
+            padding: 6px 16px;
             border-radius: 30px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
-            display: none;
             font-size: 14px;
-        }
-        .header .logout-btn:hover {
-            background: #8a2e24;
+            display: none;
         }
         .header .logout-btn.show {
             display: inline-block;
         }
+        .header .logout-btn:hover {
+            background: #8a2e24;
+        }
 
+        /* CONTAINER */
         .container {
             flex: 1;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 24px;
+            padding: 16px;
             width: 100%;
         }
 
+        /* TOP BAR - mobile friendly */
         .top-bar {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 12px;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         .top-bar .left-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            flex: 1;
+            gap: 10px;
             align-items: center;
         }
-        .top-bar input {
-            padding: 10px 18px;
+        .top-bar .left-group input,
+        .top-bar .left-group select {
+            flex: 1 1 100%;
+            padding: 12px 16px;
             border: 1px solid #ccc;
             border-radius: 30px;
-            flex: 1;
-            min-width: 160px;
-            font-size: 15px;
-        }
-        .top-bar select {
-            padding: 10px 16px;
-            border: 1px solid #ccc;
-            border-radius: 30px;
-            font-size: 15px;
+            font-size: 16px;
             background: #fff;
-            min-width: 150px;
+            min-width: 0;
+        }
+        .top-bar .left-group .filter-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            align-items: center;
+        }
+        .top-bar .left-group .filter-row select {
+            flex: 2;
+        }
+        .top-bar .left-group .filter-row .reset-filter {
+            background: transparent;
+            border: none;
+            color: #b03a2e;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 12px;
+            white-space: nowrap;
             cursor: pointer;
         }
+        .top-bar .left-group .filter-row .reset-filter:hover {
+            text-decoration: underline;
+        }
+        .filter-info {
+            font-size: 14px;
+            color: #3a5a3a;
+            background: #e8f0e8;
+            padding: 4px 16px;
+            border-radius: 30px;
+            display: inline-block;
+            margin-left: 4px;
+        }
+
+        .top-bar .right-group-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
         .top-bar .admin-btn {
-            padding: 10px 24px;
+            padding: 12px 24px;
             background: #2d6a4f;
             color: #fff;
             border: none;
             border-radius: 30px;
             font-weight: 600;
+            font-size: 16px;
             cursor: pointer;
             transition: 0.2s;
-            white-space: nowrap;
+            flex: 1 1 auto;
+            min-width: 120px;
         }
         .top-bar .admin-btn:hover {
             background: #1a4d2e;
@@ -136,54 +172,53 @@
         .top-bar .def-btn:hover {
             background: #3a4a5a;
         }
-        .top-bar .reset-filter {
-            background: transparent;
+
+        /* ADD BUTTON */
+        #addButtonContainer {
+            margin: 12px 0 16px;
+        }
+        #addButtonContainer .admin-btn {
+            width: 100%;
+            padding: 14px;
+            background: #2d6a4f;
+            color: #fff;
             border: none;
-            color: #b03a2e;
+            border-radius: 30px;
+            font-size: 18px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
-            padding: 4px 8px;
+            transition: 0.2s;
         }
-        .top-bar .reset-filter:hover {
-            text-decoration: underline;
-        }
-        .filter-info {
-            font-size: 14px;
-            color: #3a5a3a;
-            background: #e8f0e8;
-            padding: 4px 16px;
-            border-radius: 30px;
-            display: inline-block;
-            margin-right: 8px;
+        #addButtonContainer .admin-btn:hover {
+            background: #1a4d2e;
         }
 
+        /* TABLE / CARD VIEW */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
         table {
             width: 100%;
             border-collapse: collapse;
-            background: #fff;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            font-size: 14px;
+            min-width: 700px;
         }
         th {
             background: #eaf0ea;
-            padding: 12px 16px;
+            padding: 12px 12px;
             text-align: left;
             font-weight: 600;
             color: #1a3d2e;
-            font-size: 13px;
             cursor: pointer;
             user-select: none;
-            transition: background 0.15s;
-        }
-        th:hover {
-            background: #dce8dc;
+            white-space: nowrap;
         }
         th .sort-icon {
-            display: inline-block;
-            margin-left: 6px;
-            font-size: 12px;
+            margin-left: 4px;
             opacity: 0.6;
         }
         th .sort-icon.active {
@@ -191,17 +226,16 @@
             font-weight: bold;
         }
         td {
-            padding: 10px 16px;
+            padding: 10px 12px;
             border-bottom: 1px solid #eef4ee;
-            font-size: 14px;
+            vertical-align: middle;
         }
         tr:hover {
             background: #f6faf6;
         }
-
         .actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
         .actions button {
             background: transparent;
@@ -210,7 +244,6 @@
             font-size: 18px;
             padding: 4px 8px;
             border-radius: 6px;
-            transition: 0.2s;
         }
         .actions button.edit {
             color: #2d6a4f;
@@ -227,59 +260,107 @@
 
         .no-data {
             text-align: center;
-            padding: 40px;
+            padding: 40px 16px;
             color: #7a8a7a;
             font-size: 16px;
         }
 
+        /* MOBILE CARD STYLE (tampilan daftar untuk HP) */
+        @media (max-width: 600px) {
+            .table-wrapper {
+                background: transparent;
+                box-shadow: none;
+            }
+            table thead {
+                display: none;
+            }
+            table,
+            table tbody,
+            table tr,
+            table td {
+                display: block;
+                width: 100%;
+            }
+            table tr {
+                background: #fff;
+                border-radius: 16px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+                margin-bottom: 16px;
+                padding: 16px;
+                border: none;
+            }
+            table td {
+                border: none;
+                padding: 6px 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #f0f4f0;
+            }
+            table td:last-child {
+                border-bottom: none;
+            }
+            table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #1a3d2e;
+                flex: 1;
+            }
+            table td .actions {
+                justify-content: flex-end;
+            }
+            .admin-col {
+                display: block !important; /* akan dikontrol via JS, tapi biar tetap */
+            }
+        }
+
+        /* MODAL - full width mobile */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            padding: 16px;
         }
         .modal.show {
             display: flex;
         }
         .modal-content {
             background: #fff;
-            border-radius: 20px;
-            padding: 32px;
+            border-radius: 24px;
+            padding: 24px 20px;
             width: 100%;
-            max-width: 600px;
-            max-height: 90vh;
+            max-width: 500px;
+            max-height: 95vh;
             overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         .modal-content h2 {
             margin-bottom: 16px;
             color: #1a3d2e;
+            font-size: 22px;
         }
-        .modal-content .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .modal-content .form-grid .full {
-            grid-column: 1/3;
+        .modal-content .form-group {
+            margin-bottom: 16px;
         }
         .modal-content label {
             display: block;
-            margin: 8px 0 4px;
             font-weight: 600;
             color: #2a4a3a;
-            font-size: 14px;
+            font-size: 15px;
+            margin-bottom: 4px;
         }
         .modal-content input,
         .modal-content select {
             width: 100%;
-            padding: 10px 14px;
+            padding: 12px 14px;
             border: 1px solid #ccc;
-            border-radius: 10px;
-            font-size: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #fff;
         }
         .modal-content .btn-group {
             display: flex;
@@ -288,11 +369,13 @@
             justify-content: flex-end;
         }
         .modal-content .btn-group button {
-            padding: 10px 28px;
+            padding: 12px 28px;
             border: none;
             border-radius: 30px;
             font-weight: 600;
+            font-size: 16px;
             cursor: pointer;
+            flex: 1;
         }
         .modal-content .btn-group .save {
             background: #2d6a4f;
@@ -309,33 +392,28 @@
             background: #d0d8d0;
         }
 
-        .footer {
-            text-align: center;
-            padding: 16px;
-            color: #5a6a5a;
-            font-size: 14px;
-            border-top: 1px solid #dce4dc;
-            background: #fff;
-            margin-top: 20px;
-        }
-
+        /* TOAST */
         .toast-container {
             position: fixed;
             bottom: 24px;
-            right: 24px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 9999;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            width: 90%;
+            max-width: 400px;
         }
         .toast {
-            padding: 14px 28px;
+            padding: 14px 20px;
             border-radius: 12px;
             color: #fff;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 15px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             animation: slideUp 0.3s ease;
+            text-align: center;
         }
         .toast.success {
             background: #2d6a4f;
@@ -388,30 +466,14 @@
             }
         }
 
-        @media (max-width: 600px) {
-            .header {
-                padding: 12px 16px;
-            }
-            .top-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .top-bar .left-group {
-                flex-direction: column;
-            }
-            table {
-                font-size: 12px;
-            }
-            td,
-            th {
-                padding: 6px 8px;
-            }
-            .modal-content .form-grid {
-                grid-template-columns: 1fr;
-            }
-            .modal-content .form-grid .full {
-                grid-column: 1;
-            }
+        .footer {
+            text-align: center;
+            padding: 16px;
+            color: #5a6a5a;
+            font-size: 14px;
+            border-top: 1px solid #dce4dc;
+            background: #fff;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -426,24 +488,29 @@
     </header>
 
     <div class="container">
+        <!-- TOP BAR -->
         <div class="top-bar">
             <div class="left-group">
-                <input type="text" id="searchInput" placeholder="Cari barang, ruang, gedung..." />
-                <select id="filterRuang">
-                    <option value="">🏢 Semua Ruang</option>
-                </select>
+                <input type="text" id="searchInput" placeholder="🔍 Cari barang, ruang, gedung..." />
+                <div class="filter-row">
+                    <select id="filterRuang">
+                        <option value="">🏢 Semua Ruang</option>
+                    </select>
+                    <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
+                </div>
                 <span id="filterInfo" class="filter-info" style="display:none;"></span>
-                <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
             </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div class="right-group-btns">
                 <button class="admin-btn" id="adminToggle">🔐 Admin</button>
                 <button class="admin-btn def-btn" id="defBtn">📋 Definisi</button>
             </div>
         </div>
 
-        <div id="addButtonContainer" style="margin-bottom:16px;"></div>
+        <!-- TOMBOL TAMBAH -->
+        <div id="addButtonContainer"></div>
 
-        <div id="tableWrapper">
+        <!-- TABLE / CARD -->
+        <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
@@ -474,28 +541,51 @@
         <div class="modal-content">
             <h2 id="modalTitle">Tambah Barang</h2>
             <input type="hidden" id="editId" />
-            <div class="form-grid">
-                <!-- Nama Barang dengan autocomplete -->
-                <div class="full">
-                    <label>Nama Barang <span style="color:#b03a2e;">*</span></label>
-                    <input type="text" id="f_nama" list="barangList" placeholder="Ketik untuk mencari barang..." autocomplete="off" />
-                    <datalist id="barangList"></datalist>
-                </div>
-                <div><label>Jumlah</label><input type="number" id="f_jumlah" min="0" /></div>
-                <div><label>Tahun Perolehan</label><input type="number" id="f_tahun" min="1900" max="2099" /></div>
-                <!-- Sumber Dana dengan autocomplete -->
-                <div class="full">
-                    <label>Sumber Dana</label>
-                    <input type="text" id="f_sumberDana" list="sumberDanaList" placeholder="Ketik untuk mencari sumber dana..." autocomplete="off" />
-                    <datalist id="sumberDanaList"></datalist>
-                </div>
-                <div><label>Baik</label><input type="number" id="f_baik" min="0" /></div>
-                <div><label>Rusak Ringan</label><input type="number" id="f_ringan" min="0" /></div>
-                <div><label>Rusak Berat</label><input type="number" id="f_berat" min="0" /></div>
-                <div><label>Ruang</label><select id="f_ruang"><option value="">Pilih Ruang</option></select></div>
-                <div><label>Gedung</label><select id="f_gedung"><option value="">Pilih Gedung</option></select></div>
-                <div class="full"><label>Jenis</label><select id="f_jenis"><option value="">Pilih Jenis</option></select></div>
-                <div class="full"><label>Anggaran/Satuan</label><input type="text" id="f_anggaran" /></div>
+            <div class="form-group">
+                <label>Nama Barang <span style="color:#b03a2e;">*</span></label>
+                <input type="text" id="f_nama" list="barangList" placeholder="Ketik untuk mencari..." autocomplete="off" />
+                <datalist id="barangList"></datalist>
+            </div>
+            <div class="form-group">
+                <label>Jumlah</label>
+                <input type="number" id="f_jumlah" min="0" />
+            </div>
+            <div class="form-group">
+                <label>Tahun Perolehan</label>
+                <input type="number" id="f_tahun" min="1900" max="2099" />
+            </div>
+            <div class="form-group">
+                <label>Sumber Dana</label>
+                <input type="text" id="f_sumberDana" list="sumberDanaList" placeholder="Ketik untuk mencari..." autocomplete="off" />
+                <datalist id="sumberDanaList"></datalist>
+            </div>
+            <div class="form-group">
+                <label>Baik</label>
+                <input type="number" id="f_baik" min="0" />
+            </div>
+            <div class="form-group">
+                <label>Rusak Ringan</label>
+                <input type="number" id="f_ringan" min="0" />
+            </div>
+            <div class="form-group">
+                <label>Rusak Berat</label>
+                <input type="number" id="f_berat" min="0" />
+            </div>
+            <div class="form-group">
+                <label>Ruang</label>
+                <select id="f_ruang"><option value="">Pilih Ruang</option></select>
+            </div>
+            <div class="form-group">
+                <label>Gedung</label>
+                <select id="f_gedung"><option value="">Pilih Gedung</option></select>
+            </div>
+            <div class="form-group">
+                <label>Jenis</label>
+                <select id="f_jenis"><option value="">Pilih Jenis</option></select>
+            </div>
+            <div class="form-group">
+                <label>Anggaran/Satuan</label>
+                <input type="text" id="f_anggaran" />
             </div>
             <div class="btn-group">
                 <button class="cancel" id="modalCancel">Batal</button>
@@ -504,6 +594,7 @@
         </div>
     </div>
 
+    <!-- TOAST & LOADING -->
     <div class="toast-container" id="toastContainer"></div>
     <div class="loading-overlay hidden" id="loadingOverlay">
         <div class="spinner"></div>
@@ -511,9 +602,9 @@
     </div>
 
     <script>
-        // ========================================
+        // ============================================================
         // FIREBASE CONFIG
-        // ========================================
+        // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
             authDomain: "sarprasnbs.firebaseapp.com",
@@ -525,9 +616,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // ========================================
+        // ============================================================
         // HELPERS
-        // ========================================
+        // ============================================================
         function showToast(msg, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -544,12 +635,11 @@
             document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
         }
 
-        // ========================================
-        // ADMIN STATE (persisted in localStorage)
-        // ========================================
+        // ============================================================
+        // ADMIN SESSION
+        // ============================================================
         const ADMIN_PASS = 'sarpras123';
         const SESSION_KEY = 'nbs_admin_session';
-
         let isAdmin = false;
 
         function getAdminSession() {
@@ -588,16 +678,18 @@
             updateAddButton(ruangFilter);
         }
 
-        // ========================================
-        // SORT & FILTER STATE
-        // ========================================
+        // ============================================================
+        // STATE
+        // ============================================================
         let sortField = 'namaBarang';
         let sortAsc = true;
         let filterRuang = '';
+        let allItems = [];
+        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [], barang: [] };
+        let allBarangNames = [];
+        let allSumberDanaNames = [];
 
-        // ========================================
-        // DOM REFS
-        // ========================================
+        // DOM refs
         const tbody = document.getElementById('inventoryList');
         const searchInput = document.getElementById('searchInput');
         const filterRuangSelect = document.getElementById('filterRuang');
@@ -624,49 +716,38 @@
         const modalSave = document.getElementById('modalSave');
         const emptyMsg = document.getElementById('emptyMessage');
         const addButtonContainer = document.getElementById('addButtonContainer');
-
         const barangList = document.getElementById('barangList');
         const sumberDanaList = document.getElementById('sumberDanaList');
 
         const inventoryRef = db.collection('inventory');
         let unsubscribe = null;
-        let allItems = [];
-        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [], barang: [] };
-        let ruangList = [];
 
-        // Daftar lengkap opsi untuk autocomplete
-        let allBarangNames = [];
-        let allSumberDanaNames = [];
-
-        // ========================================
-        // FUNGSI AUTOFILTER DATALIST (diperbaiki)
-        // ========================================
+        // ============================================================
+        // AUTOCOMPLETE (datalist update)
+        // ============================================================
         function updateDatalist(inputElement, datalistElement, allOptions) {
             const value = inputElement.value.toLowerCase().trim();
             let filtered = allOptions;
 
             if (value) {
-                // Filter opsi yang mengandung teks yang diketik (case-insensitive)
+                // Cari yang mengandung teks, prioritaskan yang diawali
                 filtered = allOptions.filter(name =>
                     name.toLowerCase().includes(value)
                 );
-                // Urutkan agar yang paling cocok di awal
                 filtered.sort((a, b) => {
-                    const aLower = a.toLowerCase();
-                    const bLower = b.toLowerCase();
-                    const aStarts = aLower.startsWith(value);
-                    const bStarts = bLower.startsWith(value);
+                    const aLow = a.toLowerCase();
+                    const bLow = b.toLowerCase();
+                    const aStarts = aLow.startsWith(value);
+                    const bStarts = bLow.startsWith(value);
                     if (aStarts && !bStarts) return -1;
                     if (!aStarts && bStarts) return 1;
                     return a.localeCompare(b);
                 });
             } else {
-                // Jika kosong, tampilkan semua opsi, urutkan A-Z
                 filtered = [...allOptions].sort((a, b) => a.localeCompare(b));
             }
 
             datalistElement.innerHTML = '';
-            // Batasi jumlah opsi agar tidak terlalu banyak (maks 50)
             const maxOptions = 50;
             const toShow = filtered.slice(0, maxOptions);
             toShow.forEach(name => {
@@ -676,9 +757,26 @@
             });
         }
 
-        // ========================================
+        function setupAutocomplete(inputElement, datalistElement, allOptions) {
+            // Hapus listener lama jika ada
+            inputElement.removeEventListener('input', handleInput);
+            inputElement.removeEventListener('focus', handleFocus);
+
+            function handleInput() {
+                updateDatalist(inputElement, datalistElement, allOptions);
+            }
+
+            function handleFocus() {
+                updateDatalist(inputElement, datalistElement, allOptions);
+            }
+
+            inputElement.addEventListener('input', handleInput);
+            inputElement.addEventListener('focus', handleFocus);
+        }
+
+        // ============================================================
         // LOAD DEFINITIONS
-        // ========================================
+        // ============================================================
         async function loadDefinitions() {
             try {
                 const [ruangSnap, gedungSnap, jenisSnap, sumberSnap, barangSnap] = await Promise.all([
@@ -688,26 +786,25 @@
                     db.collection('sumber_dana').get(),
                     db.collection('barang').get()
                 ]);
-                ruangList = ruangSnap.docs.map(d => d.data().nama).filter(Boolean).sort();
+
                 definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
 
-                // Simpan daftar nama untuk autocomplete
                 allBarangNames = definitions.barang.map(b => b.nama).filter(Boolean).sort();
                 allSumberDanaNames = definitions.sumberDana.map(s => s.nama).filter(Boolean).sort();
 
+                // Populate dropdowns
                 populateDropdowns();
                 populateFilterRuang();
 
-                // Setup event listener untuk autocomplete (input & focus)
+                // Setup autocomplete
                 setupAutocomplete(f_nama, barangList, allBarangNames);
                 setupAutocomplete(f_sumberDana, sumberDanaList, allSumberDanaNames);
 
-                // Inisialisasi datalist dengan semua opsi (saat modal pertama dibuka akan diisi ulang)
-                // Tapi kita isi dulu agar saat user mengklik input, ada opsi
+                // Initial datalist
                 updateDatalist(f_nama, barangList, allBarangNames);
                 updateDatalist(f_sumberDana, sumberDanaList, allSumberDanaNames);
 
@@ -715,31 +812,6 @@
                 console.error('Load definitions error:', err);
                 showToast('Gagal memuat definisi: ' + err.message, 'error');
             }
-        }
-
-        // Fungsi helper untuk memasang event pada input autocomplete
-        function setupAutocomplete(inputElement, datalistElement, allOptions) {
-            // Event input: filter saat user mengetik
-            inputElement.removeEventListener('input', handleAutocompleteInput);
-            inputElement.removeEventListener('focus', handleAutocompleteFocus);
-
-            function handleAutocompleteInput() {
-                updateDatalist(inputElement, datalistElement, allOptions);
-            }
-
-            function handleAutocompleteFocus() {
-                // Saat input mendapat fokus, tampilkan semua opsi (agar user bisa memilih tanpa mengetik)
-                updateDatalist(inputElement, datalistElement, allOptions);
-            }
-
-            inputElement.addEventListener('input', handleAutocompleteInput);
-            inputElement.addEventListener('focus', handleAutocompleteFocus);
-
-            // Simpan referensi agar bisa dibersihkan jika diperlukan
-            inputElement._autocompleteCleanup = function() {
-                inputElement.removeEventListener('input', handleAutocompleteInput);
-                inputElement.removeEventListener('focus', handleAutocompleteFocus);
-            };
         }
 
         function populateDropdowns() {
@@ -769,21 +841,20 @@
         }
 
         function populateFilterRuang() {
+            const ruangNames = definitions.ruangan.map(r => r.nama).sort();
             filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
-            ruangList.forEach(r => {
+            ruangNames.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r;
                 opt.textContent = r;
                 filterRuangSelect.appendChild(opt);
             });
-            if (filterRuang) {
-                filterRuangSelect.value = filterRuang;
-            }
+            if (filterRuang) filterRuangSelect.value = filterRuang;
         }
 
-        // ========================================
+        // ============================================================
         // LOAD INVENTORY (REALTIME)
-        // ========================================
+        // ============================================================
         function loadInventory() {
             if (unsubscribe) unsubscribe();
             unsubscribe = inventoryRef.onSnapshot(snapshot => {
@@ -799,9 +870,9 @@
             });
         }
 
-        // ========================================
+        // ============================================================
         // FILTER & SORT
-        // ========================================
+        // ============================================================
         function applyFiltersAndSort() {
             const search = searchInput.value.toLowerCase().trim();
             const ruangFilter = filterRuangSelect.value;
@@ -822,7 +893,7 @@
                 );
             }
 
-            if (sortField) {
+            if (sortField && sortField !== 'no') {
                 filtered.sort((a, b) => {
                     let valA = a[sortField] ?? '';
                     let valB = b[sortField] ?? '';
@@ -844,9 +915,9 @@
             updateAddButton(ruangFilter);
         }
 
-        // ========================================
-        // RENDER
-        // ========================================
+        // ============================================================
+        // RENDER (dengan label untuk mobile)
+        // ============================================================
         function renderItems(items) {
             tbody.innerHTML = '';
             if (items.length === 0) {
@@ -857,28 +928,45 @@
 
             items.forEach((item, idx) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${idx + 1}</td>
-                    <td>${item.namaBarang || ''}</td>
-                    <td>${item.jumlahBarang || 0}</td>
-                    <td>${item.tahunPerolehan || ''}</td>
-                    <td>${item.asalPerolehan || ''}</td>
-                    <td>${item.baik || 0}</td>
-                    <td>${item.rusakRingan || 0}</td>
-                    <td>${item.rusakBerat || 0}</td>
-                    <td>${item.ruang || ''}</td>
-                    <td>${item.lokasiGedung || ''}</td>
-                    <td>${item.jenis || ''}</td>
-                    <td style="display:${isAdmin ? 'table-cell' : 'none'};" class="admin-col">
+                // Untuk mobile, kita tambahkan data-label pada setiap td
+                const fields = [
+                    { key: 'no', label: 'No' },
+                    { key: 'namaBarang', label: 'Nama Barang' },
+                    { key: 'jumlahBarang', label: 'Jumlah' },
+                    { key: 'tahunPerolehan', label: 'Tahun' },
+                    { key: 'asalPerolehan', label: 'Sumber Dana' },
+                    { key: 'baik', label: 'Baik' },
+                    { key: 'rusakRingan', label: 'Rusak Ringan' },
+                    { key: 'rusakBerat', label: 'Rusak Berat' },
+                    { key: 'ruang', label: 'Ruang' },
+                    { key: 'lokasiGedung', label: 'Gedung' },
+                    { key: 'jenis', label: 'Jenis' }
+                ];
+
+                let html = '';
+                fields.forEach((f, i) => {
+                    let value = item[f.key] ?? '';
+                    if (f.key === 'no') value = idx + 1;
+                    if (['jumlahBarang', 'baik', 'rusakRingan', 'rusakBerat'].includes(f.key)) value = Number(value) || 0;
+                    html += `<td data-label="${f.label}">${value}</td>`;
+                });
+
+                // Kolom aksi
+                const actionCol = `
+                    <td data-label="Aksi" class="admin-col" style="display:${isAdmin ? 'table-cell' : 'none'};">
                         <div class="actions">
                             <button class="edit" data-id="${item.id}" title="Edit">✏️</button>
                             <button class="delete" data-id="${item.id}" title="Hapus">🗑️</button>
                         </div>
                     </td>
                 `;
+                html += actionCol;
+
+                tr.innerHTML = html;
                 tbody.appendChild(tr);
             });
 
+            // Event listener untuk tombol edit/delete
             if (isAdmin) {
                 document.querySelectorAll('.edit').forEach(btn =>
                     btn.addEventListener('click', (e) => openEdit(e.target.closest('button').dataset.id))
@@ -889,9 +977,6 @@
             }
         }
 
-        // ========================================
-        // SORT ICONS
-        // ========================================
         function updateSortIcons() {
             document.querySelectorAll('th[data-field]').forEach(th => {
                 const field = th.dataset.field;
@@ -907,9 +992,6 @@
             });
         }
 
-        // ========================================
-        // FILTER INFO
-        // ========================================
         function updateFilterInfo(ruang) {
             if (ruang) {
                 filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
@@ -921,31 +1003,25 @@
             }
         }
 
-        // ========================================
+        // ============================================================
         // ADD BUTTON
-        // ========================================
+        // ============================================================
         function updateAddButton(ruang) {
             if (!isAdmin) {
                 addButtonContainer.innerHTML = '';
                 return;
             }
             let label = '➕ Tambah Barang';
-            if (ruang) {
-                label = `➕ Tambah Barang di ${ruang}`;
-            }
+            if (ruang) label = `➕ Tambah Barang di ${ruang}`;
             addButtonContainer.innerHTML = `<button class="admin-btn" id="addBtn">${label}</button>`;
             document.getElementById('addBtn').addEventListener('click', () => {
-                if (ruang) {
-                    openModal('Tambah Barang', { ruang: ruang });
-                } else {
-                    openModal('Tambah Barang');
-                }
+                openModal('Tambah Barang', ruang ? { ruang: ruang } : {});
             });
         }
 
-        // ========================================
-        // HEADER CLICK -> SORT
-        // ========================================
+        // ============================================================
+        // SORT HEADER CLICK
+        // ============================================================
         document.querySelectorAll('th[data-field]').forEach(th => {
             th.addEventListener('click', () => {
                 const field = th.dataset.field;
@@ -960,9 +1036,9 @@
             });
         });
 
-        // ========================================
-        // FILTER CHANGE
-        // ========================================
+        // ============================================================
+        // FILTER & SEARCH EVENTS
+        // ============================================================
         filterRuangSelect.addEventListener('change', () => {
             filterRuang = filterRuangSelect.value;
             applyFiltersAndSort();
@@ -974,14 +1050,11 @@
             applyFiltersAndSort();
         });
 
-        // ========================================
-        // SEARCH
-        // ========================================
         searchInput.addEventListener('input', applyFiltersAndSort);
 
-        // ========================================
-        // ADMIN TOGGLE
-        // ========================================
+        // ============================================================
+        // ADMIN TOGGLE & LOGOUT
+        // ============================================================
         adminToggle.addEventListener('click', () => {
             if (isAdmin) {
                 showToast('Anda sudah dalam mode admin. Klik Logout untuk keluar.', 'info');
@@ -997,14 +1070,8 @@
             }
         });
 
-        // ========================================
-        // LOGOUT
-        // ========================================
         logoutBtn.addEventListener('click', logoutAdmin);
 
-        // ========================================
-        // TOMBOL DEFINISI
-        // ========================================
         defBtn.addEventListener('click', () => {
             if (!isAdmin) {
                 showToast('Anda harus masuk sebagai admin terlebih dahulu', 'error');
@@ -1013,11 +1080,11 @@
             window.location.href = 'definisi.html';
         });
 
-        // ========================================
+        // ============================================================
         // MODAL
-        // ========================================
+        // ============================================================
         function isValidOption(value, list) {
-            if (!value) return true; // kosong dianggap valid (tidak wajib)
+            if (!value) return true;
             return list.some(item => item.nama.toLowerCase() === value.toLowerCase());
         }
 
@@ -1036,7 +1103,7 @@
             f_jenis.value = data.jenis || '';
             f_anggaran.value = data.anggaranSatuan || '';
 
-            // Tampilkan semua opsi di datalist saat modal dibuka
+            // Tampilkan semua opsi
             updateDatalist(f_nama, barangList, allBarangNames);
             updateDatalist(f_sumberDana, sumberDanaList, allSumberDanaNames);
 
@@ -1057,7 +1124,6 @@
             const namaBarang = f_nama.value.trim();
             const sumberDana = f_sumberDana.value.trim();
 
-            // Validasi: nama barang harus dipilih dari daftar yang tersedia (case-insensitive)
             if (!isValidOption(namaBarang, definitions.barang)) {
                 showToast('Nama barang harus dipilih dari daftar yang tersedia', 'error');
                 f_nama.focus();
@@ -1070,7 +1136,7 @@
             }
 
             const data = {
-                namaBarang: namaBarang,
+                namaBarang,
                 jumlahBarang: parseInt(f_jumlah.value) || 0,
                 tahunPerolehan: parseInt(f_tahun.value) || 0,
                 asalPerolehan: sumberDana,
@@ -1114,9 +1180,9 @@
             }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
         }
 
-        // ========================================
+        // ============================================================
         // INIT
-        // ========================================
+        // ============================================================
         isAdmin = getAdminSession();
         updateAdminUI();
 
@@ -1127,9 +1193,8 @@
             showToast('Gagal inisialisasi: ' + err.message, 'error');
         });
 
-        setTimeout(() => {
-            updateAdminUI();
-        }, 500);
+        setTimeout(() => updateAdminUI(), 500);
     </script>
+
 </body>
 </html>
