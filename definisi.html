@@ -2,233 +2,129 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>Sarpras NBS - Nurmilad</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Definisi - Nurmilad</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
     </script>
     <style>
-        /* RESET & BASE */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f4f7f4;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f8faf8;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            font-size: 16px;
-            line-height: 1.5;
         }
-
-        /* HEADER */
         .header {
             background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
             color: #fff;
-            padding: 14px 20px;
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 8px;
         }
         .header h1 {
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .header .right-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            font-size: 22px;
         }
         .header .back {
             color: #fff;
             text-decoration: none;
             font-weight: 600;
-            padding: 6px 14px;
+            padding: 6px 16px;
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 30px;
-            font-size: 14px;
             transition: 0.2s;
         }
         .header .back:hover {
             background: rgba(255, 255, 255, 0.1);
         }
-        .header .logout-btn {
-            background: #b03a2e;
-            color: #fff;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            display: none;
-        }
-        .header .logout-btn.show {
-            display: inline-block;
-        }
-        .header .logout-btn:hover {
-            background: #8a2e24;
-        }
-
-        /* CONTAINER */
         .container {
             flex: 1;
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 16px;
+            padding: 24px;
             width: 100%;
         }
-
-        /* TOP BAR - mobile friendly */
-        .top-bar {
+        .tabs {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .top-bar .left-group {
-            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #dce4dc;
             flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
         }
-        .top-bar .left-group input,
-        .top-bar .left-group select {
-            flex: 1 1 100%;
-            padding: 12px 16px;
-            border: 1px solid #ccc;
-            border-radius: 30px;
-            font-size: 16px;
-            background: #fff;
-            min-width: 0;
-        }
-        .top-bar .left-group .filter-row {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            align-items: center;
-        }
-        .top-bar .left-group .filter-row select {
-            flex: 2;
-        }
-        .top-bar .left-group .filter-row .reset-filter {
+        .tabs button {
+            padding: 10px 24px;
             background: transparent;
             border: none;
-            color: #b03a2e;
+            border-bottom: 3px solid transparent;
             font-weight: 600;
-            font-size: 14px;
-            padding: 8px 12px;
-            white-space: nowrap;
+            font-size: 15px;
             cursor: pointer;
+            color: #5a6a5a;
+            transition: 0.2s;
         }
-        .top-bar .left-group .filter-row .reset-filter:hover {
-            text-decoration: underline;
+        .tabs button.active {
+            color: #1a3d2e;
+            border-bottom-color: #2d6a4f;
+            background: #f0f6f0;
+            border-radius: 8px 8px 0 0;
         }
-        .filter-info {
-            font-size: 14px;
-            color: #3a5a3a;
-            background: #e8f0e8;
-            padding: 4px 16px;
-            border-radius: 30px;
-            display: inline-block;
-            margin-left: 4px;
+        .tab-content {
+            display: none;
         }
-
-        .top-bar .right-group-btns {
+        .tab-content.active {
+            display: block;
+        }
+        .top-bar {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
         }
-        .top-bar .admin-btn {
-            padding: 12px 24px;
+        .top-bar input {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            flex: 1;
+            margin-right: 12px;
+        }
+        .top-bar button {
+            padding: 8px 20px;
             background: #2d6a4f;
             color: #fff;
             border: none;
             border-radius: 30px;
             font-weight: 600;
-            font-size: 16px;
             cursor: pointer;
-            transition: 0.2s;
-            flex: 1 1 auto;
-            min-width: 120px;
         }
-        .top-bar .admin-btn:hover {
+        .top-bar button:hover {
             background: #1a4d2e;
-        }
-        .top-bar .admin-btn.active {
-            background: #b03a2e;
-        }
-        .top-bar .def-btn {
-            background: #5c6b7a;
-        }
-        .top-bar .def-btn:hover {
-            background: #3a4a5a;
-        }
-
-        /* ADD BUTTON */
-        #addButtonContainer {
-            margin: 12px 0 16px;
-        }
-        #addButtonContainer .admin-btn {
-            width: 100%;
-            padding: 14px;
-            background: #2d6a4f;
-            color: #fff;
-            border: none;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        #addButtonContainer .admin-btn:hover {
-            background: #1a4d2e;
-        }
-
-        /* TABLE / CARD VIEW */
-        .table-wrapper {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
-            min-width: 700px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
         th {
             background: #eaf0ea;
-            padding: 12px 12px;
+            padding: 10px 16px;
             text-align: left;
             font-weight: 600;
             color: #1a3d2e;
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-        }
-        th .sort-icon {
-            margin-left: 4px;
-            opacity: 0.6;
-        }
-        th .sort-icon.active {
-            opacity: 1;
-            font-weight: bold;
         }
         td {
-            padding: 10px 12px;
+            padding: 8px 16px;
             border-bottom: 1px solid #eef4ee;
-            vertical-align: middle;
         }
         tr:hover {
             background: #f6faf6;
@@ -241,7 +137,7 @@
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 16px;
             padding: 4px 8px;
             border-radius: 6px;
         }
@@ -257,110 +153,45 @@
         .actions button.delete:hover {
             background: #f0e0e0;
         }
-
         .no-data {
             text-align: center;
-            padding: 40px 16px;
+            padding: 30px;
             color: #7a8a7a;
-            font-size: 16px;
         }
-
-        /* MOBILE CARD STYLE (tampilan daftar untuk HP) */
-        @media (max-width: 600px) {
-            .table-wrapper {
-                background: transparent;
-                box-shadow: none;
-            }
-            table thead {
-                display: none;
-            }
-            table,
-            table tbody,
-            table tr,
-            table td {
-                display: block;
-                width: 100%;
-            }
-            table tr {
-                background: #fff;
-                border-radius: 16px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-                margin-bottom: 16px;
-                padding: 16px;
-                border: none;
-            }
-            table td {
-                border: none;
-                padding: 6px 0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid #f0f4f0;
-            }
-            table td:last-child {
-                border-bottom: none;
-            }
-            table td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                color: #1a3d2e;
-                flex: 1;
-            }
-            table td .actions {
-                justify-content: flex-end;
-            }
-            .admin-col {
-                display: block !important; /* akan dikontrol via JS, tapi biar tetap */
-            }
-        }
-
-        /* MODAL - full width mobile */
         .modal {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            padding: 16px;
         }
         .modal.show {
             display: flex;
         }
         .modal-content {
             background: #fff;
-            border-radius: 24px;
-            padding: 24px 20px;
+            border-radius: 20px;
+            padding: 28px;
             width: 100%;
-            max-width: 500px;
-            max-height: 95vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
         }
         .modal-content h2 {
             margin-bottom: 16px;
             color: #1a3d2e;
-            font-size: 22px;
-        }
-        .modal-content .form-group {
-            margin-bottom: 16px;
         }
         .modal-content label {
             display: block;
+            margin: 8px 0 4px;
             font-weight: 600;
-            color: #2a4a3a;
-            font-size: 15px;
-            margin-bottom: 4px;
         }
-        .modal-content input,
-        .modal-content select {
+        .modal-content input {
             width: 100%;
-            padding: 12px 14px;
+            padding: 10px 14px;
             border: 1px solid #ccc;
-            border-radius: 12px;
-            font-size: 16px;
-            background: #fff;
+            border-radius: 10px;
+            font-size: 15px;
         }
         .modal-content .btn-group {
             display: flex;
@@ -369,13 +200,11 @@
             justify-content: flex-end;
         }
         .modal-content .btn-group button {
-            padding: 12px 28px;
+            padding: 10px 24px;
             border: none;
             border-radius: 30px;
             font-weight: 600;
-            font-size: 16px;
             cursor: pointer;
-            flex: 1;
         }
         .modal-content .btn-group .save {
             background: #2d6a4f;
@@ -391,29 +220,32 @@
         .modal-content .btn-group .cancel:hover {
             background: #d0d8d0;
         }
-
-        /* TOAST */
+        .footer {
+            text-align: center;
+            padding: 16px;
+            color: #5a6a5a;
+            font-size: 14px;
+            border-top: 1px solid #dce4dc;
+            background: #fff;
+            margin-top: 20px;
+        }
         .toast-container {
             position: fixed;
             bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 24px;
             z-index: 9999;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            width: 90%;
-            max-width: 400px;
         }
         .toast {
-            padding: 14px 20px;
+            padding: 14px 28px;
             border-radius: 12px;
             color: #fff;
             font-weight: 500;
-            font-size: 15px;
+            font-size: 14px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             animation: slideUp 0.3s ease;
-            text-align: center;
         }
         .toast.success {
             background: #2d6a4f;
@@ -434,7 +266,6 @@
                 transform: translateY(0);
             }
         }
-
         .loading-overlay {
             position: fixed;
             inset: 0;
@@ -465,128 +296,144 @@
                 transform: rotate(360deg);
             }
         }
-
-        .footer {
-            text-align: center;
-            padding: 16px;
-            color: #5a6a5a;
-            font-size: 14px;
-            border-top: 1px solid #dce4dc;
-            background: #fff;
-            margin-top: 20px;
+        @media (max-width: 600px) {
+            .header {
+                padding: 12px 16px;
+            }
+            .tabs button {
+                padding: 8px 14px;
+                font-size: 14px;
+            }
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .top-bar input {
+                margin-right: 0;
+                margin-bottom: 8px;
+            }
         }
     </style>
 </head>
 <body>
-
     <header class="header">
-        <h1>🏗️ Sarpras NBS</h1>
-        <div class="right-group">
-            <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
-            <a href="index.html" class="back">← Kembali</a>
-        </div>
+        <h1>📋 Kelola Definisi</h1>
+        <a href="sarpras.html" class="back">← Kembali ke Sarpras</a>
     </header>
-
     <div class="container">
-        <!-- TOP BAR -->
-        <div class="top-bar">
-            <div class="left-group">
-                <input type="text" id="searchInput" placeholder="🔍 Cari barang, ruang, gedung..." />
-                <div class="filter-row">
-                    <select id="filterRuang">
-                        <option value="">🏢 Semua Ruang</option>
-                    </select>
-                    <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
-                </div>
-                <span id="filterInfo" class="filter-info" style="display:none;"></span>
-            </div>
-            <div class="right-group-btns">
-                <button class="admin-btn" id="adminToggle">🔐 Admin</button>
-                <button class="admin-btn def-btn" id="defBtn">📋 Definisi</button>
-            </div>
+        <div class="tabs">
+            <button class="active" data-tab="ruangan">Ruangan</button>
+            <button data-tab="gedung">Gedung</button>
+            <button data-tab="barang">Barang</button>
+            <button data-tab="jenis">Jenis</button>
+            <button data-tab="sumber_dana">Sumber Dana</button>
         </div>
 
-        <!-- TOMBOL TAMBAH -->
-        <div id="addButtonContainer"></div>
-
-        <!-- TABLE / CARD -->
-        <div class="table-wrapper">
+        <!-- Ruangan -->
+        <div id="tab-ruangan" class="tab-content active">
+            <div class="top-bar">
+                <input type="text" placeholder="Cari ruangan..." class="search-def" data-col="ruangan" />
+                <button class="add-def" data-col="ruangan">➕ Tambah</button>
+            </div>
             <table>
                 <thead>
                     <tr>
-                        <th data-field="no" style="cursor:default; width:40px;">No</th>
-                        <th data-field="namaBarang">Nama Barang <span class="sort-icon">↕</span></th>
-                        <th data-field="jumlahBarang">Jumlah <span class="sort-icon">↕</span></th>
-                        <th data-field="tahunPerolehan">Tahun <span class="sort-icon">↕</span></th>
-                        <th data-field="asalPerolehan">Sumber Dana <span class="sort-icon">↕</span></th>
-                        <th data-field="baik">Baik <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakRingan">Rusak Ringan <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakBerat">Rusak Berat <span class="sort-icon">↕</span></th>
-                        <th data-field="ruang">Ruang <span class="sort-icon">↕</span></th>
-                        <th data-field="lokasiGedung">Gedung <span class="sort-icon">↕</span></th>
-                        <th data-field="jenis">Jenis <span class="sort-icon">↕</span></th>
-                        <th style="display:none;" class="admin-col">Aksi</th>
+                        <th>No</th>
+                        <th>Nama Ruangan</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="inventoryList"></tbody>
+                <tbody id="list-ruangan"></tbody>
             </table>
+            <div class="no-data" id="empty-ruangan">Belum ada data ruangan.</div>
         </div>
-        <div id="emptyMessage" class="no-data">Belum ada data inventaris. Masuk sebagai admin untuk menambahkan.</div>
-    </div>
 
+        <!-- Gedung -->
+        <div id="tab-gedung" class="tab-content">
+            <div class="top-bar">
+                <input type="text" placeholder="Cari gedung..." class="search-def" data-col="gedung" />
+                <button class="add-def" data-col="gedung">➕ Tambah</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Gedung</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="list-gedung"></tbody>
+            </table>
+            <div class="no-data" id="empty-gedung">Belum ada data gedung.</div>
+        </div>
+
+        <!-- Barang -->
+        <div id="tab-barang" class="tab-content">
+            <div class="top-bar">
+                <input type="text" placeholder="Cari barang..." class="search-def" data-col="barang" />
+                <button class="add-def" data-col="barang">➕ Tambah</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Barang</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="list-barang"></tbody>
+            </table>
+            <div class="no-data" id="empty-barang">Belum ada data barang.</div>
+        </div>
+
+        <!-- Jenis -->
+        <div id="tab-jenis" class="tab-content">
+            <div class="top-bar">
+                <input type="text" placeholder="Cari jenis..." class="search-def" data-col="jenis" />
+                <button class="add-def" data-col="jenis">➕ Tambah</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Jenis</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="list-jenis"></tbody>
+            </table>
+            <div class="no-data" id="empty-jenis">Belum ada data jenis.</div>
+        </div>
+
+        <!-- Sumber Dana -->
+        <div id="tab-sumber_dana" class="tab-content">
+            <div class="top-bar">
+                <input type="text" placeholder="Cari sumber dana..." class="search-def" data-col="sumber_dana" />
+                <button class="add-def" data-col="sumber_dana">➕ Tambah</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Sumber Dana</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="list-sumber_dana"></tbody>
+            </table>
+            <div class="no-data" id="empty-sumber_dana">Belum ada data sumber dana.</div>
+        </div>
+    </div>
     <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
 
-    <!-- MODAL -->
+    <!-- Modal -->
     <div class="modal" id="modal">
         <div class="modal-content">
-            <h2 id="modalTitle">Tambah Barang</h2>
+            <h2 id="modalTitle">Tambah</h2>
             <input type="hidden" id="editId" />
-            <div class="form-group">
-                <label>Nama Barang <span style="color:#b03a2e;">*</span></label>
-                <input type="text" id="f_nama" list="barangList" placeholder="Ketik untuk mencari..." autocomplete="off" />
-                <datalist id="barangList"></datalist>
-            </div>
-            <div class="form-group">
-                <label>Jumlah</label>
-                <input type="number" id="f_jumlah" min="0" />
-            </div>
-            <div class="form-group">
-                <label>Tahun Perolehan</label>
-                <input type="number" id="f_tahun" min="1900" max="2099" />
-            </div>
-            <div class="form-group">
-                <label>Sumber Dana</label>
-                <input type="text" id="f_sumberDana" list="sumberDanaList" placeholder="Ketik untuk mencari..." autocomplete="off" />
-                <datalist id="sumberDanaList"></datalist>
-            </div>
-            <div class="form-group">
-                <label>Baik</label>
-                <input type="number" id="f_baik" min="0" />
-            </div>
-            <div class="form-group">
-                <label>Rusak Ringan</label>
-                <input type="number" id="f_ringan" min="0" />
-            </div>
-            <div class="form-group">
-                <label>Rusak Berat</label>
-                <input type="number" id="f_berat" min="0" />
-            </div>
-            <div class="form-group">
-                <label>Ruang</label>
-                <select id="f_ruang"><option value="">Pilih Ruang</option></select>
-            </div>
-            <div class="form-group">
-                <label>Gedung</label>
-                <select id="f_gedung"><option value="">Pilih Gedung</option></select>
-            </div>
-            <div class="form-group">
-                <label>Jenis</label>
-                <select id="f_jenis"><option value="">Pilih Jenis</option></select>
-            </div>
-            <div class="form-group">
-                <label>Anggaran/Satuan</label>
-                <input type="text" id="f_anggaran" />
-            </div>
+            <input type="hidden" id="editCol" />
+            <label>Nama</label>
+            <input type="text" id="f_name" />
             <div class="btn-group">
                 <button class="cancel" id="modalCancel">Batal</button>
                 <button class="save" id="modalSave">Simpan</button>
@@ -594,7 +441,6 @@
         </div>
     </div>
 
-    <!-- TOAST & LOADING -->
     <div class="toast-container" id="toastContainer"></div>
     <div class="loading-overlay hidden" id="loadingOverlay">
         <div class="spinner"></div>
@@ -602,9 +448,6 @@
     </div>
 
     <script>
-        // ============================================================
-        // FIREBASE CONFIG
-        // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
             authDomain: "sarprasnbs.firebaseapp.com",
@@ -616,9 +459,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // ============================================================
-        // HELPERS
-        // ============================================================
         function showToast(msg, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -635,566 +475,171 @@
             document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
         }
 
-        // ============================================================
-        // ADMIN SESSION
-        // ============================================================
-        const ADMIN_PASS = 'sarpras123';
-        const SESSION_KEY = 'nbs_admin_session';
-        let isAdmin = false;
+        // Tabs
+        const tabs = document.querySelectorAll('.tabs button');
+        const contents = {
+            ruangan: document.getElementById('tab-ruangan'),
+            gedung: document.getElementById('tab-gedung'),
+            barang: document.getElementById('tab-barang'),
+            jenis: document.getElementById('tab-jenis'),
+            sumber_dana: document.getElementById('tab-sumber_dana')
+        };
+        let currentTab = 'ruangan';
 
-        function getAdminSession() {
-            return localStorage.getItem(SESSION_KEY) === 'true';
-        }
+        tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabs.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.dataset.tab;
+                Object.keys(contents).forEach(key => contents[key].classList.toggle('active', key === tab));
+                currentTab = tab;
+                // Load collection for the tab
+                setTimeout(() => loadCollection(tab), 50);
+            });
+        });
 
-        function setAdminSession(val) {
-            localStorage.setItem(SESSION_KEY, val ? 'true' : 'false');
-            isAdmin = val;
-            updateAdminUI();
-        }
-
-        function logoutAdmin() {
-            setAdminSession(false);
-            showToast('Anda telah logout dari mode admin', 'info');
-            window.location.reload();
-        }
-
-        function updateAdminUI() {
-            const adminToggle = document.getElementById('adminToggle');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const adminCols = document.querySelectorAll('.admin-col');
-
-            if (isAdmin) {
-                adminToggle.textContent = '🔓 Admin (aktif)';
-                adminToggle.classList.add('active');
-                logoutBtn.classList.add('show');
-                adminCols.forEach(el => el.style.display = 'table-cell');
-            } else {
-                adminToggle.textContent = '🔐 Admin';
-                adminToggle.classList.remove('active');
-                logoutBtn.classList.remove('show');
-                adminCols.forEach(el => el.style.display = 'none');
-            }
-            const ruangFilter = document.getElementById('filterRuang').value;
-            updateAddButton(ruangFilter);
-        }
-
-        // ============================================================
-        // STATE
-        // ============================================================
-        let sortField = 'namaBarang';
-        let sortAsc = true;
-        let filterRuang = '';
-        let allItems = [];
-        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [], barang: [] };
-        let allBarangNames = [];
-        let allSumberDanaNames = [];
-
-        // DOM refs
-        const tbody = document.getElementById('inventoryList');
-        const searchInput = document.getElementById('searchInput');
-        const filterRuangSelect = document.getElementById('filterRuang');
-        const filterInfo = document.getElementById('filterInfo');
-        const resetFilterBtn = document.getElementById('resetFilterBtn');
-        const adminToggle = document.getElementById('adminToggle');
-        const defBtn = document.getElementById('defBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
+        // Modal
         const modal = document.getElementById('modal');
         const modalTitle = document.getElementById('modalTitle');
         const editId = document.getElementById('editId');
-        const f_nama = document.getElementById('f_nama');
-        const f_jumlah = document.getElementById('f_jumlah');
-        const f_tahun = document.getElementById('f_tahun');
-        const f_sumberDana = document.getElementById('f_sumberDana');
-        const f_baik = document.getElementById('f_baik');
-        const f_ringan = document.getElementById('f_ringan');
-        const f_berat = document.getElementById('f_berat');
-        const f_ruang = document.getElementById('f_ruang');
-        const f_gedung = document.getElementById('f_gedung');
-        const f_jenis = document.getElementById('f_jenis');
-        const f_anggaran = document.getElementById('f_anggaran');
+        const editCol = document.getElementById('editCol');
+        const f_name = document.getElementById('f_name');
         const modalCancel = document.getElementById('modalCancel');
         const modalSave = document.getElementById('modalSave');
-        const emptyMsg = document.getElementById('emptyMessage');
-        const addButtonContainer = document.getElementById('addButtonContainer');
-        const barangList = document.getElementById('barangList');
-        const sumberDanaList = document.getElementById('sumberDanaList');
 
-        const inventoryRef = db.collection('inventory');
-        let unsubscribe = null;
-
-        // ============================================================
-        // AUTOCOMPLETE (datalist update)
-        // ============================================================
-        function updateDatalist(inputElement, datalistElement, allOptions) {
-            const value = inputElement.value.toLowerCase().trim();
-            let filtered = allOptions;
-
-            if (value) {
-                // Cari yang mengandung teks, prioritaskan yang diawali
-                filtered = allOptions.filter(name =>
-                    name.toLowerCase().includes(value)
-                );
-                filtered.sort((a, b) => {
-                    const aLow = a.toLowerCase();
-                    const bLow = b.toLowerCase();
-                    const aStarts = aLow.startsWith(value);
-                    const bStarts = bLow.startsWith(value);
-                    if (aStarts && !bStarts) return -1;
-                    if (!aStarts && bStarts) return 1;
-                    return a.localeCompare(b);
-                });
-            } else {
-                filtered = [...allOptions].sort((a, b) => a.localeCompare(b));
-            }
-
-            datalistElement.innerHTML = '';
-            const maxOptions = 50;
-            const toShow = filtered.slice(0, maxOptions);
-            toShow.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                datalistElement.appendChild(opt);
-            });
-        }
-
-        function setupAutocomplete(inputElement, datalistElement, allOptions) {
-            // Hapus listener lama jika ada
-            inputElement.removeEventListener('input', handleInput);
-            inputElement.removeEventListener('focus', handleFocus);
-
-            function handleInput() {
-                updateDatalist(inputElement, datalistElement, allOptions);
-            }
-
-            function handleFocus() {
-                updateDatalist(inputElement, datalistElement, allOptions);
-            }
-
-            inputElement.addEventListener('input', handleInput);
-            inputElement.addEventListener('focus', handleFocus);
-        }
-
-        // ============================================================
-        // LOAD DEFINITIONS
-        // ============================================================
-        async function loadDefinitions() {
-            try {
-                const [ruangSnap, gedungSnap, jenisSnap, sumberSnap, barangSnap] = await Promise.all([
-                    db.collection('ruangan').get(),
-                    db.collection('gedung').get(),
-                    db.collection('jenis').get(),
-                    db.collection('sumber_dana').get(),
-                    db.collection('barang').get()
-                ]);
-
-                definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-
-                allBarangNames = definitions.barang.map(b => b.nama).filter(Boolean).sort();
-                allSumberDanaNames = definitions.sumberDana.map(s => s.nama).filter(Boolean).sort();
-
-                // Populate dropdowns
-                populateDropdowns();
-                populateFilterRuang();
-
-                // Setup autocomplete
-                setupAutocomplete(f_nama, barangList, allBarangNames);
-                setupAutocomplete(f_sumberDana, sumberDanaList, allSumberDanaNames);
-
-                // Initial datalist
-                updateDatalist(f_nama, barangList, allBarangNames);
-                updateDatalist(f_sumberDana, sumberDanaList, allSumberDanaNames);
-
-            } catch (err) {
-                console.error('Load definitions error:', err);
-                showToast('Gagal memuat definisi: ' + err.message, 'error');
-            }
-        }
-
-        function populateDropdowns() {
-            f_ruang.innerHTML = '<option value="">Pilih Ruang</option>';
-            definitions.ruangan.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r.nama;
-                opt.textContent = r.nama;
-                f_ruang.appendChild(opt);
-            });
-
-            f_gedung.innerHTML = '<option value="">Pilih Gedung</option>';
-            definitions.gedung.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.nama;
-                opt.textContent = g.nama;
-                f_gedung.appendChild(opt);
-            });
-
-            f_jenis.innerHTML = '<option value="">Pilih Jenis</option>';
-            definitions.jenis.forEach(j => {
-                const opt = document.createElement('option');
-                opt.value = j.nama;
-                opt.textContent = j.nama;
-                f_jenis.appendChild(opt);
-            });
-        }
-
-        function populateFilterRuang() {
-            const ruangNames = definitions.ruangan.map(r => r.nama).sort();
-            filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
-            ruangNames.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r;
-                opt.textContent = r;
-                filterRuangSelect.appendChild(opt);
-            });
-            if (filterRuang) filterRuangSelect.value = filterRuang;
-        }
-
-        // ============================================================
-        // LOAD INVENTORY (REALTIME)
-        // ============================================================
-        function loadInventory() {
-            if (unsubscribe) unsubscribe();
-            unsubscribe = inventoryRef.onSnapshot(snapshot => {
-                allItems = [];
-                snapshot.forEach(doc => {
-                    allItems.push({ id: doc.id, ...doc.data() });
-                });
-                console.log('Data dimuat:', allItems.length, 'item');
-                applyFiltersAndSort();
-            }, err => {
-                console.error('Snapshot error:', err);
-                showToast('Gagal memuat data: ' + err.message, 'error');
-            });
-        }
-
-        // ============================================================
-        // FILTER & SORT
-        // ============================================================
-        function applyFiltersAndSort() {
-            const search = searchInput.value.toLowerCase().trim();
-            const ruangFilter = filterRuangSelect.value;
-
-            let filtered = allItems.slice();
-
-            if (ruangFilter) {
-                filtered = filtered.filter(item => item.ruang === ruangFilter);
-            }
-
-            if (search) {
-                filtered = filtered.filter(item =>
-                    (item.namaBarang && item.namaBarang.toLowerCase().includes(search)) ||
-                    (item.ruang && item.ruang.toLowerCase().includes(search)) ||
-                    (item.lokasiGedung && item.lokasiGedung.toLowerCase().includes(search)) ||
-                    (item.jenis && item.jenis.toLowerCase().includes(search)) ||
-                    (item.asalPerolehan && item.asalPerolehan.toLowerCase().includes(search))
-                );
-            }
-
-            if (sortField && sortField !== 'no') {
-                filtered.sort((a, b) => {
-                    let valA = a[sortField] ?? '';
-                    let valB = b[sortField] ?? '';
-                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(sortField)) {
-                        valA = Number(valA) || 0;
-                        valB = Number(valB) || 0;
-                        return sortAsc ? valA - valB : valB - valA;
-                    } else {
-                        valA = String(valA).toLowerCase();
-                        valB = String(valB).toLowerCase();
-                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                    }
-                });
-            }
-
-            renderItems(filtered);
-            updateSortIcons();
-            updateFilterInfo(ruangFilter);
-            updateAddButton(ruangFilter);
-        }
-
-        // ============================================================
-        // RENDER (dengan label untuk mobile)
-        // ============================================================
-        function renderItems(items) {
-            tbody.innerHTML = '';
-            if (items.length === 0) {
-                emptyMsg.style.display = 'block';
-                return;
-            }
-            emptyMsg.style.display = 'none';
-
-            items.forEach((item, idx) => {
-                const tr = document.createElement('tr');
-                // Untuk mobile, kita tambahkan data-label pada setiap td
-                const fields = [
-                    { key: 'no', label: 'No' },
-                    { key: 'namaBarang', label: 'Nama Barang' },
-                    { key: 'jumlahBarang', label: 'Jumlah' },
-                    { key: 'tahunPerolehan', label: 'Tahun' },
-                    { key: 'asalPerolehan', label: 'Sumber Dana' },
-                    { key: 'baik', label: 'Baik' },
-                    { key: 'rusakRingan', label: 'Rusak Ringan' },
-                    { key: 'rusakBerat', label: 'Rusak Berat' },
-                    { key: 'ruang', label: 'Ruang' },
-                    { key: 'lokasiGedung', label: 'Gedung' },
-                    { key: 'jenis', label: 'Jenis' }
-                ];
-
-                let html = '';
-                fields.forEach((f, i) => {
-                    let value = item[f.key] ?? '';
-                    if (f.key === 'no') value = idx + 1;
-                    if (['jumlahBarang', 'baik', 'rusakRingan', 'rusakBerat'].includes(f.key)) value = Number(value) || 0;
-                    html += `<td data-label="${f.label}">${value}</td>`;
-                });
-
-                // Kolom aksi
-                const actionCol = `
-                    <td data-label="Aksi" class="admin-col" style="display:${isAdmin ? 'table-cell' : 'none'};">
-                        <div class="actions">
-                            <button class="edit" data-id="${item.id}" title="Edit">✏️</button>
-                            <button class="delete" data-id="${item.id}" title="Hapus">🗑️</button>
-                        </div>
-                    </td>
-                `;
-                html += actionCol;
-
-                tr.innerHTML = html;
-                tbody.appendChild(tr);
-            });
-
-            // Event listener untuk tombol edit/delete
-            if (isAdmin) {
-                document.querySelectorAll('.edit').forEach(btn =>
-                    btn.addEventListener('click', (e) => openEdit(e.target.closest('button').dataset.id))
-                );
-                document.querySelectorAll('.delete').forEach(btn =>
-                    btn.addEventListener('click', (e) => deleteItem(e.target.closest('button').dataset.id))
-                );
-            }
-        }
-
-        function updateSortIcons() {
-            document.querySelectorAll('th[data-field]').forEach(th => {
-                const field = th.dataset.field;
-                const icon = th.querySelector('.sort-icon');
-                if (!icon) return;
-                if (field === sortField) {
-                    icon.textContent = sortAsc ? ' ▲' : ' ▼';
-                    icon.classList.add('active');
-                } else {
-                    icon.textContent = ' ↕';
-                    icon.classList.remove('active');
-                }
-            });
-        }
-
-        function updateFilterInfo(ruang) {
-            if (ruang) {
-                filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
-                filterInfo.style.display = 'inline-block';
-                resetFilterBtn.style.display = 'inline-block';
-            } else {
-                filterInfo.style.display = 'none';
-                resetFilterBtn.style.display = 'none';
-            }
-        }
-
-        // ============================================================
-        // ADD BUTTON
-        // ============================================================
-        function updateAddButton(ruang) {
-            if (!isAdmin) {
-                addButtonContainer.innerHTML = '';
-                return;
-            }
-            let label = '➕ Tambah Barang';
-            if (ruang) label = `➕ Tambah Barang di ${ruang}`;
-            addButtonContainer.innerHTML = `<button class="admin-btn" id="addBtn">${label}</button>`;
-            document.getElementById('addBtn').addEventListener('click', () => {
-                openModal('Tambah Barang', ruang ? { ruang: ruang } : {});
-            });
-        }
-
-        // ============================================================
-        // SORT HEADER CLICK
-        // ============================================================
-        document.querySelectorAll('th[data-field]').forEach(th => {
-            th.addEventListener('click', () => {
-                const field = th.dataset.field;
-                if (field === 'no') return;
-                if (sortField === field) {
-                    sortAsc = !sortAsc;
-                } else {
-                    sortField = field;
-                    sortAsc = true;
-                }
-                applyFiltersAndSort();
-            });
-        });
-
-        // ============================================================
-        // FILTER & SEARCH EVENTS
-        // ============================================================
-        filterRuangSelect.addEventListener('change', () => {
-            filterRuang = filterRuangSelect.value;
-            applyFiltersAndSort();
-        });
-
-        resetFilterBtn.addEventListener('click', () => {
-            filterRuangSelect.value = '';
-            filterRuang = '';
-            applyFiltersAndSort();
-        });
-
-        searchInput.addEventListener('input', applyFiltersAndSort);
-
-        // ============================================================
-        // ADMIN TOGGLE & LOGOUT
-        // ============================================================
-        adminToggle.addEventListener('click', () => {
-            if (isAdmin) {
-                showToast('Anda sudah dalam mode admin. Klik Logout untuk keluar.', 'info');
-                return;
-            }
-            const pass = prompt('Masukkan password admin:');
-            if (pass === ADMIN_PASS) {
-                setAdminSession(true);
-                showToast('Mode admin aktif', 'success');
-                applyFiltersAndSort();
-            } else if (pass !== null) {
-                showToast('Password salah!', 'error');
-            }
-        });
-
-        logoutBtn.addEventListener('click', logoutAdmin);
-
-        defBtn.addEventListener('click', () => {
-            if (!isAdmin) {
-                showToast('Anda harus masuk sebagai admin terlebih dahulu', 'error');
-                return;
-            }
-            window.location.href = 'definisi.html';
-        });
-
-        // ============================================================
-        // MODAL
-        // ============================================================
-        function isValidOption(value, list) {
-            if (!value) return true;
-            return list.some(item => item.nama.toLowerCase() === value.toLowerCase());
-        }
-
-        function openModal(title, data = {}) {
+        function openModal(title, col, data = {}) {
             modalTitle.textContent = title;
             editId.value = data.id || '';
-            f_nama.value = data.namaBarang || '';
-            f_jumlah.value = data.jumlahBarang || 0;
-            f_tahun.value = data.tahunPerolehan || '';
-            f_sumberDana.value = data.asalPerolehan || '';
-            f_baik.value = data.baik || 0;
-            f_ringan.value = data.rusakRingan || 0;
-            f_berat.value = data.rusakBerat || 0;
-            f_ruang.value = data.ruang || '';
-            f_gedung.value = data.lokasiGedung || '';
-            f_jenis.value = data.jenis || '';
-            f_anggaran.value = data.anggaranSatuan || '';
-
-            // Tampilkan semua opsi
-            updateDatalist(f_nama, barangList, allBarangNames);
-            updateDatalist(f_sumberDana, sumberDanaList, allSumberDanaNames);
-
+            editCol.value = col;
+            f_name.value = data.nama || '';
             modal.classList.add('show');
         }
 
         function closeModal() {
             modal.classList.remove('show');
         }
-
         modalCancel.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
         });
 
         modalSave.addEventListener('click', async () => {
+            const col = editCol.value;
             const id = editId.value;
-            const namaBarang = f_nama.value.trim();
-            const sumberDana = f_sumberDana.value.trim();
-
-            if (!isValidOption(namaBarang, definitions.barang)) {
-                showToast('Nama barang harus dipilih dari daftar yang tersedia', 'error');
-                f_nama.focus();
+            const nama = f_name.value.trim();
+            if (!nama) {
+                showToast('Nama tidak boleh kosong', 'error');
                 return;
             }
-            if (sumberDana && !isValidOption(sumberDana, definitions.sumberDana)) {
-                showToast('Sumber dana harus dipilih dari daftar yang tersedia', 'error');
-                f_sumberDana.focus();
-                return;
-            }
-
-            const data = {
-                namaBarang,
-                jumlahBarang: parseInt(f_jumlah.value) || 0,
-                tahunPerolehan: parseInt(f_tahun.value) || 0,
-                asalPerolehan: sumberDana,
-                baik: parseInt(f_baik.value) || 0,
-                rusakRingan: parseInt(f_ringan.value) || 0,
-                rusakBerat: parseInt(f_berat.value) || 0,
-                ruang: f_ruang.value,
-                lokasiGedung: f_gedung.value,
-                jenis: f_jenis.value,
-                anggaranSatuan: f_anggaran.value.trim()
-            };
-
             try {
                 showLoading(true);
+                const ref = db.collection(col);
                 if (id) {
-                    await inventoryRef.doc(id).update(data);
-                    showToast('Data berhasil diperbarui', 'success');
+                    await ref.doc(id).update({ nama });
+                    showToast('Data diperbarui', 'success');
                 } else {
-                    await inventoryRef.add(data);
-                    showToast('Data berhasil ditambahkan', 'success');
+                    await ref.add({ nama });
+                    showToast('Data ditambahkan', 'success');
                 }
                 closeModal();
+                loadCollection(col);
             } catch (err) {
-                showToast('Gagal menyimpan: ' + err.message, 'error');
+                showToast('Gagal: ' + err.message, 'error');
             } finally {
                 showLoading(false);
             }
         });
 
-        function openEdit(id) {
-            inventoryRef.doc(id).get().then(doc => {
-                if (doc.exists) openModal('Edit Barang', { id: doc.id, ...doc.data() });
-                else showToast('Data tidak ditemukan', 'error');
-            }).catch(err => showToast('Error: ' + err.message, 'error'));
+        // Load collection with realtime listener
+        let unsubs = {};
+
+        function loadCollection(col, filter = '') {
+            if (unsubs[col]) unsubs[col]();
+            const ref = db.collection(col).orderBy('nama');
+            unsubs[col] = ref.onSnapshot(snapshot => {
+                const items = [];
+                snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+                renderList(col, items, filter);
+            }, err => showToast('Gagal memuat: ' + err.message, 'error'));
         }
 
-        function deleteItem(id) {
-            if (!confirm('Yakin ingin menghapus data ini?')) return;
-            inventoryRef.doc(id).delete().then(() => {
-                showToast('Data dihapus', 'success');
-            }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
+        function renderList(col, items, filter = '') {
+            const f = filter.toLowerCase().trim();
+            let filtered = items;
+            if (f) filtered = items.filter(item => item.nama && item.nama.toLowerCase().includes(f));
+            const tbody = document.getElementById('list-' + col);
+            const empty = document.getElementById('empty-' + col);
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            filtered.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td>${item.nama || ''}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="edit" data-id="${item.id}" data-col="${col}">✏️</button>
+                            <button class="delete" data-id="${item.id}" data-col="${col}">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Attach edit events
+            tbody.querySelectorAll('.edit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    const col = e.target.dataset.col;
+                    db.collection(col).doc(id).get().then(doc => {
+                        if (doc.exists) openModal('Edit ' + col, col, { id: doc.id, ...doc.data() });
+                    }).catch(err => showToast('Error: ' + err.message, 'error'));
+                });
+            });
+
+            // Attach delete events
+            tbody.querySelectorAll('.delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    const col = e.target.dataset.col;
+                    if (!confirm('Hapus data ini?')) return;
+                    db.collection(col).doc(id).delete().then(() => {
+                        showToast('Data dihapus', 'success');
+                        loadCollection(col);
+                    }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
+                });
+            });
         }
 
-        // ============================================================
-        // INIT
-        // ============================================================
-        isAdmin = getAdminSession();
-        updateAdminUI();
-
-        loadDefinitions().then(() => {
-            loadInventory();
-        }).catch(err => {
-            console.error('Init error:', err);
-            showToast('Gagal inisialisasi: ' + err.message, 'error');
+        // Add button handlers
+        document.querySelectorAll('.add-def').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const col = btn.dataset.col;
+                const label = col === 'sumber_dana' ? 'Sumber Dana' : col;
+                openModal('Tambah ' + label, col);
+            });
         });
 
-        setTimeout(() => updateAdminUI(), 500);
-    </script>
+        // Search handlers
+        document.querySelectorAll('.search-def').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const col = e.target.dataset.col;
+                loadCollection(col, e.target.value);
+            });
+        });
 
+        // Initial load for default tab (ruangan)
+        loadCollection('ruangan');
+
+        // Also load the other tabs when they become active via the click listener above
+        // The click listener already calls loadCollection with a delay.
+        // But we need to ensure the first load for non-active tabs happens when clicked.
+        // The loadCollection call in the click handler will handle that.
+        console.log('Definisi page loaded. Tab Sumber Dana tersedia.');
+    </script>
 </body>
 </html>
