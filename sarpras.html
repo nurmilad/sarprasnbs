@@ -478,7 +478,7 @@
                 <!-- Nama Barang dengan autocomplete -->
                 <div class="full">
                     <label>Nama Barang</label>
-                    <input type="text" id="f_nama" list="barangList" placeholder="Ketik atau pilih barang" />
+                    <input type="text" id="f_nama" list="barangList" placeholder="Ketik atau pilih barang" autocomplete="off" />
                     <datalist id="barangList"></datalist>
                 </div>
                 <div><label>Jumlah</label><input type="number" id="f_jumlah" /></div>
@@ -486,7 +486,7 @@
                 <!-- Sumber Dana dengan autocomplete -->
                 <div class="full">
                     <label>Sumber Dana</label>
-                    <input type="text" id="f_sumberDana" list="sumberDanaList" placeholder="Ketik atau pilih sumber dana" />
+                    <input type="text" id="f_sumberDana" list="sumberDanaList" placeholder="Ketik atau pilih sumber dana" autocomplete="off" />
                     <datalist id="sumberDanaList"></datalist>
                 </div>
                 <div><label>Baik</label><input type="number" id="f_baik" /></div>
@@ -653,6 +653,8 @@
                 definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
 
+                console.log('Barang definitions:', definitions.barang); // DEBUG
+
                 populateDropdowns();
                 populateFilterRuang();
                 populateDatalists();
@@ -703,6 +705,7 @@
                 opt.value = s.nama;
                 sumberDanaList.appendChild(opt);
             });
+            console.log('Datalist barang diisi dengan', definitions.barang.length, 'item');
         }
 
         function populateFilterRuang() {
@@ -953,6 +956,11 @@
         // ========================================
         // MODAL
         // ========================================
+        // Fungsi untuk validasi input terhadap daftar
+        function isValidOption(value, list) {
+            return list.some(item => item.nama === value);
+        }
+
         function openModal(title, data = {}) {
             modalTitle.textContent = title;
             editId.value = data.id || '';
@@ -981,11 +989,27 @@
 
         modalSave.addEventListener('click', async () => {
             const id = editId.value;
+            const namaBarang = f_nama.value.trim();
+            const sumberDana = f_sumberDana.value.trim();
+
+            // Validasi: nama barang harus ada di daftar barang
+            if (!isValidOption(namaBarang, definitions.barang)) {
+                showToast('Nama barang harus dipilih dari daftar yang tersedia', 'error');
+                f_nama.focus();
+                return;
+            }
+            // Validasi: sumber dana harus ada di daftar sumber dana (opsional, jika diisi)
+            if (sumberDana && !isValidOption(sumberDana, definitions.sumberDana)) {
+                showToast('Sumber dana harus dipilih dari daftar yang tersedia', 'error');
+                f_sumberDana.focus();
+                return;
+            }
+
             const data = {
-                namaBarang: f_nama.value.trim(),
+                namaBarang: namaBarang,
                 jumlahBarang: parseInt(f_jumlah.value) || 0,
                 tahunPerolehan: parseInt(f_tahun.value) || 0,
-                asalPerolehan: f_sumberDana.value.trim(),
+                asalPerolehan: sumberDana,
                 baik: parseInt(f_baik.value) || 0,
                 rusakRingan: parseInt(f_ringan.value) || 0,
                 rusakBerat: parseInt(f_berat.value) || 0,
@@ -994,10 +1018,7 @@
                 jenis: f_jenis.value,
                 anggaranSatuan: f_anggaran.value.trim()
             };
-            if (!data.namaBarang) {
-                showToast('Nama barang wajib diisi', 'error');
-                return;
-            }
+
             try {
                 showLoading(true);
                 if (id) {
