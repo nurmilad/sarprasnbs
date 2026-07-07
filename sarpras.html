@@ -310,7 +310,7 @@
                 justify-content: flex-end;
             }
             .admin-col {
-                display: block !important; /* akan dikontrol via JS, tapi biar tetap */
+                display: block !important;
             }
         }
 
@@ -345,6 +345,7 @@
         }
         .modal-content .form-group {
             margin-bottom: 16px;
+            position: relative;
         }
         .modal-content label {
             display: block;
@@ -390,6 +391,47 @@
         }
         .modal-content .btn-group .cancel:hover {
             background: #d0d8d0;
+        }
+
+        /* === CUSTOM DROPDOWN AUTOCOMPLETE === */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            z-index: 999;
+            display: none;
+        }
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        .autocomplete-dropdown .item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f4f0;
+            font-size: 15px;
+            transition: background 0.1s;
+        }
+        .autocomplete-dropdown .item:last-child {
+            border-bottom: none;
+        }
+        .autocomplete-dropdown .item:hover {
+            background: #eaf0ea;
+        }
+        .autocomplete-dropdown .item.highlighted {
+            background: #d0e0d0;
+        }
+        .autocomplete-dropdown .no-result {
+            padding: 12px 14px;
+            color: #888;
+            font-style: italic;
+            text-align: center;
         }
 
         /* TOAST */
@@ -541,24 +583,29 @@
         <div class="modal-content">
             <h2 id="modalTitle">Tambah Barang</h2>
             <input type="hidden" id="editId" />
-            <div class="form-group">
+            <!-- Nama Barang -->
+            <div class="form-group" id="groupNama">
                 <label>Nama Barang <span style="color:#b03a2e;">*</span></label>
-                <input type="text" id="f_nama" list="barangList" placeholder="Ketik untuk mencari..." autocomplete="off" />
-                <datalist id="barangList"></datalist>
+                <input type="text" id="f_nama" placeholder="Ketik untuk mencari..." autocomplete="off" />
+                <div class="autocomplete-dropdown" id="dropdownNama"></div>
             </div>
+            <!-- Jumlah -->
             <div class="form-group">
                 <label>Jumlah</label>
                 <input type="number" id="f_jumlah" min="0" />
             </div>
+            <!-- Tahun -->
             <div class="form-group">
                 <label>Tahun Perolehan</label>
                 <input type="number" id="f_tahun" min="1900" max="2099" />
             </div>
-            <div class="form-group">
+            <!-- Sumber Dana -->
+            <div class="form-group" id="groupSumber">
                 <label>Sumber Dana</label>
-                <input type="text" id="f_sumberDana" list="sumberDanaList" placeholder="Ketik untuk mencari..." autocomplete="off" />
-                <datalist id="sumberDanaList"></datalist>
+                <input type="text" id="f_sumberDana" placeholder="Ketik untuk mencari..." autocomplete="off" />
+                <div class="autocomplete-dropdown" id="dropdownSumber"></div>
             </div>
+            <!-- Baik, Rusak Ringan, Rusak Berat -->
             <div class="form-group">
                 <label>Baik</label>
                 <input type="number" id="f_baik" min="0" />
@@ -571,6 +618,7 @@
                 <label>Rusak Berat</label>
                 <input type="number" id="f_berat" min="0" />
             </div>
+            <!-- Ruang, Gedung, Jenis -->
             <div class="form-group">
                 <label>Ruang</label>
                 <select id="f_ruang"><option value="">Pilih Ruang</option></select>
@@ -716,63 +764,137 @@
         const modalSave = document.getElementById('modalSave');
         const emptyMsg = document.getElementById('emptyMessage');
         const addButtonContainer = document.getElementById('addButtonContainer');
-        const barangList = document.getElementById('barangList');
-        const sumberDanaList = document.getElementById('sumberDanaList');
+
+        const dropdownNama = document.getElementById('dropdownNama');
+        const dropdownSumber = document.getElementById('dropdownSumber');
 
         const inventoryRef = db.collection('inventory');
         let unsubscribe = null;
 
         // ============================================================
-        // AUTOCOMPLETE (datalist update)
+        // AUTOCOMPLETE CUSTOM DROPDOWN
         // ============================================================
-        function updateDatalist(inputElement, datalistElement, allOptions) {
-            const value = inputElement.value.toLowerCase().trim();
-            let filtered = allOptions;
+        function createAutocomplete(inputElement, dropdownElement, allOptions) {
+            let currentFocus = -1;
+            let filteredOptions = [];
 
-            if (value) {
-                // Cari yang mengandung teks, prioritaskan yang diawali
-                filtered = allOptions.filter(name =>
-                    name.toLowerCase().includes(value)
+            function filterOptions(value) {
+                const search = value.toLowerCase().trim();
+                if (!search) return allOptions.slice(0, 50);
+                let filtered = allOptions.filter(name =>
+                    name.toLowerCase().includes(search)
                 );
+                // Urutkan: awalan lebih dulu
                 filtered.sort((a, b) => {
                     const aLow = a.toLowerCase();
                     const bLow = b.toLowerCase();
-                    const aStarts = aLow.startsWith(value);
-                    const bStarts = bLow.startsWith(value);
+                    const aStarts = aLow.startsWith(search);
+                    const bStarts = bLow.startsWith(search);
                     if (aStarts && !bStarts) return -1;
                     if (!aStarts && bStarts) return 1;
                     return a.localeCompare(b);
                 });
-            } else {
-                filtered = [...allOptions].sort((a, b) => a.localeCompare(b));
+                return filtered.slice(0, 50);
             }
 
-            datalistElement.innerHTML = '';
-            const maxOptions = 50;
-            const toShow = filtered.slice(0, maxOptions);
-            toShow.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                datalistElement.appendChild(opt);
+            function renderDropdown(options) {
+                dropdownElement.innerHTML = '';
+                if (!options || options.length === 0) {
+                    const div = document.createElement('div');
+                    div.className = 'no-result';
+                    div.textContent = 'Tidak ada data';
+                    dropdownElement.appendChild(div);
+                    dropdownElement.classList.add('show');
+                    return;
+                }
+                options.forEach((name, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    if (index === currentFocus) div.classList.add('highlighted');
+                    div.textContent = name;
+                    div.dataset.value = name;
+                    div.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        inputElement.value = name;
+                        dropdownElement.classList.remove('show');
+                        inputElement.focus();
+                    });
+                    dropdownElement.appendChild(div);
+                });
+                dropdownElement.classList.add('show');
+            }
+
+            function updateDropdown() {
+                const val = inputElement.value;
+                filteredOptions = filterOptions(val);
+                renderDropdown(filteredOptions);
+                currentFocus = -1;
+            }
+
+            function closeDropdown() {
+                dropdownElement.classList.remove('show');
+                currentFocus = -1;
+            }
+
+            // Event listeners
+            inputElement.addEventListener('input', updateDropdown);
+            inputElement.addEventListener('focus', () => {
+                // Tampilkan semua opsi saat fokus
+                filteredOptions = allOptions.slice(0, 50);
+                renderDropdown(filteredOptions);
+                currentFocus = -1;
             });
-        }
+            inputElement.addEventListener('blur', () => {
+                // Delay untuk menangani klik item
+                setTimeout(closeDropdown, 200);
+            });
 
-        function setupAutocomplete(inputElement, datalistElement, allOptions) {
-            // Hapus listener lama jika ada
-            inputElement.removeEventListener('input', handleInput);
-            inputElement.removeEventListener('focus', handleFocus);
+            // Keyboard navigasi
+            inputElement.addEventListener('keydown', (e) => {
+                const items = dropdownElement.querySelectorAll('.item');
+                if (items.length === 0) return;
 
-            function handleInput() {
-                updateDatalist(inputElement, datalistElement, allOptions);
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentFocus = (currentFocus + 1) % items.length;
+                    highlightItem(items, currentFocus);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentFocus = (currentFocus - 1 + items.length) % items.length;
+                    highlightItem(items, currentFocus);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentFocus >= 0 && currentFocus < items.length) {
+                        const selected = items[currentFocus].dataset.value;
+                        inputElement.value = selected;
+                        closeDropdown();
+                    }
+                } else if (e.key === 'Escape') {
+                    closeDropdown();
+                }
+            });
+
+            function highlightItem(items, index) {
+                items.forEach((el, i) => {
+                    el.classList.toggle('highlighted', i === index);
+                });
+                // Scroll ke item yang terpilih
+                if (items[index]) {
+                    items[index].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
             }
 
-            function handleFocus() {
-                updateDatalist(inputElement, datalistElement, allOptions);
-            }
-
-            inputElement.addEventListener('input', handleInput);
-            inputElement.addEventListener('focus', handleFocus);
+            // Fungsi untuk memperbarui daftar opsi (jika ada perubahan dari Firebase)
+            return {
+                updateOptions: (newOptions) => {
+                    allOptions = newOptions;
+                },
+                close: closeDropdown,
+                refresh: updateDropdown
+            };
         }
+
+        let autocompleteNama, autocompleteSumber;
 
         // ============================================================
         // LOAD DEFINITIONS
@@ -800,13 +922,9 @@
                 populateDropdowns();
                 populateFilterRuang();
 
-                // Setup autocomplete
-                setupAutocomplete(f_nama, barangList, allBarangNames);
-                setupAutocomplete(f_sumberDana, sumberDanaList, allSumberDanaNames);
-
-                // Initial datalist
-                updateDatalist(f_nama, barangList, allBarangNames);
-                updateDatalist(f_sumberDana, sumberDanaList, allSumberDanaNames);
+                // Inisialisasi autocomplete
+                autocompleteNama = createAutocomplete(f_nama, dropdownNama, allBarangNames);
+                autocompleteSumber = createAutocomplete(f_sumberDana, dropdownSumber, allSumberDanaNames);
 
             } catch (err) {
                 console.error('Load definitions error:', err);
@@ -928,7 +1046,6 @@
 
             items.forEach((item, idx) => {
                 const tr = document.createElement('tr');
-                // Untuk mobile, kita tambahkan data-label pada setiap td
                 const fields = [
                     { key: 'no', label: 'No' },
                     { key: 'namaBarang', label: 'Nama Barang' },
@@ -951,7 +1068,6 @@
                     html += `<td data-label="${f.label}">${value}</td>`;
                 });
 
-                // Kolom aksi
                 const actionCol = `
                     <td data-label="Aksi" class="admin-col" style="display:${isAdmin ? 'table-cell' : 'none'};">
                         <div class="actions">
@@ -966,7 +1082,6 @@
                 tbody.appendChild(tr);
             });
 
-            // Event listener untuk tombol edit/delete
             if (isAdmin) {
                 document.querySelectorAll('.edit').forEach(btn =>
                     btn.addEventListener('click', (e) => openEdit(e.target.closest('button').dataset.id))
@@ -1103,9 +1218,9 @@
             f_jenis.value = data.jenis || '';
             f_anggaran.value = data.anggaranSatuan || '';
 
-            // Tampilkan semua opsi
-            updateDatalist(f_nama, barangList, allBarangNames);
-            updateDatalist(f_sumberDana, sumberDanaList, allSumberDanaNames);
+            // Tutup dropdown jika terbuka
+            if (autocompleteNama) autocompleteNama.close();
+            if (autocompleteSumber) autocompleteSumber.close();
 
             modal.classList.add('show');
         }
