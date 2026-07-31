@@ -1,90 +1,1088 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nurmilad Boarding School</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .header {
-      background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
-      color: #fff;
-      padding: 20px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    .header .logo h1 { font-size: 24px; font-weight: 700; }
-    .header .logo small { display: block; font-size: 13px; opacity:0.85; }
-    .header .badge { background: rgba(255,255,255,0.15); padding:8px 18px; border-radius:30px; font-size:14px; border:1px solid rgba(255,255,255,0.2); }
-    .container { flex:1; max-width:1200px; margin:0 auto; padding:40px 24px; width:100%; }
-    .hero { text-align:center; margin-bottom:48px; }
-    .hero h2 { font-size:32px; color:#1a3d2e; font-weight:700; }
-    .hero p { color:#4a5a4a; font-size:17px; margin-top:8px; }
-    .menu-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:30px; }
-    .menu-card {
-      background:#fff; border-radius:20px; padding:36px 28px 32px; text-align:center;
-      box-shadow:0 8px 30px rgba(0,0,0,0.06); transition: transform 0.25s, box-shadow 0.3s;
-      border:1px solid rgba(0,0,0,0.04); cursor:pointer;
-    }
-    .menu-card:hover { transform:translateY(-6px); box-shadow:0 16px 48px rgba(0,0,0,0.10); }
-    .menu-card .icon { font-size:54px; display:block; margin-bottom:16px; }
-    .menu-card h3 { font-size:22px; color:#1a3d2e; margin-bottom:6px; }
-    .menu-card .sub { color:#5a6a5a; font-size:15px; }
-    .menu-card .btn-go {
-      display:inline-block; margin-top:18px; padding:10px 32px;
-      background:#2d6a4f; color:#fff; border-radius:40px; font-weight:600; font-size:15px;
-      transition:background 0.2s;
-    }
-    .menu-card .btn-go:hover { background:#1a4d2e; }
-    .menu-card .badge-label {
-      display:inline-block; margin-top:12px; padding:4px 16px; border-radius:20px;
-      font-size:12px; font-weight:600; background:#e8f0e8; color:#2d6a4f;
-    }
-    .footer { text-align:center; padding:20px; color:#5a6a5a; font-size:14px; border-top:1px solid #dce4dc; margin-top:20px; background:#fff; }
-    @media (max-width:600px) {
-      .header { padding:16px 20px; flex-direction:column; text-align:center; gap:10px; }
-      .header .logo h1 { font-size:20px; }
-      .hero h2 { font-size:24px; }
-      .menu-grid { grid-template-columns:1fr; }
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Sarpras NBS - Nurmilad</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
+    </script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f4f7f4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header .right-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .header .back {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .header .back:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        /* Tombol admin kecil di pojok */
+        .admin-toggle-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .admin-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .admin-toggle-btn.active {
+            background: #b03a2e;
+            border-color: #b03a2e;
+        }
+        .admin-toggle-btn .logout-icon {
+            margin-left: 6px;
+            font-size: 14px;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px 16px 0;
+            width: 100%;
+        }
+
+        /* ===== TOOLBAR ===== */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .toolbar .left {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex: 1;
+        }
+        .toolbar .left input,
+        .toolbar .left select {
+            padding: 8px 14px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            font-size: 14px;
+            background: #fff;
+            min-width: 160px;
+        }
+        .toolbar .left .filter-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .toolbar .left .filter-row .reset-filter {
+            background: transparent;
+            border: none;
+            color: #b03a2e;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .toolbar .left .filter-row .reset-filter:hover {
+            text-decoration: underline;
+        }
+        .filter-info {
+            font-size: 13px;
+            color: #3a5a3a;
+            background: #e8f0e8;
+            padding: 2px 14px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        .toolbar .right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .toolbar .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #e0e8e0;
+            color: #2a4a3a;
+        }
+        .toolbar .btn:hover {
+            background: #d0d8d0;
+        }
+        .toolbar .btn-primary {
+            background: #2d6a4f;
+            color: #fff;
+        }
+        .toolbar .btn-primary:hover {
+            background: #1a4d2e;
+        }
+        .toolbar .btn-danger {
+            background: #b03a2e;
+            color: #fff;
+        }
+        .toolbar .btn-danger:hover {
+            background: #8a2e24;
+        }
+        .toolbar .btn-save {
+            background: #5c6b7a;
+            color: #fff;
+        }
+        .toolbar .btn-save.dirty {
+            background: #b03a2e;
+            animation: pulse 1.5s infinite;
+        }
+        .toolbar .btn-save.dirty:hover {
+            background: #8a2e24;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+        }
+        .toolbar .btn-add-row {
+            background: #2d6a4f;
+            color: #fff;
+        }
+        .toolbar .btn-add-row:hover {
+            background: #1a4d2e;
+        }
+        .toolbar .status {
+            font-size: 13px;
+            color: #5a6a5a;
+            padding: 4px 12px;
+            background: #f0f4f0;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .toolbar .status.dirty {
+            background: #fce4e0;
+            color: #b03a2e;
+            font-weight: 600;
+        }
+
+        /* ===== TABLE WRAPPER ===== */
+        .table-wrapper {
+            overflow: auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 800px;
+        }
+
+        /* === TH dengan resize === */
+        th {
+            background: #eaf0ea;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #1a3d2e;
+            position: relative;
+            border-right: 1px solid #d0d8d0;
+            user-select: none;
+            min-width: 60px;
+            resize: horizontal;
+            overflow: hidden;
+        }
+        th:last-child {
+            border-right: none;
+            resize: none;
+        }
+        th .sort-icon {
+            margin-left: 4px;
+            opacity: 0.5;
+            font-size: 12px;
+        }
+        th .sort-icon.active {
+            opacity: 1;
+            font-weight: bold;
+        }
+        /* Handle resize (bawaan browser) */
+        th::-webkit-resizer {
+            background-color: transparent;
+            border-right: 2px solid #b0c0b0;
+            border-bottom: 2px solid #b0c0b0;
+            width: 8px;
+            height: 8px;
+        }
+
+        /* === TD === */
+        td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #e4ece4;
+            vertical-align: middle;
+            min-height: 36px;
+        }
+        /* garis horizontal antar baris lebih jelas */
+        tr {
+            border-bottom: 2px solid #d0d8d0;
+        }
+        tr:last-child {
+            border-bottom: none;
+        }
+
+        /* Sel editable */
+        td[contenteditable="true"] {
+            background: #fcfdfc;
+            outline: none;
+            border-radius: 4px;
+            padding: 4px 6px;
+            transition: background 0.2s;
+        }
+        td[contenteditable="true"]:focus {
+            background: #fffbe6;
+            box-shadow: inset 0 0 0 2px #2d6a4f;
+        }
+        td[contenteditable="true"].modified {
+            background: #fff3e0;
+        }
+
+        /* Kolom aksi */
+        .actions-cell {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .actions-cell button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .actions-cell button.delete-row {
+            color: #b03a2e;
+        }
+        .actions-cell button.delete-row:hover {
+            background: #fce4e0;
+        }
+
+        /* ===== NO DATA ===== */
+        .no-data {
+            text-align: center;
+            padding: 40px 16px;
+            color: #7a8a7a;
+            font-size: 16px;
+        }
+
+        /* ===== MOBILE CARD ===== */
+        @media (max-width: 700px) {
+            .table-wrapper {
+                background: transparent;
+                box-shadow: none;
+                overflow-x: auto;
+            }
+            table {
+                min-width: 600px;
+            }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .toolbar .left,
+            .toolbar .right {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .toolbar .right {
+                justify-content: flex-end;
+            }
+            .toolbar .status {
+                font-size: 12px;
+            }
+        }
+
+        /* ===== TOAST & LOADING ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.3s ease;
+            text-align: center;
+        }
+        .toast.success {
+            background: #2d6a4f;
+        }
+        .toast.error {
+            background: #c0392b;
+        }
+        .toast.info {
+            background: #2c6f9b;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            font-size: 18px;
+            color: #1a3d2e;
+            font-weight: 600;
+        }
+        .loading-overlay.hidden {
+            display: none;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 4px solid #dce4dc;
+            border-top-color: #2d6a4f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 14px;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 16px;
+            color: #5a6a5a;
+            font-size: 13px;
+            border-top: 1px solid #dce4dc;
+            background: #fff;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-  <header class="header">
-    <div class="logo"><h1>📘 Nurmilad Boarding School</h1><small>Inventory Management System</small></div>
-    <div class="badge">🏫 Update: 10 Desember 2023</div>
-  </header>
-  <div class="container">
-    <div class="hero"><h2>Selamat Datang</h2><p>Pilih modul yang ingin Anda akses di bawah ini.</p></div>
-    <div class="menu-grid">
-      <div class="menu-card" onclick="location.href='perpustakaan.html'">
-        <span class="icon">📚</span>
-        <h3>Perpustakaan</h3>
-        <p class="sub">Andi Rohana Latunreng</p>
-        <p style="font-size:14px; color:#6a7a6a; margin-top:8px;">Kelola koleksi buku dan sirkulasi</p>
-        <span class="badge-label">📖 Buku</span>
-        <span class="btn-go">Masuk →</span>
-      </div>
-      <div class="menu-card" onclick="location.href='sarpras.html'">
-        <span class="icon">🏗️</span>
-        <h3>Sarpras NBS</h3>
-        <p class="sub">Sarana &amp; Prasarana</p>
-        <p style="font-size:14px; color:#6a7a6a; margin-top:8px;">Inventaris barang, kondisi, dan lokasi</p>
-        <span class="badge-label">📦 Aset</span>
-        <span class="btn-go">Masuk →</span>
-      </div>
+
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <h1>🏗️ Sarpras NBS</h1>
+        <div class="right-group">
+            <a href="index.html" class="back">← Kembali</a>
+            <button class="admin-toggle-btn" id="adminToggle">🔐 Admin</button>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <div class="container">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <div class="left">
+                <input type="text" id="searchInput" placeholder="🔍 Cari barang, ruang, gedung..." />
+                <div class="filter-row">
+                    <select id="filterRuang">
+                        <option value="">🏢 Semua Ruang</option>
+                    </select>
+                    <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
+                </div>
+                <span id="filterInfo" class="filter-info" style="display:none;"></span>
+            </div>
+            <div class="right">
+                <span class="status" id="statusIndicator">✅ Semua tersimpan</span>
+                <button class="btn btn-save" id="saveBtn">💾 Simpan</button>
+                <button class="btn btn-add-row" id="addRowBtn">➕ Baris</button>
+                <button class="btn" id="defBtn">📋 Definisi</button>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+            <table id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th data-field="no" style="cursor:default; width:40px; resize:none;">No</th>
+                        <th data-field="namaBarang" style="min-width:120px;">Nama Barang <span class="sort-icon">↕</span></th>
+                        <th data-field="jumlahBarang" style="min-width:70px;">Jumlah <span class="sort-icon">↕</span></th>
+                        <th data-field="tahunPerolehan" style="min-width:70px;">Tahun <span class="sort-icon">↕</span></th>
+                        <th data-field="asalPerolehan" style="min-width:100px;">Sumber Dana <span class="sort-icon">↕</span></th>
+                        <th data-field="baik" style="min-width:60px;">Baik <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakRingan" style="min-width:60px;">Rusak Ringan <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakBerat" style="min-width:60px;">Rusak Berat <span class="sort-icon">↕</span></th>
+                        <th data-field="ruang" style="min-width:90px;">Ruang <span class="sort-icon">↕</span></th>
+                        <th data-field="lokasiGedung" style="min-width:90px;">Gedung <span class="sort-icon">↕</span></th>
+                        <th data-field="jenis" style="min-width:90px;">Jenis <span class="sort-icon">↕</span></th>
+                        <th style="width:70px; resize:none;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryBody">
+                    <!-- Baris data akan diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        <div id="emptyMessage" class="no-data">Belum ada data. Klik "➕ Baris" untuk menambahkan.</div>
     </div>
-  </div>
-  <div class="footer">&copy; 2026 Nurmilad Boarding School &bull; Dibangun dengan ❤️</div>
+
+    <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
+
+    <!-- TOAST & LOADING -->
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span>Memuat…</span>
+    </div>
+
+    <script>
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
+            authDomain: "sarprasnbs.firebaseapp.com",
+            projectId: "sarprasnbs",
+            storageBucket: "sarprasnbs.firebasestorage.app",
+            messagingSenderId: "604042513677",
+            appId: "1:604042513677:web:3d186ae98c9dd8fe09f444"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+        }
+
+        // ============================================================
+        // ADMIN SESSION
+        // ============================================================
+        const ADMIN_PASS = 'sarpras123';
+        const SESSION_KEY = 'nbs_admin_session';
+        let isAdmin = false;
+
+        function getAdminSession() {
+            return localStorage.getItem(SESSION_KEY) === 'true';
+        }
+
+        function setAdminSession(val) {
+            localStorage.setItem(SESSION_KEY, val ? 'true' : 'false');
+            isAdmin = val;
+            updateAdminUI();
+        }
+
+        function logoutAdmin() {
+            setAdminSession(false);
+            showToast('Anda logout dari mode admin', 'info');
+            window.location.reload();
+        }
+
+        function updateAdminUI() {
+            const btn = document.getElementById('adminToggle');
+            if (isAdmin) {
+                btn.textContent = '🔓 Admin (aktif)';
+                btn.classList.add('active');
+                // Tambahkan tombol logout di dalamnya? Kita akan buat toggle: klik lagi untuk logout
+                btn.onclick = () => {
+                    if (confirm('Logout dari mode admin?')) logoutAdmin();
+                };
+            } else {
+                btn.textContent = '🔐 Admin';
+                btn.classList.remove('active');
+                btn.onclick = () => {
+                    const pass = prompt('Masukkan password admin:');
+                    if (pass === ADMIN_PASS) {
+                        setAdminSession(true);
+                        showToast('Mode admin aktif', 'success');
+                    } else if (pass !== null) {
+                        showToast('Password salah!', 'error');
+                    }
+                };
+            }
+            // Tampilkan/sembunyikan tombol hapus di setiap baris
+            document.querySelectorAll('.delete-row').forEach(btn => {
+                btn.style.display = isAdmin ? 'inline-block' : 'none';
+            });
+            // Tampilkan/sembunyikan kolom aksi di header? Kita sudah punya kolom aksi.
+            // Kita sembunyikan seluruh kolom aksi jika bukan admin
+            const actionCols = document.querySelectorAll('.actions-cell');
+            actionCols.forEach(cell => {
+                cell.style.display = isAdmin ? 'flex' : 'none';
+            });
+            // Sembunyikan tombol hapus di header? Tidak ada, hanya di baris.
+            // Kita juga sembunyikan tombol tambah baris jika bukan admin
+            document.getElementById('addRowBtn').style.display = isAdmin ? 'inline-block' : 'none';
+            document.getElementById('defBtn').style.display = isAdmin ? 'inline-block' : 'none';
+            // Jika bukan admin, disable editing
+            document.querySelectorAll('td[contenteditable="true"]').forEach(td => {
+                td.contentEditable = isAdmin ? 'true' : 'false';
+            });
+        }
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let sortField = 'namaBarang';
+        let sortAsc = true;
+        let filterRuang = '';
+        let allItems = []; // array objek { id, data }
+        let originalData = {}; // map id -> data (untuk deteksi perubahan)
+        let modifiedIds = new Set(); // id yang berubah
+        let deletedIds = new Set(); // id yang dihapus (belum di-save)
+        let isDirty = false;
+
+        // DOM refs
+        const tbody = document.getElementById('inventoryBody');
+        const searchInput = document.getElementById('searchInput');
+        const filterRuangSelect = document.getElementById('filterRuang');
+        const filterInfo = document.getElementById('filterInfo');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const adminToggle = document.getElementById('adminToggle');
+        const defBtn = document.getElementById('defBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const emptyMsg = document.getElementById('emptyMessage');
+
+        const inventoryRef = db.collection('inventory');
+        let unsubscribe = null;
+
+        // ============================================================
+        // LOAD DEFINISI (ruang, gedung, jenis) untuk dropdown
+        // ============================================================
+        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [], barang: [] };
+        let ruangNames = [];
+
+        async function loadDefinitions() {
+            try {
+                const [ruangSnap, gedungSnap, jenisSnap] = await Promise.all([
+                    db.collection('ruangan').get(),
+                    db.collection('gedung').get(),
+                    db.collection('jenis').get()
+                ]);
+                definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean).sort();
+                populateFilterRuang();
+                // Untuk dropdown di sel, kita akan gunakan datalist atau select? Karena di sel kita pakai contenteditable, kita akan tetap pakai input teks biasa.
+                // Nanti kita akan kasih autocomplete sederhana atau kita biarkan user mengetik manual.
+                // Untuk kemudahan, kita akan buat dropdown di sel? Tidak praktis. Kita biarkan input teks.
+            } catch (err) {
+                console.error('Load definitions error:', err);
+                showToast('Gagal memuat definisi: ' + err.message, 'error');
+            }
+        }
+
+        function populateFilterRuang() {
+            filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
+            ruangNames.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                filterRuangSelect.appendChild(opt);
+            });
+            if (filterRuang) filterRuangSelect.value = filterRuang;
+        }
+
+        // ============================================================
+        // LOAD INVENTORY (REALTIME)
+        // ============================================================
+        function loadInventory() {
+            if (unsubscribe) unsubscribe();
+            unsubscribe = inventoryRef.onSnapshot(snapshot => {
+                allItems = [];
+                originalData = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    allItems.push({ id: doc.id, data: data });
+                    originalData[doc.id] = JSON.parse(JSON.stringify(data));
+                });
+                // Reset modified state
+                modifiedIds.clear();
+                deletedIds.clear();
+                isDirty = false;
+                updateSaveUI();
+                applyFiltersAndSort();
+            }, err => {
+                console.error('Snapshot error:', err);
+                showToast('Gagal memuat data: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // FILTER & SORT
+        // ============================================================
+        function applyFiltersAndSort() {
+            const search = searchInput.value.toLowerCase().trim();
+            const ruangFilter = filterRuangSelect.value;
+
+            let filtered = allItems.slice();
+
+            if (ruangFilter) {
+                filtered = filtered.filter(item => item.data.ruang === ruangFilter);
+            }
+
+            if (search) {
+                filtered = filtered.filter(item =>
+                    (item.data.namaBarang && item.data.namaBarang.toLowerCase().includes(search)) ||
+                    (item.data.ruang && item.data.ruang.toLowerCase().includes(search)) ||
+                    (item.data.lokasiGedung && item.data.lokasiGedung.toLowerCase().includes(search)) ||
+                    (item.data.jenis && item.data.jenis.toLowerCase().includes(search)) ||
+                    (item.data.asalPerolehan && item.data.asalPerolehan.toLowerCase().includes(search))
+                );
+            }
+
+            // Sort
+            if (sortField && sortField !== 'no') {
+                filtered.sort((a, b) => {
+                    let valA = a.data[sortField] ?? '';
+                    let valB = b.data[sortField] ?? '';
+                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(sortField)) {
+                        valA = Number(valA) || 0;
+                        valB = Number(valB) || 0;
+                        return sortAsc ? valA - valB : valB - valA;
+                    } else {
+                        valA = String(valA).toLowerCase();
+                        valB = String(valB).toLowerCase();
+                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                });
+            }
+
+            renderItems(filtered);
+            updateSortIcons();
+            updateFilterInfo(ruangFilter);
+            updateAdminUI(); // untuk toggle edit/hapus
+        }
+
+        // ============================================================
+        // RENDER (dengan sel editable)
+        // ============================================================
+        function renderItems(items) {
+            tbody.innerHTML = '';
+            if (items.length === 0) {
+                emptyMsg.style.display = 'block';
+                return;
+            }
+            emptyMsg.style.display = 'none';
+
+            items.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.dataset.id = item.id;
+
+                const fields = [
+                    { key: 'no', label: 'No' },
+                    { key: 'namaBarang', label: 'Nama Barang' },
+                    { key: 'jumlahBarang', label: 'Jumlah' },
+                    { key: 'tahunPerolehan', label: 'Tahun' },
+                    { key: 'asalPerolehan', label: 'Sumber Dana' },
+                    { key: 'baik', label: 'Baik' },
+                    { key: 'rusakRingan', label: 'Rusak Ringan' },
+                    { key: 'rusakBerat', label: 'Rusak Berat' },
+                    { key: 'ruang', label: 'Ruang' },
+                    { key: 'lokasiGedung', label: 'Gedung' },
+                    { key: 'jenis', label: 'Jenis' }
+                ];
+
+                let html = '';
+                fields.forEach((f, i) => {
+                    let value = item.data[f.key] ?? '';
+                    if (f.key === 'no') value = idx + 1;
+                    if (['jumlahBarang', 'baik', 'rusakRingan', 'rusakBerat'].includes(f.key)) value = Number(value) || 0;
+                    const isModified = modifiedIds.has(item.id);
+                    const extraClass = isModified ? ' modified' : '';
+                    // Untuk kolom no, tidak editable
+                    const editable = (f.key !== 'no') ? 'contenteditable="true"' : '';
+                    html += `<td ${editable} data-key="${f.key}" data-id="${item.id}" class="${extraClass}">${value}</td>`;
+                });
+
+                // Kolom aksi
+                const actionCol = `
+                    <td>
+                        <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
+                            <button class="delete-row" data-id="${item.id}" title="Hapus">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                html += actionCol;
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+
+            // Event listener untuk sel editable
+            tbody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
+                td.addEventListener('input', onCellInput);
+                // Jika bukan admin, nonaktifkan
+                if (!isAdmin) td.contentEditable = 'false';
+            });
+
+            // Event listener tombol hapus
+            tbody.querySelectorAll('.delete-row').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    if (confirm('Hapus baris ini?')) {
+                        deleteItem(id);
+                    }
+                });
+            });
+        }
+
+        // ============================================================
+        // CELL INPUT HANDLER
+        // ============================================================
+        function onCellInput(e) {
+            const td = e.target;
+            const id = td.dataset.id;
+            const key = td.dataset.key;
+            const newValue = td.textContent.trim();
+
+            // Cari item di allItems
+            const item = allItems.find(it => it.id === id);
+            if (!item) return;
+
+            // Konversi tipe data
+            let parsedValue = newValue;
+            if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
+                parsedValue = parseFloat(newValue) || 0;
+            }
+
+            // Update data
+            item.data[key] = parsedValue;
+
+            // Tandai modified
+            modifiedIds.add(id);
+            td.classList.add('modified');
+            isDirty = true;
+            updateSaveUI();
+
+            // Check perubahan dibanding original
+            const orig = originalData[id];
+            if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                // Kembali normal
+                modifiedIds.delete(id);
+                td.classList.remove('modified');
+                if (modifiedIds.size === 0) {
+                    isDirty = false;
+                    updateSaveUI();
+                }
+            }
+        }
+
+        // ============================================================
+        // DELETE ITEM
+        // ============================================================
+        function deleteItem(id) {
+            if (!confirm('Hapus data ini secara permanen?')) return;
+            showLoading(true);
+            inventoryRef.doc(id).delete().then(() => {
+                showToast('Data dihapus', 'success');
+                // Hapus dari allItems (akan sync via snapshot)
+            }).catch(err => {
+                showToast('Gagal hapus: ' + err.message, 'error');
+            }).finally(() => showLoading(false));
+        }
+
+        // ============================================================
+        // SAVE CHANGES
+        // ============================================================
+        async function saveChanges() {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin untuk menyimpan', 'error');
+                return;
+            }
+            if (modifiedIds.size === 0) {
+                showToast('Tidak ada perubahan untuk disimpan', 'info');
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const batch = db.batch();
+                let count = 0;
+                for (const id of modifiedIds) {
+                    const item = allItems.find(it => it.id === id);
+                    if (!item) continue;
+                    const ref = inventoryRef.doc(id);
+                    batch.update(ref, item.data);
+                    count++;
+                }
+                await batch.commit();
+                showToast(`${count} perubahan berhasil disimpan`, 'success');
+                // Reset modified
+                modifiedIds.clear();
+                isDirty = false;
+                // Update originalData
+                for (const id of modifiedIds) {
+                    // sudah clear, tapi kita update original dari allItems
+                }
+                // Refresh originalData
+                allItems.forEach(item => {
+                    originalData[item.id] = JSON.parse(JSON.stringify(item.data));
+                });
+                updateSaveUI();
+                // Hapus class modified
+                document.querySelectorAll('td.modified').forEach(td => td.classList.remove('modified'));
+            } catch (err) {
+                showToast('Gagal menyimpan: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ============================================================
+        // ADD NEW ROW
+        // ============================================================
+        function addNewRow() {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin', 'error');
+                return;
+            }
+            const newData = {
+                namaBarang: '',
+                jumlahBarang: 0,
+                tahunPerolehan: 0,
+                asalPerolehan: '',
+                baik: 0,
+                rusakRingan: 0,
+                rusakBerat: 0,
+                ruang: '',
+                lokasiGedung: '',
+                jenis: '',
+                anggaranSatuan: ''
+            };
+            inventoryRef.add(newData).then(docRef => {
+                showToast('Baris baru ditambahkan', 'success');
+                // Data akan muncul via snapshot
+            }).catch(err => {
+                showToast('Gagal menambah baris: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // UPDATE SAVE UI (tombol & status)
+        // ============================================================
+        function updateSaveUI() {
+            const saveBtn = document.getElementById('saveBtn');
+            const status = document.getElementById('statusIndicator');
+            if (isDirty && modifiedIds.size > 0) {
+                saveBtn.classList.add('dirty');
+                saveBtn.textContent = `💾 Simpan (${modifiedIds.size})`;
+                status.textContent = `⚠️ ${modifiedIds.size} perubahan belum disimpan`;
+                status.className = 'status dirty';
+            } else {
+                saveBtn.classList.remove('dirty');
+                saveBtn.textContent = '💾 Simpan';
+                status.textContent = '✅ Semua tersimpan';
+                status.className = 'status';
+            }
+        }
+
+        // ============================================================
+        // SORT ICONS
+        // ============================================================
+        function updateSortIcons() {
+            document.querySelectorAll('th[data-field]').forEach(th => {
+                const field = th.dataset.field;
+                const icon = th.querySelector('.sort-icon');
+                if (!icon) return;
+                if (field === sortField) {
+                    icon.textContent = sortAsc ? ' ▲' : ' ▼';
+                    icon.classList.add('active');
+                } else {
+                    icon.textContent = ' ↕';
+                    icon.classList.remove('active');
+                }
+            });
+        }
+
+        // ============================================================
+        // FILTER INFO
+        // ============================================================
+        function updateFilterInfo(ruang) {
+            if (ruang) {
+                filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
+                filterInfo.style.display = 'inline-block';
+                resetFilterBtn.style.display = 'inline-block';
+            } else {
+                filterInfo.style.display = 'none';
+                resetFilterBtn.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+
+        // Sort header
+        document.querySelectorAll('th[data-field]').forEach(th => {
+            th.addEventListener('click', () => {
+                const field = th.dataset.field;
+                if (field === 'no') return;
+                if (sortField === field) {
+                    sortAsc = !sortAsc;
+                } else {
+                    sortField = field;
+                    sortAsc = true;
+                }
+                applyFiltersAndSort();
+            });
+        });
+
+        // Filter ruang
+        filterRuangSelect.addEventListener('change', () => {
+            filterRuang = filterRuangSelect.value;
+            applyFiltersAndSort();
+        });
+
+        resetFilterBtn.addEventListener('click', () => {
+            filterRuangSelect.value = '';
+            filterRuang = '';
+            applyFiltersAndSort();
+        });
+
+        // Search
+        searchInput.addEventListener('input', applyFiltersAndSort);
+
+        // Save
+        saveBtn.addEventListener('click', saveChanges);
+
+        // Add row
+        addRowBtn.addEventListener('click', addNewRow);
+
+        // Definisi
+        defBtn.addEventListener('click', () => {
+            if (!isAdmin) {
+                showToast('Harus login sebagai admin', 'error');
+                return;
+            }
+            window.location.href = 'definisi.html';
+        });
+
+        // ============================================================
+        // PERINGATAN SEBELUM MENINGGALKAN HALAMAN
+        // ============================================================
+        window.addEventListener('beforeunload', (e) => {
+            if (isDirty && modifiedIds.size > 0) {
+                e.preventDefault();
+                e.returnValue = 'Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
+                return e.returnValue;
+            }
+        });
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        isAdmin = getAdminSession();
+        updateAdminUI();
+
+        loadDefinitions().then(() => {
+            loadInventory();
+        }).catch(err => {
+            console.error('Init error:', err);
+            showToast('Gagal inisialisasi: ' + err.message, 'error');
+        });
+
+        // Set timeout untuk update UI admin
+        setTimeout(() => updateAdminUI(), 500);
+    </script>
 </body>
 </html>
