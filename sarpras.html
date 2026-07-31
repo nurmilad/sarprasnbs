@@ -229,13 +229,13 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 12px; /* turun 2pt dari 14px */
             min-width: 800px;
         }
 
         th {
             background: #eaf0ea;
-            padding: 8px 10px;
+            padding: 6px 8px; /* dikurangi sedikit agar proporsional */
             text-align: left;
             font-weight: 600;
             color: #1a3d2e;
@@ -245,6 +245,7 @@
             min-width: 60px;
             resize: horizontal;
             overflow: hidden;
+            font-size: 12px; /* konsisten */
         }
         th:last-child {
             border-right: none;
@@ -253,7 +254,7 @@
         th .sort-icon {
             margin-left: 4px;
             opacity: 0.5;
-            font-size: 12px;
+            font-size: 11px;
         }
         th .sort-icon.active {
             opacity: 1;
@@ -271,7 +272,8 @@
             padding: 4px 6px;
             border-bottom: 1px solid #e4ece4;
             vertical-align: middle;
-            min-height: 36px;
+            min-height: 32px;
+            font-size: 12px;
         }
         tr {
             border-bottom: 2px solid #d0d8d0;
@@ -283,11 +285,11 @@
         /* Select di dalam td */
         td select {
             width: 100%;
-            padding: 4px 6px;
+            padding: 2px 4px;
             border: 1px solid #d0d8d0;
-            border-radius: 6px;
+            border-radius: 4px;
             background: #fff;
-            font-size: 14px;
+            font-size: 12px;
             font-family: inherit;
             outline: none;
             transition: border-color 0.2s;
@@ -311,7 +313,7 @@
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             padding: 2px 6px;
             border-radius: 6px;
             transition: 0.2s;
@@ -479,18 +481,18 @@
             <table id="inventoryTable">
                 <thead>
                     <tr>
-                        <th data-field="no" style="cursor:default; width:40px; resize:none;">No</th>
-                        <th data-field="namaBarang" style="min-width:120px;">Nama Barang <span class="sort-icon">↕</span></th>
-                        <th data-field="jumlahBarang" style="min-width:70px;">Jumlah <span class="sort-icon">↕</span></th>
-                        <th data-field="tahunPerolehan" style="min-width:70px;">Tahun <span class="sort-icon">↕</span></th>
-                        <th data-field="asalPerolehan" style="min-width:100px;">Sumber Dana <span class="sort-icon">↕</span></th>
-                        <th data-field="baik" style="min-width:60px;">Baik <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakRingan" style="min-width:60px;">Rusak Ringan <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakBerat" style="min-width:60px;">Rusak Berat <span class="sort-icon">↕</span></th>
-                        <th data-field="ruang" style="min-width:90px;">Ruang <span class="sort-icon">↕</span></th>
-                        <th data-field="lokasiGedung" style="min-width:90px;">Gedung <span class="sort-icon">↕</span></th>
-                        <th data-field="jenis" style="min-width:90px;">Jenis <span class="sort-icon">↕</span></th>
-                        <th style="width:70px; resize:none;">Aksi</th>
+                        <th data-field="no" style="cursor:default; width:36px; resize:none;">No</th>
+                        <th data-field="namaBarang" style="min-width:100px;">Nama Barang <span class="sort-icon">↕</span></th>
+                        <th data-field="jumlahBarang" style="min-width:60px;">Jumlah <span class="sort-icon">↕</span></th>
+                        <th data-field="tahunPerolehan" style="min-width:60px;">Tahun <span class="sort-icon">↕</span></th>
+                        <th data-field="asalPerolehan" style="min-width:90px;">Sumber Dana <span class="sort-icon">↕</span></th>
+                        <th data-field="baik" style="min-width:50px;">Baik <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakRingan" style="min-width:50px;">Rusak Ringan <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakBerat" style="min-width:50px;">Rusak Berat <span class="sort-icon">↕</span></th>
+                        <th data-field="ruang" style="min-width:80px;">Ruang <span class="sort-icon">↕</span></th>
+                        <th data-field="lokasiGedung" style="min-width:80px;">Gedung <span class="sort-icon">↕</span></th>
+                        <th data-field="jenis" style="min-width:80px;">Jenis <span class="sort-icon">↕</span></th>
+                        <th style="width:60px; resize:none;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="inventoryBody"></tbody>
