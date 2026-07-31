@@ -275,6 +275,9 @@
         .text-center {
             text-align: center !important;
         }
+        .text-right {
+            text-align: right !important;
+        }
 
         /* Select di dalam td */
         td select {
@@ -493,6 +496,7 @@
                         <th data-field="no" style="cursor:default; width:36px; resize:none;" class="text-center">No</th>
                         <th data-field="namaBarang" style="min-width:100px;" class="text-center">Nama Barang <span class="sort-icon">↕</span></th>
                         <th data-field="jumlahBarang" style="min-width:60px;" class="text-center">Jumlah <span class="sort-icon">↕</span></th>
+                        <th data-field="anggaranSatuan" style="min-width:100px;" class="text-center">Anggaran / satuan (Rp.) <span class="sort-icon">↕</span></th>
                         <th data-field="tahunPerolehan" style="min-width:60px;" class="text-center">Tahun <span class="sort-icon">↕</span></th>
                         <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
                         <th data-field="baik" style="min-width:50px;" class="text-center">Baik <span class="sort-icon">↕</span></th>
@@ -551,6 +555,12 @@
 
         function showLoading(show) {
             document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+        }
+
+        // Fungsi format angka dengan ribuan (titik)
+        function formatRupiah(angka) {
+            if (angka === undefined || angka === null || isNaN(angka)) return '0';
+            return Number(angka).toLocaleString('id-ID');
         }
 
         // ============================================================
@@ -732,7 +742,8 @@
                     (item.data.ruang && item.data.ruang.toLowerCase().includes(search)) ||
                     (item.data.lokasiGedung && item.data.lokasiGedung.toLowerCase().includes(search)) ||
                     (item.data.jenis && item.data.jenis.toLowerCase().includes(search)) ||
-                    (item.data.asalPerolehan && item.data.asalPerolehan.toLowerCase().includes(search))
+                    (item.data.asalPerolehan && item.data.asalPerolehan.toLowerCase().includes(search)) ||
+                    (item.data.anggaranSatuan && String(item.data.anggaranSatuan).includes(search))
                 );
             }
 
@@ -740,7 +751,7 @@
                 filtered.sort((a, b) => {
                     let valA = a.data[sortField] ?? '';
                     let valB = b.data[sortField] ?? '';
-                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(sortField)) {
+                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat', 'anggaranSatuan'].includes(sortField)) {
                         valA = Number(valA) || 0;
                         valB = Number(valB) || 0;
                         return sortAsc ? valA - valB : valB - valA;
@@ -788,10 +799,12 @@
                     jenis: { list: definitions.jenis, placeholder: 'Pilih Jenis' }
                 };
 
-                const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'tahunPerolehan', 'asalPerolehan',
-                    'baik', 'rusakRingan', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
+                // Urutan kolom: No, Nama Barang, Jumlah, Anggaran, Tahun, Sumber Dana, Baik, Rusak Ringan, Rusak Berat, Ruang, Gedung, Jenis
+                const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
+                    'asalPerolehan', 'baik', 'rusakRingan', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
                 ];
 
+                // Kolom yang rata tengah: No, Jumlah, Tahun, Baik, Rusak Ringan, Rusak Berat
                 const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'];
 
                 let html = '';
@@ -805,7 +818,14 @@
                     const isModified = modifiedIds.has(item.id);
                     const extraClass = isModified ? ' modified' : '';
                     let classAttr = '';
-                    if (centerKeys.includes(key) || key === 'no') {
+
+                    // Penentuan alignment
+                    if (key === 'anggaranSatuan') {
+                        // Rata kanan untuk anggaran
+                        classAttr = ' class="text-right' + extraClass + '"';
+                        // Format angka dengan ribuan
+                        value = formatRupiah(value);
+                    } else if (centerKeys.includes(key) || key === 'no') {
                         classAttr = ' class="text-center' + extraClass + '"';
                     } else {
                         classAttr = ' class="' + extraClass + '"';
@@ -817,13 +837,17 @@
                         const selectData = selectFields[key];
                         const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
                         const disabled = isAdmin ? '' : 'disabled';
+                        // Untuk select, kita tambahkan class text-center pada td
                         html += `<td class="text-center${extraClass}">
                             <select data-key="${key}" data-id="${item.id}" ${disabled}>
                                 ${optionsHtml}
                             </select>
                         </td>`;
                     } else {
-                        const editable = isAdmin ? 'contenteditable="true"' : '';
+                        // Untuk kolom anggaranSatuan, tidak editable (hanya tampilan)
+                        // Jika bukan admin, nonaktifkan contenteditable
+                        const editable = (isAdmin && key !== 'anggaranSatuan') ? 'contenteditable="true"' : '';
+                        // Untuk anggaranSatuan, kita tampilkan sebagai teks biasa
                         html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
                     }
                 });
@@ -847,7 +871,7 @@
                 sel.addEventListener('change', onSelectChange);
             });
 
-            // Event listener untuk contenteditable
+            // Event listener untuk contenteditable (kecuali kolom anggaranSatuan)
             tbody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
                 td.addEventListener('input', onCellInput);
                 if (!isAdmin) td.contentEditable = 'false';
@@ -908,7 +932,10 @@
             const td = e.target;
             const id = td.dataset.id;
             const key = td.dataset.key;
-            const newValue = td.textContent.trim();
+            let newValue = td.textContent.trim();
+
+            // Jika kolom anggaran, kita tidak mengizinkan edit via contenteditable karena hanya tampilan
+            if (key === 'anggaranSatuan') return;
 
             const item = allItems.find(it => it.id === id);
             if (!item) return;
@@ -943,13 +970,11 @@
                 showToast('Anda harus login sebagai admin', 'error');
                 return;
             }
-            // Cari item sumber
             const sourceItem = allItems.find(it => it.id === id);
             if (!sourceItem) {
                 showToast('Data sumber tidak ditemukan', 'error');
                 return;
             }
-            // Salin semua field kecuali yang unik (id, createdAt)
             const sourceData = sourceItem.data;
             const newData = {
                 namaBarang: sourceData.namaBarang || '',
@@ -962,7 +987,7 @@
                 ruang: sourceData.ruang || '',
                 lokasiGedung: sourceData.lokasiGedung || '',
                 jenis: sourceData.jenis || '',
-                anggaranSatuan: sourceData.anggaranSatuan || '',
+                anggaranSatuan: sourceData.anggaranSatuan || 0,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             inventoryRef.add(newData).then(() => {
@@ -991,7 +1016,7 @@
                 ruang: '',
                 lokasiGedung: '',
                 jenis: '',
-                anggaranSatuan: '',
+                anggaranSatuan: 0,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             inventoryRef.add(newData).then(() => {
