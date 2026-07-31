@@ -188,13 +188,8 @@
             background: #8a2e24;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.03);
-            }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
         }
         .toolbar .status {
             font-size: 13px;
@@ -230,7 +225,7 @@
         th {
             background: #eaf0ea;
             padding: 6px 8px;
-            text-align: center !important;     /* rata tengah semua header */
+            text-align: center !important;
             font-weight: 600;
             color: #1a3d2e;
             position: relative;
@@ -414,24 +409,12 @@
             animation: slideUp 0.3s ease;
             text-align: center;
         }
-        .toast.success {
-            background: #2d6a4f;
-        }
-        .toast.error {
-            background: #c0392b;
-        }
-        .toast.info {
-            background: #2c6f9b;
-        }
+        .toast.success { background: #2d6a4f; }
+        .toast.error { background: #c0392b; }
+        .toast.info { background: #2c6f9b; }
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .loading-overlay {
@@ -447,9 +430,7 @@
             color: #1a3d2e;
             font-weight: 600;
         }
-        .loading-overlay.hidden {
-            display: none;
-        }
+        .loading-overlay.hidden { display: none; }
         .spinner {
             width: 36px;
             height: 36px;
@@ -460,9 +441,7 @@
             margin-right: 14px;
         }
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
 
         .footer {
@@ -813,7 +792,6 @@
                     'baik', 'rusakRingan', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
                 ];
 
-                // Daftar kolom yang perlu rata tengah
                 const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'];
 
                 let html = '';
@@ -827,9 +805,7 @@
                     const isModified = modifiedIds.has(item.id);
                     const extraClass = isModified ? ' modified' : '';
                     let classAttr = '';
-                    if (centerKeys.includes(key)) {
-                        classAttr = ' class="text-center' + extraClass + '"';
-                    } else if (key === 'no') {
+                    if (centerKeys.includes(key) || key === 'no') {
                         classAttr = ' class="text-center' + extraClass + '"';
                     } else {
                         classAttr = ' class="' + extraClass + '"';
@@ -841,7 +817,6 @@
                         const selectData = selectFields[key];
                         const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
                         const disabled = isAdmin ? '' : 'disabled';
-                        // Untuk select, kita tambahkan class text-center pada td
                         html += `<td class="text-center${extraClass}">
                             <select data-key="${key}" data-id="${item.id}" ${disabled}>
                                 ${optionsHtml}
@@ -961,36 +936,44 @@
         }
 
         // ============================================================
-        // ADD ROW BELOW
+        // ADD ROW BELOW (copy data dari baris yang dipilih)
         // ============================================================
         function addRowBelow(id) {
             if (!isAdmin) {
                 showToast('Anda harus login sebagai admin', 'error');
                 return;
             }
+            // Cari item sumber
+            const sourceItem = allItems.find(it => it.id === id);
+            if (!sourceItem) {
+                showToast('Data sumber tidak ditemukan', 'error');
+                return;
+            }
+            // Salin semua field kecuali yang unik (id, createdAt)
+            const sourceData = sourceItem.data;
             const newData = {
-                namaBarang: '',
-                jumlahBarang: 0,
-                tahunPerolehan: 0,
-                asalPerolehan: '',
-                baik: 0,
-                rusakRingan: 0,
-                rusakBerat: 0,
-                ruang: '',
-                lokasiGedung: '',
-                jenis: '',
-                anggaranSatuan: '',
+                namaBarang: sourceData.namaBarang || '',
+                jumlahBarang: sourceData.jumlahBarang || 0,
+                tahunPerolehan: sourceData.tahunPerolehan || 0,
+                asalPerolehan: sourceData.asalPerolehan || '',
+                baik: sourceData.baik || 0,
+                rusakRingan: sourceData.rusakRingan || 0,
+                rusakBerat: sourceData.rusakBerat || 0,
+                ruang: sourceData.ruang || '',
+                lokasiGedung: sourceData.lokasiGedung || '',
+                jenis: sourceData.jenis || '',
+                anggaranSatuan: sourceData.anggaranSatuan || '',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             inventoryRef.add(newData).then(() => {
-                showToast('Baris baru ditambahkan', 'success');
+                showToast('Baris baru ditambahkan (copy dari baris ini)', 'success');
             }).catch(err => {
                 showToast('Gagal menambah baris: ' + err.message, 'error');
             });
         }
 
         // ============================================================
-        // ADD FIRST ROW
+        // ADD FIRST ROW (saat data kosong) - default kosong
         // ============================================================
         function addFirstRow() {
             if (!isAdmin) {
