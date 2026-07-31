@@ -226,10 +226,11 @@
             min-width: 800px;
         }
 
+        /* === HEADER (semua rata tengah) === */
         th {
             background: #eaf0ea;
             padding: 6px 8px;
-            text-align: left;
+            text-align: center !important;     /* rata tengah semua header */
             font-weight: 600;
             color: #1a3d2e;
             position: relative;
@@ -273,6 +274,11 @@
         }
         tr:last-child {
             border-bottom: none;
+        }
+
+        /* === KOLOM YANG RATA TENGAH === */
+        .text-center {
+            text-align: center !important;
         }
 
         /* Select di dalam td */
@@ -505,18 +511,18 @@
             <table id="inventoryTable">
                 <thead>
                     <tr>
-                        <th data-field="no" style="cursor:default; width:36px; resize:none;">No</th>
-                        <th data-field="namaBarang" style="min-width:100px;">Nama Barang <span class="sort-icon">↕</span></th>
-                        <th data-field="jumlahBarang" style="min-width:60px;">Jumlah <span class="sort-icon">↕</span></th>
-                        <th data-field="tahunPerolehan" style="min-width:60px;">Tahun <span class="sort-icon">↕</span></th>
-                        <th data-field="asalPerolehan" style="min-width:90px;">Sumber Dana <span class="sort-icon">↕</span></th>
-                        <th data-field="baik" style="min-width:50px;">Baik <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakRingan" style="min-width:50px;">Rusak Ringan <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakBerat" style="min-width:50px;">Rusak Berat <span class="sort-icon">↕</span></th>
-                        <th data-field="ruang" style="min-width:80px;">Ruang <span class="sort-icon">↕</span></th>
-                        <th data-field="lokasiGedung" style="min-width:80px;">Gedung <span class="sort-icon">↕</span></th>
-                        <th data-field="jenis" style="min-width:80px;">Jenis <span class="sort-icon">↕</span></th>
-                        <th style="width:70px; resize:none;">Aksi</th>
+                        <th data-field="no" style="cursor:default; width:36px; resize:none;" class="text-center">No</th>
+                        <th data-field="namaBarang" style="min-width:100px;" class="text-center">Nama Barang <span class="sort-icon">↕</span></th>
+                        <th data-field="jumlahBarang" style="min-width:60px;" class="text-center">Jumlah <span class="sort-icon">↕</span></th>
+                        <th data-field="tahunPerolehan" style="min-width:60px;" class="text-center">Tahun <span class="sort-icon">↕</span></th>
+                        <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
+                        <th data-field="baik" style="min-width:50px;" class="text-center">Baik <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakRingan" style="min-width:50px;" class="text-center">Rusak Ringan <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakBerat" style="min-width:50px;" class="text-center">Rusak Berat <span class="sort-icon">↕</span></th>
+                        <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
+                        <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
+                        <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
+                        <th style="width:70px; resize:none;" class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="inventoryBody"></tbody>
@@ -612,16 +618,13 @@
                     }
                 };
             }
-            // Sembunyikan/tampilkan tombol aksi (hapus & tambah)
             document.querySelectorAll('.delete-row, .add-row-below').forEach(btn => {
                 btn.style.display = isAdmin ? 'inline-block' : 'none';
             });
             document.getElementById('defBtn').style.display = isAdmin ? 'inline-block' : 'none';
-            // Nonaktifkan select jika bukan admin
             document.querySelectorAll('td select').forEach(sel => {
                 sel.disabled = !isAdmin;
             });
-            // Update tombol "Baris Pertama" di empty state
             const firstBtn = document.getElementById('firstRowBtn');
             if (firstBtn) {
                 firstBtn.style.display = isAdmin ? 'inline-block' : 'none';
@@ -640,7 +643,6 @@
         let modifiedIds = new Set();
         let isDirty = false;
 
-        // DEFINISI
         let definitions = {
             ruangan: [],
             gedung: [],
@@ -650,7 +652,6 @@
         };
         let ruangNames = [];
 
-        // DOM refs
         const tbody = document.getElementById('inventoryBody');
         const searchInput = document.getElementById('searchInput');
         const filterRuangSelect = document.getElementById('filterRuang');
@@ -701,9 +702,6 @@
             if (filterRuang) filterRuangSelect.value = filterRuang;
         }
 
-        // ============================================================
-        // FUNGSI BANTU UNTUK MEMBUAT SELECT OPTIONS
-        // ============================================================
         function buildSelectOptions(list, selectedValue, placeholder = '') {
             let html = `<option value="">${placeholder}</option>`;
             list.forEach(item => {
@@ -782,25 +780,19 @@
         }
 
         // ============================================================
-        // RENDER (dengan SELECT pada kolom tertentu)
+        // RENDER
         // ============================================================
         function renderItems(items) {
             tbody.innerHTML = '';
             if (items.length === 0) {
-                // Tampilkan empty state dengan tombol "Baris Pertama"
                 let btnHtml = '';
                 if (isAdmin) {
                     btnHtml = `<button class="first-row-btn" id="firstRowBtn">➕ Tambah Baris Pertama</button>`;
                 }
-                emptyMsg.innerHTML = `
-                    Belum ada data. ${btnHtml}
-                `;
+                emptyMsg.innerHTML = `Belum ada data. ${btnHtml}`;
                 emptyMsg.style.display = 'block';
-                // Pasang event listener ke tombol jika ada
                 const firstBtn = document.getElementById('firstRowBtn');
-                if (firstBtn) {
-                    firstBtn.addEventListener('click', addFirstRow);
-                }
+                if (firstBtn) firstBtn.addEventListener('click', addFirstRow);
                 return;
             }
             emptyMsg.style.display = 'none';
@@ -809,7 +801,6 @@
                 const tr = document.createElement('tr');
                 tr.dataset.id = item.id;
 
-                // Kolom yang menggunakan SELECT
                 const selectFields = {
                     namaBarang: { list: definitions.barang, placeholder: 'Pilih Barang' },
                     asalPerolehan: { list: definitions.sumberDana, placeholder: 'Pilih Sumber Dana' },
@@ -818,13 +809,15 @@
                     jenis: { list: definitions.jenis, placeholder: 'Pilih Jenis' }
                 };
 
-                // Urutan kolom sesuai header
                 const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'tahunPerolehan', 'asalPerolehan',
                     'baik', 'rusakRingan', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
                 ];
 
+                // Daftar kolom yang perlu rata tengah
+                const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'];
+
                 let html = '';
-                fieldKeys.forEach((key, i) => {
+                fieldKeys.forEach((key) => {
                     let value = item.data[key] ?? '';
                     if (key === 'no') value = idx + 1;
                     if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
@@ -833,29 +826,36 @@
 
                     const isModified = modifiedIds.has(item.id);
                     const extraClass = isModified ? ' modified' : '';
+                    let classAttr = '';
+                    if (centerKeys.includes(key)) {
+                        classAttr = ' class="text-center' + extraClass + '"';
+                    } else if (key === 'no') {
+                        classAttr = ' class="text-center' + extraClass + '"';
+                    } else {
+                        classAttr = ' class="' + extraClass + '"';
+                    }
 
                     if (key === 'no') {
-                        html += `<td>${value}</td>`;
+                        html += `<td${classAttr}>${value}</td>`;
                     } else if (selectFields[key]) {
-                        // Buat select
                         const selectData = selectFields[key];
                         const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
                         const disabled = isAdmin ? '' : 'disabled';
-                        html += `<td>
-                            <select data-key="${key}" data-id="${item.id}" class="${extraClass}" ${disabled}>
+                        // Untuk select, kita tambahkan class text-center pada td
+                        html += `<td class="text-center${extraClass}">
+                            <select data-key="${key}" data-id="${item.id}" ${disabled}>
                                 ${optionsHtml}
                             </select>
                         </td>`;
                     } else {
-                        // Kolom angka / teks biasa (editable)
                         const editable = isAdmin ? 'contenteditable="true"' : '';
-                        html += `<td ${editable} data-key="${key}" data-id="${item.id}" class="${extraClass}">${value}</td>`;
+                        html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
                     }
                 });
 
-                // Kolom aksi dengan tombol tambah (+) dan hapus (ukuran kecil, tidak tebal)
+                // Kolom aksi
                 const actionCol = `
-                    <td>
+                    <td class="text-center">
                         <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
                             <button class="add-row-below" data-id="${item.id}" title="Tambah baris di bawah">➕</button>
                             <button class="delete-row" data-id="${item.id}" title="Hapus">🗑️</button>
@@ -909,14 +909,12 @@
             const item = allItems.find(it => it.id === id);
             if (!item) return;
 
-            // Update data
             item.data[key] = newValue;
             modifiedIds.add(id);
             sel.classList.add('modified');
             isDirty = true;
             updateSaveUI();
 
-            // Cek apakah kembali ke original
             const orig = originalData[id];
             if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
                 modifiedIds.delete(id);
@@ -963,7 +961,7 @@
         }
 
         // ============================================================
-        // ADD ROW BELOW (tambah baris kosong)
+        // ADD ROW BELOW
         // ============================================================
         function addRowBelow(id) {
             if (!isAdmin) {
@@ -992,7 +990,7 @@
         }
 
         // ============================================================
-        // ADD FIRST ROW (khusus saat data kosong)
+        // ADD FIRST ROW
         // ============================================================
         function addFirstRow() {
             if (!isAdmin) {
