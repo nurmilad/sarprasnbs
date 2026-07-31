@@ -196,13 +196,6 @@
                 transform: scale(1.03);
             }
         }
-        .toolbar .btn-add-row {
-            background: #2d6a4f;
-            color: #fff;
-        }
-        .toolbar .btn-add-row:hover {
-            background: #1a4d2e;
-        }
         .toolbar .status {
             font-size: 13px;
             color: #5a6a5a;
@@ -229,13 +222,13 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px; /* turun 2pt dari 14px */
+            font-size: 12px;
             min-width: 800px;
         }
 
         th {
             background: #eaf0ea;
-            padding: 6px 8px; /* dikurangi sedikit agar proporsional */
+            padding: 6px 8px;
             text-align: left;
             font-weight: 600;
             color: #1a3d2e;
@@ -245,7 +238,7 @@
             min-width: 60px;
             resize: horizontal;
             overflow: hidden;
-            font-size: 12px; /* konsisten */
+            font-size: 12px;
         }
         th:last-child {
             border-right: none;
@@ -323,6 +316,12 @@
         }
         .actions-cell button.delete-row:hover {
             background: #fce4e0;
+        }
+        .actions-cell button.add-row-below {
+            color: #2d6a4f;
+        }
+        .actions-cell button.add-row-below:hover {
+            background: #e0f0e0;
         }
 
         /* ===== NO DATA ===== */
@@ -471,7 +470,6 @@
             <div class="right">
                 <span class="status" id="statusIndicator">✅ Semua tersimpan</span>
                 <button class="btn btn-save" id="saveBtn">💾 Simpan</button>
-                <button class="btn btn-add-row" id="addRowBtn">➕ Baris</button>
                 <button class="btn" id="defBtn">📋 Definisi</button>
             </div>
         </div>
@@ -492,13 +490,13 @@
                         <th data-field="ruang" style="min-width:80px;">Ruang <span class="sort-icon">↕</span></th>
                         <th data-field="lokasiGedung" style="min-width:80px;">Gedung <span class="sort-icon">↕</span></th>
                         <th data-field="jenis" style="min-width:80px;">Jenis <span class="sort-icon">↕</span></th>
-                        <th style="width:60px; resize:none;">Aksi</th>
+                        <th style="width:70px; resize:none;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="inventoryBody"></tbody>
             </table>
         </div>
-        <div id="emptyMessage" class="no-data">Belum ada data. Klik "➕ Baris" untuk menambahkan.</div>
+        <div id="emptyMessage" class="no-data">Belum ada data. Klik tombol ➕ di kolom Aksi untuk menambahkan.</div>
     </div>
 
     <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
@@ -588,11 +586,10 @@
                     }
                 };
             }
-            // Sembunyikan/tampilkan tombol hapus dan tombol tambah
-            document.querySelectorAll('.delete-row').forEach(btn => {
+            // Sembunyikan/tampilkan tombol aksi (hapus & tambah)
+            document.querySelectorAll('.delete-row, .add-row-below').forEach(btn => {
                 btn.style.display = isAdmin ? 'inline-block' : 'none';
             });
-            document.getElementById('addRowBtn').style.display = isAdmin ? 'inline-block' : 'none';
             document.getElementById('defBtn').style.display = isAdmin ? 'inline-block' : 'none';
             // Nonaktifkan select jika bukan admin
             document.querySelectorAll('td select').forEach(sel => {
@@ -628,7 +625,6 @@
         const filterInfo = document.getElementById('filterInfo');
         const resetFilterBtn = document.getElementById('resetFilterBtn');
         const saveBtn = document.getElementById('saveBtn');
-        const addRowBtn = document.getElementById('addRowBtn');
         const defBtn = document.getElementById('defBtn');
         const statusIndicator = document.getElementById('statusIndicator');
         const emptyMsg = document.getElementById('emptyMessage');
@@ -812,10 +808,11 @@
                     }
                 });
 
-                // Kolom aksi
+                // Kolom aksi dengan tombol tambah (+) dan hapus
                 const actionCol = `
                     <td>
                         <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
+                            <button class="add-row-below" data-id="${item.id}" title="Tambah baris di bawah">➕</button>
                             <button class="delete-row" data-id="${item.id}" title="Hapus">🗑️</button>
                         </div>
                     </td>
@@ -836,7 +833,16 @@
                 if (!isAdmin) td.contentEditable = 'false';
             });
 
-            // Event listener hapus
+            // Event listener tombol tambah baris
+            tbody.querySelectorAll('.add-row-below').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    addRowBelow(id);
+                });
+            });
+
+            // Event listener tombol hapus
             tbody.querySelectorAll('.delete-row').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     if (!isAdmin) return;
@@ -912,6 +918,35 @@
         }
 
         // ============================================================
+        // ADD ROW BELOW (tambah baris kosong)
+        // ============================================================
+        function addRowBelow(id) {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin', 'error');
+                return;
+            }
+            const newData = {
+                namaBarang: '',
+                jumlahBarang: 0,
+                tahunPerolehan: 0,
+                asalPerolehan: '',
+                baik: 0,
+                rusakRingan: 0,
+                rusakBerat: 0,
+                ruang: '',
+                lokasiGedung: '',
+                jenis: '',
+                anggaranSatuan: '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp() // untuk urutan jika diperlukan
+            };
+            inventoryRef.add(newData).then(() => {
+                showToast('Baris baru ditambahkan', 'success');
+            }).catch(err => {
+                showToast('Gagal menambah baris: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
         // DELETE ITEM
         // ============================================================
         function deleteItem(id) {
@@ -962,34 +997,6 @@
             } finally {
                 showLoading(false);
             }
-        }
-
-        // ============================================================
-        // ADD NEW ROW
-        // ============================================================
-        function addNewRow() {
-            if (!isAdmin) {
-                showToast('Anda harus login sebagai admin', 'error');
-                return;
-            }
-            const newData = {
-                namaBarang: '',
-                jumlahBarang: 0,
-                tahunPerolehan: 0,
-                asalPerolehan: '',
-                baik: 0,
-                rusakRingan: 0,
-                rusakBerat: 0,
-                ruang: '',
-                lokasiGedung: '',
-                jenis: '',
-                anggaranSatuan: ''
-            };
-            inventoryRef.add(newData).then(() => {
-                showToast('Baris baru ditambahkan', 'success');
-            }).catch(err => {
-                showToast('Gagal menambah baris: ' + err.message, 'error');
-            });
         }
 
         // ============================================================
@@ -1068,7 +1075,6 @@
         searchInput.addEventListener('input', applyFiltersAndSort);
 
         saveBtn.addEventListener('click', saveChanges);
-        addRowBtn.addEventListener('click', addNewRow);
 
         defBtn.addEventListener('click', () => {
             if (!isAdmin) {
