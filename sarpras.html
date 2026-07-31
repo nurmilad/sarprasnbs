@@ -219,25 +219,31 @@
             border-collapse: collapse;
             font-size: 12px;
             min-width: 800px;
+            border: 1px solid #d0d8d0; /* tambahan border luar */
         }
 
-        /* === HEADER (semua rata tengah) === */
+        /* === HEADER & SEL dengan border === */
+        th, td {
+            border: 1px solid #d0d8d0; /* garis untuk semua sel */
+            padding: 6px 8px;
+            vertical-align: middle;
+            text-align: left;
+        }
+
         th {
             background: #eaf0ea;
-            padding: 6px 8px;
-            text-align: center !important;
             font-weight: 600;
             color: #1a3d2e;
             position: relative;
-            border-right: 1px solid #d0d8d0;
             user-select: none;
             min-width: 60px;
             resize: horizontal;
             overflow: hidden;
             font-size: 12px;
+            text-align: center !important; /* tetap rata tengah */
         }
         th:last-child {
-            border-right: none;
+            border-right: 1px solid #d0d8d0; /* agar konsisten */
             resize: none;
         }
         th .sort-icon {
@@ -258,17 +264,14 @@
         }
 
         td {
-            padding: 4px 6px;
-            border-bottom: 1px solid #e4ece4;
-            vertical-align: middle;
             min-height: 32px;
             font-size: 12px;
         }
         tr {
-            border-bottom: 2px solid #d0d8d0;
+            /* tidak perlu border-bottom lagi karena sudah ada border di td */
         }
-        tr:last-child {
-            border-bottom: none;
+        tr:last-child td {
+            border-bottom: 1px solid #d0d8d0; /* agar baris terakhir tetap ada garis */
         }
 
         /* === KOLOM YANG RATA TENGAH === */
@@ -557,10 +560,22 @@
             document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
         }
 
-        // Fungsi format angka dengan ribuan (titik)
+        // Format angka dengan ribuan (titik)
         function formatRupiah(angka) {
             if (angka === undefined || angka === null || isNaN(angka)) return '0';
             return Number(angka).toLocaleString('id-ID');
+        }
+
+        // Parsing angka dari string yang mungkin mengandung titik ribuan
+        function parseAngka(str) {
+            if (typeof str === 'string') {
+                // Hapus titik ribuan dan spasi
+                str = str.replace(/\./g, '').replace(/\s/g, '');
+                // Ganti koma dengan titik (desimal)
+                str = str.replace(',', '.');
+            }
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
         }
 
         // ============================================================
@@ -614,6 +629,7 @@
             document.querySelectorAll('td select').forEach(sel => {
                 sel.disabled = !isAdmin;
             });
+            // Untuk contenteditable, kita update di render
             const firstBtn = document.getElementById('firstRowBtn');
             if (firstBtn) {
                 firstBtn.style.display = isAdmin ? 'inline-block' : 'none';
@@ -799,12 +815,12 @@
                     jenis: { list: definitions.jenis, placeholder: 'Pilih Jenis' }
                 };
 
-                // Urutan kolom: No, Nama Barang, Jumlah, Anggaran, Tahun, Sumber Dana, Baik, Rusak Ringan, Rusak Berat, Ruang, Gedung, Jenis
+                // Urutan kolom
                 const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
                     'asalPerolehan', 'baik', 'rusakRingan', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
                 ];
 
-                // Kolom yang rata tengah: No, Jumlah, Tahun, Baik, Rusak Ringan, Rusak Berat
+                // Kolom yang rata tengah
                 const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'];
 
                 let html = '';
@@ -819,11 +835,9 @@
                     const extraClass = isModified ? ' modified' : '';
                     let classAttr = '';
 
-                    // Penentuan alignment
                     if (key === 'anggaranSatuan') {
-                        // Rata kanan untuk anggaran
+                        // Rata kanan dan format ribuan
                         classAttr = ' class="text-right' + extraClass + '"';
-                        // Format angka dengan ribuan
                         value = formatRupiah(value);
                     } else if (centerKeys.includes(key) || key === 'no') {
                         classAttr = ' class="text-center' + extraClass + '"';
@@ -837,17 +851,14 @@
                         const selectData = selectFields[key];
                         const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
                         const disabled = isAdmin ? '' : 'disabled';
-                        // Untuk select, kita tambahkan class text-center pada td
                         html += `<td class="text-center${extraClass}">
                             <select data-key="${key}" data-id="${item.id}" ${disabled}>
                                 ${optionsHtml}
                             </select>
                         </td>`;
                     } else {
-                        // Untuk kolom anggaranSatuan, tidak editable (hanya tampilan)
-                        // Jika bukan admin, nonaktifkan contenteditable
-                        const editable = (isAdmin && key !== 'anggaranSatuan') ? 'contenteditable="true"' : '';
-                        // Untuk anggaranSatuan, kita tampilkan sebagai teks biasa
+                        // Semua kolom editable (termasuk anggaran) jika admin
+                        const editable = isAdmin ? 'contenteditable="true"' : '';
                         html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
                     }
                 });
@@ -871,9 +882,11 @@
                 sel.addEventListener('change', onSelectChange);
             });
 
-            // Event listener untuk contenteditable (kecuali kolom anggaranSatuan)
+            // Event listener untuk contenteditable (semua kolom termasuk anggaran)
             tbody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
                 td.addEventListener('input', onCellInput);
+                // Tambahkan event blur untuk format ulang angka
+                td.addEventListener('blur', onCellBlur);
                 if (!isAdmin) td.contentEditable = 'false';
             });
 
@@ -926,31 +939,40 @@
         }
 
         // ============================================================
-        // EVENT HANDLER CONTENTEDITABLE
+        // EVENT HANDLER CONTENTEDITABLE (input)
         // ============================================================
         function onCellInput(e) {
             const td = e.target;
             const id = td.dataset.id;
             const key = td.dataset.key;
-            let newValue = td.textContent.trim();
-
-            // Jika kolom anggaran, kita tidak mengizinkan edit via contenteditable karena hanya tampilan
-            if (key === 'anggaranSatuan') return;
+            let rawText = td.textContent.trim();
 
             const item = allItems.find(it => it.id === id);
             if (!item) return;
 
-            let parsedValue = newValue;
-            if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
-                parsedValue = parseFloat(newValue) || 0;
+            // Untuk kolom anggaran, kita perlu parse angka dan format ulang
+            if (key === 'anggaranSatuan') {
+                // Biarkan teks apa adanya, nanti di blur akan diformat
+                // Tapi kita tetap tandai sebagai modified
+                const numericValue = parseAngka(rawText);
+                item.data[key] = numericValue;
+                // Tidak langsung ubah teks di sini agar user bisa mengetik
+                // Kita akan handle di blur
+            } else {
+                // Kolom lain
+                let parsedValue = rawText;
+                if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
+                    parsedValue = parseFloat(rawText) || 0;
+                }
+                item.data[key] = parsedValue;
             }
 
-            item.data[key] = parsedValue;
             modifiedIds.add(id);
             td.classList.add('modified');
             isDirty = true;
             updateSaveUI();
 
+            // Cek apakah kembali ke original
             const orig = originalData[id];
             if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
                 modifiedIds.delete(id);
@@ -963,7 +985,23 @@
         }
 
         // ============================================================
-        // ADD ROW BELOW (copy data dari baris yang dipilih)
+        // EVENT HANDLER BLUR (format ulang angka)
+        // ============================================================
+        function onCellBlur(e) {
+            const td = e.target;
+            const key = td.dataset.key;
+            if (key === 'anggaranSatuan') {
+                const id = td.dataset.id;
+                const item = allItems.find(it => it.id === id);
+                if (item) {
+                    const val = item.data[key] || 0;
+                    td.textContent = formatRupiah(val);
+                }
+            }
+        }
+
+        // ============================================================
+        // ADD ROW BELOW (copy data)
         // ============================================================
         function addRowBelow(id) {
             if (!isAdmin) {
@@ -998,7 +1036,7 @@
         }
 
         // ============================================================
-        // ADD FIRST ROW (saat data kosong) - default kosong
+        // ADD FIRST ROW
         // ============================================================
         function addFirstRow() {
             if (!isAdmin) {
