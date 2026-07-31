@@ -307,13 +307,13 @@
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 13px;          /* lebih kecil */
-            font-weight: normal;      /* tidak tebal */
+            font-size: 13px;
+            font-weight: normal;
             padding: 2px 4px;
             border-radius: 4px;
             transition: 0.2s;
             line-height: 1.2;
-            color: #4a5a4a;           /* warna netral */
+            color: #4a5a4a;
         }
         .actions-cell button.delete-row {
             color: #b03a2e;
@@ -328,12 +328,34 @@
             background: #e0f0e0;
         }
 
-        /* ===== NO DATA ===== */
+        /* ===== EMPTY STATE dengan tombol ===== */
         .no-data {
             text-align: center;
             padding: 40px 16px;
             color: #7a8a7a;
             font-size: 16px;
+        }
+        .no-data .first-row-btn {
+            margin-top: 16px;
+            padding: 10px 28px;
+            background: #2d6a4f;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .no-data .first-row-btn:hover {
+            background: #1a4d2e;
+            transform: scale(1.02);
+        }
+        .no-data .first-row-btn:disabled {
+            background: #a0b0a0;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* ===== MOBILE ===== */
@@ -599,6 +621,12 @@
             document.querySelectorAll('td select').forEach(sel => {
                 sel.disabled = !isAdmin;
             });
+            // Update tombol "Baris Pertama" di empty state
+            const firstBtn = document.getElementById('firstRowBtn');
+            if (firstBtn) {
+                firstBtn.style.display = isAdmin ? 'inline-block' : 'none';
+                firstBtn.disabled = !isAdmin;
+            }
         }
 
         // ============================================================
@@ -759,7 +787,20 @@
         function renderItems(items) {
             tbody.innerHTML = '';
             if (items.length === 0) {
+                // Tampilkan empty state dengan tombol "Baris Pertama"
+                let btnHtml = '';
+                if (isAdmin) {
+                    btnHtml = `<button class="first-row-btn" id="firstRowBtn">➕ Tambah Baris Pertama</button>`;
+                }
+                emptyMsg.innerHTML = `
+                    Belum ada data. ${btnHtml}
+                `;
                 emptyMsg.style.display = 'block';
+                // Pasang event listener ke tombol jika ada
+                const firstBtn = document.getElementById('firstRowBtn');
+                if (firstBtn) {
+                    firstBtn.addEventListener('click', addFirstRow);
+                }
                 return;
             }
             emptyMsg.style.display = 'none';
@@ -945,6 +986,35 @@
             };
             inventoryRef.add(newData).then(() => {
                 showToast('Baris baru ditambahkan', 'success');
+            }).catch(err => {
+                showToast('Gagal menambah baris: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // ADD FIRST ROW (khusus saat data kosong)
+        // ============================================================
+        function addFirstRow() {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin', 'error');
+                return;
+            }
+            const newData = {
+                namaBarang: '',
+                jumlahBarang: 0,
+                tahunPerolehan: 0,
+                asalPerolehan: '',
+                baik: 0,
+                rusakRingan: 0,
+                rusakBerat: 0,
+                ruang: '',
+                lokasiGedung: '',
+                jenis: '',
+                anggaranSatuan: '',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            inventoryRef.add(newData).then(() => {
+                showToast('Baris pertama ditambahkan', 'success');
             }).catch(err => {
                 showToast('Gagal menambah baris: ' + err.message, 'error');
             });
