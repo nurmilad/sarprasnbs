@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
     </script>
     <style>
-        /* RESET & BASE */
+        /* ===== RESET & BASE ===== */
         * {
             margin: 0;
             padding: 0;
@@ -25,11 +25,11 @@
             line-height: 1.5;
         }
 
-        /* HEADER */
+        /* ===== HEADER ===== */
         .header {
             background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
             color: #fff;
-            padding: 14px 20px;
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -50,214 +50,285 @@
             color: #fff;
             text-decoration: none;
             font-weight: 600;
-            padding: 6px 14px;
+            padding: 4px 12px;
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 30px;
-            font-size: 14px;
+            font-size: 13px;
             transition: 0.2s;
         }
         .header .back:hover {
             background: rgba(255, 255, 255, 0.1);
         }
-        .header .logout-btn {
-            background: #b03a2e;
+        /* Tombol admin kecil di pojok */
+        .admin-toggle-btn {
+            background: rgba(255, 255, 255, 0.15);
             color: #fff;
-            border: none;
-            padding: 6px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 14px;
             border-radius: 30px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .admin-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .admin-toggle-btn.active {
+            background: #b03a2e;
+            border-color: #b03a2e;
+        }
+        .admin-toggle-btn .logout-icon {
+            margin-left: 6px;
             font-size: 14px;
-            display: none;
-        }
-        .header .logout-btn.show {
-            display: inline-block;
-        }
-        .header .logout-btn:hover {
-            background: #8a2e24;
         }
 
-        /* CONTAINER */
+        /* ===== CONTAINER ===== */
         .container {
             flex: 1;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 16px;
+            padding: 16px 16px 0;
             width: 100%;
         }
 
-        /* TOP BAR - mobile friendly */
-        .top-bar {
+        /* ===== TOOLBAR ===== */
+        .toolbar {
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
+            align-items: center;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
-        .top-bar .left-group {
+        .toolbar .left {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            align-items: center;
+            flex: 1;
         }
-        .top-bar .left-group input,
-        .top-bar .left-group select {
-            flex: 1 1 100%;
-            padding: 12px 16px;
+        .toolbar .left input,
+        .toolbar .left select {
+            padding: 8px 14px;
             border: 1px solid #ccc;
             border-radius: 30px;
-            font-size: 16px;
+            font-size: 14px;
             background: #fff;
-            min-width: 0;
+            min-width: 160px;
         }
-        .top-bar .left-group .filter-row {
+        .toolbar .left .filter-row {
             display: flex;
-            gap: 10px;
-            width: 100%;
+            gap: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }
-        .top-bar .left-group .filter-row select {
-            flex: 2;
-        }
-        .top-bar .left-group .filter-row .reset-filter {
+        .toolbar .left .filter-row .reset-filter {
             background: transparent;
             border: none;
             color: #b03a2e;
             font-weight: 600;
-            font-size: 14px;
-            padding: 8px 12px;
-            white-space: nowrap;
+            font-size: 13px;
             cursor: pointer;
+            padding: 4px 8px;
         }
-        .top-bar .left-group .filter-row .reset-filter:hover {
+        .toolbar .left .filter-row .reset-filter:hover {
             text-decoration: underline;
         }
         .filter-info {
-            font-size: 14px;
+            font-size: 13px;
             color: #3a5a3a;
             background: #e8f0e8;
-            padding: 4px 16px;
+            padding: 2px 14px;
             border-radius: 30px;
             display: inline-block;
-            margin-left: 4px;
         }
 
-        .top-bar .right-group-btns {
+        .toolbar .right {
             display: flex;
             gap: 10px;
+            align-items: center;
             flex-wrap: wrap;
-            justify-content: flex-end;
         }
-        .top-bar .admin-btn {
-            padding: 12px 24px;
-            background: #2d6a4f;
-            color: #fff;
+        .toolbar .btn {
+            padding: 8px 20px;
             border: none;
             border-radius: 30px;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             transition: 0.2s;
-            flex: 1 1 auto;
-            min-width: 120px;
+            background: #e0e8e0;
+            color: #2a4a3a;
         }
-        .top-bar .admin-btn:hover {
+        .toolbar .btn:hover {
+            background: #d0d8d0;
+        }
+        .toolbar .btn-primary {
+            background: #2d6a4f;
+            color: #fff;
+        }
+        .toolbar .btn-primary:hover {
             background: #1a4d2e;
         }
-        .top-bar .admin-btn.active {
+        .toolbar .btn-danger {
             background: #b03a2e;
+            color: #fff;
         }
-        .top-bar .def-btn {
+        .toolbar .btn-danger:hover {
+            background: #8a2e24;
+        }
+        .toolbar .btn-save {
             background: #5c6b7a;
+            color: #fff;
         }
-        .top-bar .def-btn:hover {
-            background: #3a4a5a;
+        .toolbar .btn-save.dirty {
+            background: #b03a2e;
+            animation: pulse 1.5s infinite;
         }
-
-        /* ADD BUTTON */
-        #addButtonContainer {
-            margin: 12px 0 16px;
+        .toolbar .btn-save.dirty:hover {
+            background: #8a2e24;
         }
-        #addButtonContainer .admin-btn {
-            width: 100%;
-            padding: 14px;
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+        }
+        .toolbar .btn-add-row {
             background: #2d6a4f;
             color: #fff;
-            border: none;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
         }
-        #addButtonContainer .admin-btn:hover {
+        .toolbar .btn-add-row:hover {
             background: #1a4d2e;
         }
+        .toolbar .status {
+            font-size: 13px;
+            color: #5a6a5a;
+            padding: 4px 12px;
+            background: #f0f4f0;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .toolbar .status.dirty {
+            background: #fce4e0;
+            color: #b03a2e;
+            font-weight: 600;
+        }
 
-        /* TABLE / CARD VIEW */
+        /* ===== TABLE WRAPPER ===== */
         .table-wrapper {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow: auto;
             background: #fff;
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 20px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            min-width: 700px;
+            min-width: 800px;
         }
+
+        /* === TH dengan resize === */
         th {
             background: #eaf0ea;
-            padding: 12px 12px;
+            padding: 8px 10px;
             text-align: left;
             font-weight: 600;
             color: #1a3d2e;
-            cursor: pointer;
+            position: relative;
+            border-right: 1px solid #d0d8d0;
             user-select: none;
-            white-space: nowrap;
+            min-width: 60px;
+            resize: horizontal;
+            overflow: hidden;
+        }
+        th:last-child {
+            border-right: none;
+            resize: none;
         }
         th .sort-icon {
             margin-left: 4px;
-            opacity: 0.6;
+            opacity: 0.5;
+            font-size: 12px;
         }
         th .sort-icon.active {
             opacity: 1;
             font-weight: bold;
         }
+        /* Handle resize (bawaan browser) */
+        th::-webkit-resizer {
+            background-color: transparent;
+            border-right: 2px solid #b0c0b0;
+            border-bottom: 2px solid #b0c0b0;
+            width: 8px;
+            height: 8px;
+        }
+
+        /* === TD === */
         td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #eef4ee;
+            padding: 4px 6px;
+            border-bottom: 1px solid #e4ece4;
             vertical-align: middle;
+            min-height: 36px;
         }
-        tr:hover {
-            background: #f6faf6;
+        /* garis horizontal antar baris lebih jelas */
+        tr {
+            border-bottom: 2px solid #d0d8d0;
         }
-        .actions {
+        tr:last-child {
+            border-bottom: none;
+        }
+
+        /* Sel editable */
+        td[contenteditable="true"] {
+            background: #fcfdfc;
+            outline: none;
+            border-radius: 4px;
+            padding: 4px 6px;
+            transition: background 0.2s;
+        }
+        td[contenteditable="true"]:focus {
+            background: #fffbe6;
+            box-shadow: inset 0 0 0 2px #2d6a4f;
+        }
+        td[contenteditable="true"].modified {
+            background: #fff3e0;
+        }
+
+        /* Kolom aksi */
+        .actions-cell {
             display: flex;
-            gap: 6px;
+            gap: 4px;
+            align-items: center;
+            flex-wrap: wrap;
         }
-        .actions button {
+        .actions-cell button {
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 18px;
-            padding: 4px 8px;
+            font-size: 16px;
+            padding: 2px 6px;
             border-radius: 6px;
+            transition: 0.2s;
         }
-        .actions button.edit {
-            color: #2d6a4f;
-        }
-        .actions button.edit:hover {
-            background: #e0f0e0;
-        }
-        .actions button.delete {
+        .actions-cell button.delete-row {
             color: #b03a2e;
         }
-        .actions button.delete:hover {
-            background: #f0e0e0;
+        .actions-cell button.delete-row:hover {
+            background: #fce4e0;
         }
 
+        /* ===== NO DATA ===== */
         .no-data {
             text-align: center;
             padding: 40px 16px;
@@ -265,176 +336,34 @@
             font-size: 16px;
         }
 
-        /* MOBILE CARD STYLE (tampilan daftar untuk HP) */
-        @media (max-width: 600px) {
+        /* ===== MOBILE CARD ===== */
+        @media (max-width: 700px) {
             .table-wrapper {
                 background: transparent;
                 box-shadow: none;
+                overflow-x: auto;
             }
-            table thead {
-                display: none;
+            table {
+                min-width: 600px;
             }
-            table,
-            table tbody,
-            table tr,
-            table td {
-                display: block;
-                width: 100%;
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
             }
-            table tr {
-                background: #fff;
-                border-radius: 16px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-                margin-bottom: 16px;
-                padding: 16px;
-                border: none;
+            .toolbar .left,
+            .toolbar .right {
+                flex-wrap: wrap;
+                justify-content: center;
             }
-            table td {
-                border: none;
-                padding: 6px 0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid #f0f4f0;
-            }
-            table td:last-child {
-                border-bottom: none;
-            }
-            table td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                color: #1a3d2e;
-                flex: 1;
-            }
-            table td .actions {
+            .toolbar .right {
                 justify-content: flex-end;
             }
-            .admin-col {
-                display: block !important;
+            .toolbar .status {
+                font-size: 12px;
             }
         }
 
-        /* MODAL - full width mobile */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 16px;
-        }
-        .modal.show {
-            display: flex;
-        }
-        .modal-content {
-            background: #fff;
-            border-radius: 24px;
-            padding: 24px 20px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 95vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-        .modal-content h2 {
-            margin-bottom: 16px;
-            color: #1a3d2e;
-            font-size: 22px;
-        }
-        .modal-content .form-group {
-            margin-bottom: 16px;
-            position: relative;
-        }
-        .modal-content label {
-            display: block;
-            font-weight: 600;
-            color: #2a4a3a;
-            font-size: 15px;
-            margin-bottom: 4px;
-        }
-        .modal-content input,
-        .modal-content select {
-            width: 100%;
-            padding: 12px 14px;
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            font-size: 16px;
-            background: #fff;
-        }
-        .modal-content .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-            justify-content: flex-end;
-        }
-        .modal-content .btn-group button {
-            padding: 12px 28px;
-            border: none;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            flex: 1;
-        }
-        .modal-content .btn-group .save {
-            background: #2d6a4f;
-            color: #fff;
-        }
-        .modal-content .btn-group .save:hover {
-            background: #1a4d2e;
-        }
-        .modal-content .btn-group .cancel {
-            background: #e0e8e0;
-            color: #2a4a3a;
-        }
-        .modal-content .btn-group .cancel:hover {
-            background: #d0d8d0;
-        }
-
-        /* === CUSTOM DROPDOWN AUTOCOMPLETE === */
-        .autocomplete-dropdown {
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            z-index: 999;
-            display: none;
-        }
-        .autocomplete-dropdown.show {
-            display: block;
-        }
-        .autocomplete-dropdown .item {
-            padding: 10px 14px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f4f0;
-            font-size: 15px;
-            transition: background 0.1s;
-        }
-        .autocomplete-dropdown .item:last-child {
-            border-bottom: none;
-        }
-        .autocomplete-dropdown .item:hover {
-            background: #eaf0ea;
-        }
-        .autocomplete-dropdown .item.highlighted {
-            background: #d0e0d0;
-        }
-        .autocomplete-dropdown .no-result {
-            padding: 12px 14px;
-            color: #888;
-            font-style: italic;
-            text-align: center;
-        }
-
-        /* TOAST */
+        /* ===== TOAST & LOADING ===== */
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -448,11 +377,11 @@
             max-width: 400px;
         }
         .toast {
-            padding: 14px 20px;
+            padding: 12px 20px;
             border-radius: 12px;
             color: #fff;
             font-weight: 500;
-            font-size: 15px;
+            font-size: 14px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             animation: slideUp 0.3s ease;
             text-align: center;
@@ -494,8 +423,8 @@
             display: none;
         }
         .spinner {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: 4px solid #dce4dc;
             border-top-color: #2d6a4f;
             border-radius: 50%;
@@ -512,27 +441,29 @@
             text-align: center;
             padding: 16px;
             color: #5a6a5a;
-            font-size: 14px;
+            font-size: 13px;
             border-top: 1px solid #dce4dc;
             background: #fff;
-            margin-top: 20px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
+    <!-- ===== HEADER ===== -->
     <header class="header">
         <h1>🏗️ Sarpras NBS</h1>
         <div class="right-group">
-            <button class="logout-btn" id="logoutBtn">🚪 Logout</button>
             <a href="index.html" class="back">← Kembali</a>
+            <button class="admin-toggle-btn" id="adminToggle">🔐 Admin</button>
         </div>
     </header>
 
+    <!-- ===== MAIN ===== -->
     <div class="container">
-        <!-- TOP BAR -->
-        <div class="top-bar">
-            <div class="left-group">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <div class="left">
                 <input type="text" id="searchInput" placeholder="🔍 Cari barang, ruang, gedung..." />
                 <div class="filter-row">
                     <select id="filterRuang">
@@ -542,105 +473,42 @@
                 </div>
                 <span id="filterInfo" class="filter-info" style="display:none;"></span>
             </div>
-            <div class="right-group-btns">
-                <button class="admin-btn" id="adminToggle">🔐 Admin</button>
-                <button class="admin-btn def-btn" id="defBtn">📋 Definisi</button>
+            <div class="right">
+                <span class="status" id="statusIndicator">✅ Semua tersimpan</span>
+                <button class="btn btn-save" id="saveBtn">💾 Simpan</button>
+                <button class="btn btn-add-row" id="addRowBtn">➕ Baris</button>
+                <button class="btn" id="defBtn">📋 Definisi</button>
             </div>
         </div>
 
-        <!-- TOMBOL TAMBAH -->
-        <div id="addButtonContainer"></div>
-
-        <!-- TABLE / CARD -->
+        <!-- TABLE -->
         <div class="table-wrapper">
-            <table>
+            <table id="inventoryTable">
                 <thead>
                     <tr>
-                        <th data-field="no" style="cursor:default; width:40px;">No</th>
-                        <th data-field="namaBarang">Nama Barang <span class="sort-icon">↕</span></th>
-                        <th data-field="jumlahBarang">Jumlah <span class="sort-icon">↕</span></th>
-                        <th data-field="tahunPerolehan">Tahun <span class="sort-icon">↕</span></th>
-                        <th data-field="asalPerolehan">Sumber Dana <span class="sort-icon">↕</span></th>
-                        <th data-field="baik">Baik <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakRingan">Rusak Ringan <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakBerat">Rusak Berat <span class="sort-icon">↕</span></th>
-                        <th data-field="ruang">Ruang <span class="sort-icon">↕</span></th>
-                        <th data-field="lokasiGedung">Gedung <span class="sort-icon">↕</span></th>
-                        <th data-field="jenis">Jenis <span class="sort-icon">↕</span></th>
-                        <th style="display:none;" class="admin-col">Aksi</th>
+                        <th data-field="no" style="cursor:default; width:40px; resize:none;">No</th>
+                        <th data-field="namaBarang" style="min-width:120px;">Nama Barang <span class="sort-icon">↕</span></th>
+                        <th data-field="jumlahBarang" style="min-width:70px;">Jumlah <span class="sort-icon">↕</span></th>
+                        <th data-field="tahunPerolehan" style="min-width:70px;">Tahun <span class="sort-icon">↕</span></th>
+                        <th data-field="asalPerolehan" style="min-width:100px;">Sumber Dana <span class="sort-icon">↕</span></th>
+                        <th data-field="baik" style="min-width:60px;">Baik <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakRingan" style="min-width:60px;">Rusak Ringan <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakBerat" style="min-width:60px;">Rusak Berat <span class="sort-icon">↕</span></th>
+                        <th data-field="ruang" style="min-width:90px;">Ruang <span class="sort-icon">↕</span></th>
+                        <th data-field="lokasiGedung" style="min-width:90px;">Gedung <span class="sort-icon">↕</span></th>
+                        <th data-field="jenis" style="min-width:90px;">Jenis <span class="sort-icon">↕</span></th>
+                        <th style="width:70px; resize:none;">Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="inventoryList"></tbody>
+                <tbody id="inventoryBody">
+                    <!-- Baris data akan diisi oleh JavaScript -->
+                </tbody>
             </table>
         </div>
-        <div id="emptyMessage" class="no-data">Belum ada data inventaris. Masuk sebagai admin untuk menambahkan.</div>
+        <div id="emptyMessage" class="no-data">Belum ada data. Klik "➕ Baris" untuk menambahkan.</div>
     </div>
 
     <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
-
-    <!-- MODAL -->
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <h2 id="modalTitle">Tambah Barang</h2>
-            <input type="hidden" id="editId" />
-            <!-- Nama Barang -->
-            <div class="form-group" id="groupNama">
-                <label>Nama Barang <span style="color:#b03a2e;">*</span></label>
-                <input type="text" id="f_nama" placeholder="Ketik untuk mencari..." autocomplete="off" />
-                <div class="autocomplete-dropdown" id="dropdownNama"></div>
-            </div>
-            <!-- Jumlah -->
-            <div class="form-group">
-                <label>Jumlah</label>
-                <input type="number" id="f_jumlah" min="0" />
-            </div>
-            <!-- Tahun -->
-            <div class="form-group">
-                <label>Tahun Perolehan</label>
-                <input type="number" id="f_tahun" min="1900" max="2099" />
-            </div>
-            <!-- Sumber Dana -->
-            <div class="form-group" id="groupSumber">
-                <label>Sumber Dana</label>
-                <input type="text" id="f_sumberDana" placeholder="Ketik untuk mencari..." autocomplete="off" />
-                <div class="autocomplete-dropdown" id="dropdownSumber"></div>
-            </div>
-            <!-- Baik, Rusak Ringan, Rusak Berat -->
-            <div class="form-group">
-                <label>Baik</label>
-                <input type="number" id="f_baik" min="0" />
-            </div>
-            <div class="form-group">
-                <label>Rusak Ringan</label>
-                <input type="number" id="f_ringan" min="0" />
-            </div>
-            <div class="form-group">
-                <label>Rusak Berat</label>
-                <input type="number" id="f_berat" min="0" />
-            </div>
-            <!-- Ruang, Gedung, Jenis -->
-            <div class="form-group">
-                <label>Ruang</label>
-                <select id="f_ruang"><option value="">Pilih Ruang</option></select>
-            </div>
-            <div class="form-group">
-                <label>Gedung</label>
-                <select id="f_gedung"><option value="">Pilih Gedung</option></select>
-            </div>
-            <div class="form-group">
-                <label>Jenis</label>
-                <select id="f_jenis"><option value="">Pilih Jenis</option></select>
-            </div>
-            <div class="form-group">
-                <label>Anggaran/Satuan</label>
-                <input type="text" id="f_anggaran" />
-            </div>
-            <div class="btn-group">
-                <button class="cancel" id="modalCancel">Batal</button>
-                <button class="save" id="modalSave">Simpan</button>
-            </div>
-        </div>
-    </div>
 
     <!-- TOAST & LOADING -->
     <div class="toast-container" id="toastContainer"></div>
@@ -702,28 +570,50 @@
 
         function logoutAdmin() {
             setAdminSession(false);
-            showToast('Anda telah logout dari mode admin', 'info');
+            showToast('Anda logout dari mode admin', 'info');
             window.location.reload();
         }
 
         function updateAdminUI() {
-            const adminToggle = document.getElementById('adminToggle');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const adminCols = document.querySelectorAll('.admin-col');
-
+            const btn = document.getElementById('adminToggle');
             if (isAdmin) {
-                adminToggle.textContent = '🔓 Admin (aktif)';
-                adminToggle.classList.add('active');
-                logoutBtn.classList.add('show');
-                adminCols.forEach(el => el.style.display = 'table-cell');
+                btn.textContent = '🔓 Admin (aktif)';
+                btn.classList.add('active');
+                // Tambahkan tombol logout di dalamnya? Kita akan buat toggle: klik lagi untuk logout
+                btn.onclick = () => {
+                    if (confirm('Logout dari mode admin?')) logoutAdmin();
+                };
             } else {
-                adminToggle.textContent = '🔐 Admin';
-                adminToggle.classList.remove('active');
-                logoutBtn.classList.remove('show');
-                adminCols.forEach(el => el.style.display = 'none');
+                btn.textContent = '🔐 Admin';
+                btn.classList.remove('active');
+                btn.onclick = () => {
+                    const pass = prompt('Masukkan password admin:');
+                    if (pass === ADMIN_PASS) {
+                        setAdminSession(true);
+                        showToast('Mode admin aktif', 'success');
+                    } else if (pass !== null) {
+                        showToast('Password salah!', 'error');
+                    }
+                };
             }
-            const ruangFilter = document.getElementById('filterRuang').value;
-            updateAddButton(ruangFilter);
+            // Tampilkan/sembunyikan tombol hapus di setiap baris
+            document.querySelectorAll('.delete-row').forEach(btn => {
+                btn.style.display = isAdmin ? 'inline-block' : 'none';
+            });
+            // Tampilkan/sembunyikan kolom aksi di header? Kita sudah punya kolom aksi.
+            // Kita sembunyikan seluruh kolom aksi jika bukan admin
+            const actionCols = document.querySelectorAll('.actions-cell');
+            actionCols.forEach(cell => {
+                cell.style.display = isAdmin ? 'flex' : 'none';
+            });
+            // Sembunyikan tombol hapus di header? Tidak ada, hanya di baris.
+            // Kita juga sembunyikan tombol tambah baris jika bukan admin
+            document.getElementById('addRowBtn').style.display = isAdmin ? 'inline-block' : 'none';
+            document.getElementById('defBtn').style.display = isAdmin ? 'inline-block' : 'none';
+            // Jika bukan admin, disable editing
+            document.querySelectorAll('td[contenteditable="true"]').forEach(td => {
+                td.contentEditable = isAdmin ? 'true' : 'false';
+            });
         }
 
         // ============================================================
@@ -732,234 +622,56 @@
         let sortField = 'namaBarang';
         let sortAsc = true;
         let filterRuang = '';
-        let allItems = [];
-        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [], barang: [] };
-        let allBarangNames = [];
-        let allSumberDanaNames = [];
+        let allItems = []; // array objek { id, data }
+        let originalData = {}; // map id -> data (untuk deteksi perubahan)
+        let modifiedIds = new Set(); // id yang berubah
+        let deletedIds = new Set(); // id yang dihapus (belum di-save)
+        let isDirty = false;
 
         // DOM refs
-        const tbody = document.getElementById('inventoryList');
+        const tbody = document.getElementById('inventoryBody');
         const searchInput = document.getElementById('searchInput');
         const filterRuangSelect = document.getElementById('filterRuang');
         const filterInfo = document.getElementById('filterInfo');
         const resetFilterBtn = document.getElementById('resetFilterBtn');
         const adminToggle = document.getElementById('adminToggle');
         const defBtn = document.getElementById('defBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const modal = document.getElementById('modal');
-        const modalTitle = document.getElementById('modalTitle');
-        const editId = document.getElementById('editId');
-        const f_nama = document.getElementById('f_nama');
-        const f_jumlah = document.getElementById('f_jumlah');
-        const f_tahun = document.getElementById('f_tahun');
-        const f_sumberDana = document.getElementById('f_sumberDana');
-        const f_baik = document.getElementById('f_baik');
-        const f_ringan = document.getElementById('f_ringan');
-        const f_berat = document.getElementById('f_berat');
-        const f_ruang = document.getElementById('f_ruang');
-        const f_gedung = document.getElementById('f_gedung');
-        const f_jenis = document.getElementById('f_jenis');
-        const f_anggaran = document.getElementById('f_anggaran');
-        const modalCancel = document.getElementById('modalCancel');
-        const modalSave = document.getElementById('modalSave');
+        const saveBtn = document.getElementById('saveBtn');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
         const emptyMsg = document.getElementById('emptyMessage');
-        const addButtonContainer = document.getElementById('addButtonContainer');
-
-        const dropdownNama = document.getElementById('dropdownNama');
-        const dropdownSumber = document.getElementById('dropdownSumber');
 
         const inventoryRef = db.collection('inventory');
         let unsubscribe = null;
 
         // ============================================================
-        // AUTOCOMPLETE CUSTOM DROPDOWN
+        // LOAD DEFINISI (ruang, gedung, jenis) untuk dropdown
         // ============================================================
-        function createAutocomplete(inputElement, dropdownElement, allOptions) {
-            let currentFocus = -1;
-            let filteredOptions = [];
+        let definitions = { ruangan: [], gedung: [], jenis: [], sumberDana: [], barang: [] };
+        let ruangNames = [];
 
-            function filterOptions(value) {
-                const search = value.toLowerCase().trim();
-                if (!search) return allOptions.slice(0, 50);
-                let filtered = allOptions.filter(name =>
-                    name.toLowerCase().includes(search)
-                );
-                // Urutkan: awalan lebih dulu
-                filtered.sort((a, b) => {
-                    const aLow = a.toLowerCase();
-                    const bLow = b.toLowerCase();
-                    const aStarts = aLow.startsWith(search);
-                    const bStarts = bLow.startsWith(search);
-                    if (aStarts && !bStarts) return -1;
-                    if (!aStarts && bStarts) return 1;
-                    return a.localeCompare(b);
-                });
-                return filtered.slice(0, 50);
-            }
-
-            function renderDropdown(options) {
-                dropdownElement.innerHTML = '';
-                if (!options || options.length === 0) {
-                    const div = document.createElement('div');
-                    div.className = 'no-result';
-                    div.textContent = 'Tidak ada data';
-                    dropdownElement.appendChild(div);
-                    dropdownElement.classList.add('show');
-                    return;
-                }
-                options.forEach((name, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'item';
-                    if (index === currentFocus) div.classList.add('highlighted');
-                    div.textContent = name;
-                    div.dataset.value = name;
-                    div.addEventListener('mousedown', (e) => {
-                        e.preventDefault();
-                        inputElement.value = name;
-                        dropdownElement.classList.remove('show');
-                        inputElement.focus();
-                    });
-                    dropdownElement.appendChild(div);
-                });
-                dropdownElement.classList.add('show');
-            }
-
-            function updateDropdown() {
-                const val = inputElement.value;
-                filteredOptions = filterOptions(val);
-                renderDropdown(filteredOptions);
-                currentFocus = -1;
-            }
-
-            function closeDropdown() {
-                dropdownElement.classList.remove('show');
-                currentFocus = -1;
-            }
-
-            // Event listeners
-            inputElement.addEventListener('input', updateDropdown);
-            inputElement.addEventListener('focus', () => {
-                // Tampilkan semua opsi saat fokus
-                filteredOptions = allOptions.slice(0, 50);
-                renderDropdown(filteredOptions);
-                currentFocus = -1;
-            });
-            inputElement.addEventListener('blur', () => {
-                // Delay untuk menangani klik item
-                setTimeout(closeDropdown, 200);
-            });
-
-            // Keyboard navigasi
-            inputElement.addEventListener('keydown', (e) => {
-                const items = dropdownElement.querySelectorAll('.item');
-                if (items.length === 0) return;
-
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    currentFocus = (currentFocus + 1) % items.length;
-                    highlightItem(items, currentFocus);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    currentFocus = (currentFocus - 1 + items.length) % items.length;
-                    highlightItem(items, currentFocus);
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (currentFocus >= 0 && currentFocus < items.length) {
-                        const selected = items[currentFocus].dataset.value;
-                        inputElement.value = selected;
-                        closeDropdown();
-                    }
-                } else if (e.key === 'Escape') {
-                    closeDropdown();
-                }
-            });
-
-            function highlightItem(items, index) {
-                items.forEach((el, i) => {
-                    el.classList.toggle('highlighted', i === index);
-                });
-                // Scroll ke item yang terpilih
-                if (items[index]) {
-                    items[index].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                }
-            }
-
-            // Fungsi untuk memperbarui daftar opsi (jika ada perubahan dari Firebase)
-            return {
-                updateOptions: (newOptions) => {
-                    allOptions = newOptions;
-                },
-                close: closeDropdown,
-                refresh: updateDropdown
-            };
-        }
-
-        let autocompleteNama, autocompleteSumber;
-
-        // ============================================================
-        // LOAD DEFINITIONS
-        // ============================================================
         async function loadDefinitions() {
             try {
-                const [ruangSnap, gedungSnap, jenisSnap, sumberSnap, barangSnap] = await Promise.all([
+                const [ruangSnap, gedungSnap, jenisSnap] = await Promise.all([
                     db.collection('ruangan').get(),
                     db.collection('gedung').get(),
-                    db.collection('jenis').get(),
-                    db.collection('sumber_dana').get(),
-                    db.collection('barang').get()
+                    db.collection('jenis').get()
                 ]);
-
                 definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-
-                allBarangNames = definitions.barang.map(b => b.nama).filter(Boolean).sort();
-                allSumberDanaNames = definitions.sumberDana.map(s => s.nama).filter(Boolean).sort();
-
-                // Populate dropdowns
-                populateDropdowns();
+                ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean).sort();
                 populateFilterRuang();
-
-                // Inisialisasi autocomplete
-                autocompleteNama = createAutocomplete(f_nama, dropdownNama, allBarangNames);
-                autocompleteSumber = createAutocomplete(f_sumberDana, dropdownSumber, allSumberDanaNames);
-
+                // Untuk dropdown di sel, kita akan gunakan datalist atau select? Karena di sel kita pakai contenteditable, kita akan tetap pakai input teks biasa.
+                // Nanti kita akan kasih autocomplete sederhana atau kita biarkan user mengetik manual.
+                // Untuk kemudahan, kita akan buat dropdown di sel? Tidak praktis. Kita biarkan input teks.
             } catch (err) {
                 console.error('Load definitions error:', err);
                 showToast('Gagal memuat definisi: ' + err.message, 'error');
             }
         }
 
-        function populateDropdowns() {
-            f_ruang.innerHTML = '<option value="">Pilih Ruang</option>';
-            definitions.ruangan.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r.nama;
-                opt.textContent = r.nama;
-                f_ruang.appendChild(opt);
-            });
-
-            f_gedung.innerHTML = '<option value="">Pilih Gedung</option>';
-            definitions.gedung.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.nama;
-                opt.textContent = g.nama;
-                f_gedung.appendChild(opt);
-            });
-
-            f_jenis.innerHTML = '<option value="">Pilih Jenis</option>';
-            definitions.jenis.forEach(j => {
-                const opt = document.createElement('option');
-                opt.value = j.nama;
-                opt.textContent = j.nama;
-                f_jenis.appendChild(opt);
-            });
-        }
-
         function populateFilterRuang() {
-            const ruangNames = definitions.ruangan.map(r => r.nama).sort();
             filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
             ruangNames.forEach(r => {
                 const opt = document.createElement('option');
@@ -977,10 +689,17 @@
             if (unsubscribe) unsubscribe();
             unsubscribe = inventoryRef.onSnapshot(snapshot => {
                 allItems = [];
+                originalData = {};
                 snapshot.forEach(doc => {
-                    allItems.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    allItems.push({ id: doc.id, data: data });
+                    originalData[doc.id] = JSON.parse(JSON.stringify(data));
                 });
-                console.log('Data dimuat:', allItems.length, 'item');
+                // Reset modified state
+                modifiedIds.clear();
+                deletedIds.clear();
+                isDirty = false;
+                updateSaveUI();
                 applyFiltersAndSort();
             }, err => {
                 console.error('Snapshot error:', err);
@@ -998,23 +717,24 @@
             let filtered = allItems.slice();
 
             if (ruangFilter) {
-                filtered = filtered.filter(item => item.ruang === ruangFilter);
+                filtered = filtered.filter(item => item.data.ruang === ruangFilter);
             }
 
             if (search) {
                 filtered = filtered.filter(item =>
-                    (item.namaBarang && item.namaBarang.toLowerCase().includes(search)) ||
-                    (item.ruang && item.ruang.toLowerCase().includes(search)) ||
-                    (item.lokasiGedung && item.lokasiGedung.toLowerCase().includes(search)) ||
-                    (item.jenis && item.jenis.toLowerCase().includes(search)) ||
-                    (item.asalPerolehan && item.asalPerolehan.toLowerCase().includes(search))
+                    (item.data.namaBarang && item.data.namaBarang.toLowerCase().includes(search)) ||
+                    (item.data.ruang && item.data.ruang.toLowerCase().includes(search)) ||
+                    (item.data.lokasiGedung && item.data.lokasiGedung.toLowerCase().includes(search)) ||
+                    (item.data.jenis && item.data.jenis.toLowerCase().includes(search)) ||
+                    (item.data.asalPerolehan && item.data.asalPerolehan.toLowerCase().includes(search))
                 );
             }
 
+            // Sort
             if (sortField && sortField !== 'no') {
                 filtered.sort((a, b) => {
-                    let valA = a[sortField] ?? '';
-                    let valB = b[sortField] ?? '';
+                    let valA = a.data[sortField] ?? '';
+                    let valB = b.data[sortField] ?? '';
                     if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(sortField)) {
                         valA = Number(valA) || 0;
                         valB = Number(valB) || 0;
@@ -1030,11 +750,11 @@
             renderItems(filtered);
             updateSortIcons();
             updateFilterInfo(ruangFilter);
-            updateAddButton(ruangFilter);
+            updateAdminUI(); // untuk toggle edit/hapus
         }
 
         // ============================================================
-        // RENDER (dengan label untuk mobile)
+        // RENDER (dengan sel editable)
         // ============================================================
         function renderItems(items) {
             tbody.innerHTML = '';
@@ -1046,6 +766,8 @@
 
             items.forEach((item, idx) => {
                 const tr = document.createElement('tr');
+                tr.dataset.id = item.id;
+
                 const fields = [
                     { key: 'no', label: 'No' },
                     { key: 'namaBarang', label: 'Nama Barang' },
@@ -1062,36 +784,201 @@
 
                 let html = '';
                 fields.forEach((f, i) => {
-                    let value = item[f.key] ?? '';
+                    let value = item.data[f.key] ?? '';
                     if (f.key === 'no') value = idx + 1;
                     if (['jumlahBarang', 'baik', 'rusakRingan', 'rusakBerat'].includes(f.key)) value = Number(value) || 0;
-                    html += `<td data-label="${f.label}">${value}</td>`;
+                    const isModified = modifiedIds.has(item.id);
+                    const extraClass = isModified ? ' modified' : '';
+                    // Untuk kolom no, tidak editable
+                    const editable = (f.key !== 'no') ? 'contenteditable="true"' : '';
+                    html += `<td ${editable} data-key="${f.key}" data-id="${item.id}" class="${extraClass}">${value}</td>`;
                 });
 
+                // Kolom aksi
                 const actionCol = `
-                    <td data-label="Aksi" class="admin-col" style="display:${isAdmin ? 'table-cell' : 'none'};">
-                        <div class="actions">
-                            <button class="edit" data-id="${item.id}" title="Edit">✏️</button>
-                            <button class="delete" data-id="${item.id}" title="Hapus">🗑️</button>
+                    <td>
+                        <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
+                            <button class="delete-row" data-id="${item.id}" title="Hapus">🗑️</button>
                         </div>
                     </td>
                 `;
                 html += actionCol;
-
                 tr.innerHTML = html;
                 tbody.appendChild(tr);
             });
 
-            if (isAdmin) {
-                document.querySelectorAll('.edit').forEach(btn =>
-                    btn.addEventListener('click', (e) => openEdit(e.target.closest('button').dataset.id))
-                );
-                document.querySelectorAll('.delete').forEach(btn =>
-                    btn.addEventListener('click', (e) => deleteItem(e.target.closest('button').dataset.id))
-                );
+            // Event listener untuk sel editable
+            tbody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
+                td.addEventListener('input', onCellInput);
+                // Jika bukan admin, nonaktifkan
+                if (!isAdmin) td.contentEditable = 'false';
+            });
+
+            // Event listener tombol hapus
+            tbody.querySelectorAll('.delete-row').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    if (confirm('Hapus baris ini?')) {
+                        deleteItem(id);
+                    }
+                });
+            });
+        }
+
+        // ============================================================
+        // CELL INPUT HANDLER
+        // ============================================================
+        function onCellInput(e) {
+            const td = e.target;
+            const id = td.dataset.id;
+            const key = td.dataset.key;
+            const newValue = td.textContent.trim();
+
+            // Cari item di allItems
+            const item = allItems.find(it => it.id === id);
+            if (!item) return;
+
+            // Konversi tipe data
+            let parsedValue = newValue;
+            if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
+                parsedValue = parseFloat(newValue) || 0;
+            }
+
+            // Update data
+            item.data[key] = parsedValue;
+
+            // Tandai modified
+            modifiedIds.add(id);
+            td.classList.add('modified');
+            isDirty = true;
+            updateSaveUI();
+
+            // Check perubahan dibanding original
+            const orig = originalData[id];
+            if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                // Kembali normal
+                modifiedIds.delete(id);
+                td.classList.remove('modified');
+                if (modifiedIds.size === 0) {
+                    isDirty = false;
+                    updateSaveUI();
+                }
             }
         }
 
+        // ============================================================
+        // DELETE ITEM
+        // ============================================================
+        function deleteItem(id) {
+            if (!confirm('Hapus data ini secara permanen?')) return;
+            showLoading(true);
+            inventoryRef.doc(id).delete().then(() => {
+                showToast('Data dihapus', 'success');
+                // Hapus dari allItems (akan sync via snapshot)
+            }).catch(err => {
+                showToast('Gagal hapus: ' + err.message, 'error');
+            }).finally(() => showLoading(false));
+        }
+
+        // ============================================================
+        // SAVE CHANGES
+        // ============================================================
+        async function saveChanges() {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin untuk menyimpan', 'error');
+                return;
+            }
+            if (modifiedIds.size === 0) {
+                showToast('Tidak ada perubahan untuk disimpan', 'info');
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const batch = db.batch();
+                let count = 0;
+                for (const id of modifiedIds) {
+                    const item = allItems.find(it => it.id === id);
+                    if (!item) continue;
+                    const ref = inventoryRef.doc(id);
+                    batch.update(ref, item.data);
+                    count++;
+                }
+                await batch.commit();
+                showToast(`${count} perubahan berhasil disimpan`, 'success');
+                // Reset modified
+                modifiedIds.clear();
+                isDirty = false;
+                // Update originalData
+                for (const id of modifiedIds) {
+                    // sudah clear, tapi kita update original dari allItems
+                }
+                // Refresh originalData
+                allItems.forEach(item => {
+                    originalData[item.id] = JSON.parse(JSON.stringify(item.data));
+                });
+                updateSaveUI();
+                // Hapus class modified
+                document.querySelectorAll('td.modified').forEach(td => td.classList.remove('modified'));
+            } catch (err) {
+                showToast('Gagal menyimpan: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ============================================================
+        // ADD NEW ROW
+        // ============================================================
+        function addNewRow() {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin', 'error');
+                return;
+            }
+            const newData = {
+                namaBarang: '',
+                jumlahBarang: 0,
+                tahunPerolehan: 0,
+                asalPerolehan: '',
+                baik: 0,
+                rusakRingan: 0,
+                rusakBerat: 0,
+                ruang: '',
+                lokasiGedung: '',
+                jenis: '',
+                anggaranSatuan: ''
+            };
+            inventoryRef.add(newData).then(docRef => {
+                showToast('Baris baru ditambahkan', 'success');
+                // Data akan muncul via snapshot
+            }).catch(err => {
+                showToast('Gagal menambah baris: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // UPDATE SAVE UI (tombol & status)
+        // ============================================================
+        function updateSaveUI() {
+            const saveBtn = document.getElementById('saveBtn');
+            const status = document.getElementById('statusIndicator');
+            if (isDirty && modifiedIds.size > 0) {
+                saveBtn.classList.add('dirty');
+                saveBtn.textContent = `💾 Simpan (${modifiedIds.size})`;
+                status.textContent = `⚠️ ${modifiedIds.size} perubahan belum disimpan`;
+                status.className = 'status dirty';
+            } else {
+                saveBtn.classList.remove('dirty');
+                saveBtn.textContent = '💾 Simpan';
+                status.textContent = '✅ Semua tersimpan';
+                status.className = 'status';
+            }
+        }
+
+        // ============================================================
+        // SORT ICONS
+        // ============================================================
         function updateSortIcons() {
             document.querySelectorAll('th[data-field]').forEach(th => {
                 const field = th.dataset.field;
@@ -1107,6 +994,9 @@
             });
         }
 
+        // ============================================================
+        // FILTER INFO
+        // ============================================================
         function updateFilterInfo(ruang) {
             if (ruang) {
                 filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
@@ -1119,24 +1009,10 @@
         }
 
         // ============================================================
-        // ADD BUTTON
+        // EVENT LISTENERS
         // ============================================================
-        function updateAddButton(ruang) {
-            if (!isAdmin) {
-                addButtonContainer.innerHTML = '';
-                return;
-            }
-            let label = '➕ Tambah Barang';
-            if (ruang) label = `➕ Tambah Barang di ${ruang}`;
-            addButtonContainer.innerHTML = `<button class="admin-btn" id="addBtn">${label}</button>`;
-            document.getElementById('addBtn').addEventListener('click', () => {
-                openModal('Tambah Barang', ruang ? { ruang: ruang } : {});
-            });
-        }
 
-        // ============================================================
-        // SORT HEADER CLICK
-        // ============================================================
+        // Sort header
         document.querySelectorAll('th[data-field]').forEach(th => {
             th.addEventListener('click', () => {
                 const field = th.dataset.field;
@@ -1151,9 +1027,7 @@
             });
         });
 
-        // ============================================================
-        // FILTER & SEARCH EVENTS
-        // ============================================================
+        // Filter ruang
         filterRuangSelect.addEventListener('change', () => {
             filterRuang = filterRuangSelect.value;
             applyFiltersAndSort();
@@ -1165,135 +1039,34 @@
             applyFiltersAndSort();
         });
 
+        // Search
         searchInput.addEventListener('input', applyFiltersAndSort);
 
-        // ============================================================
-        // ADMIN TOGGLE & LOGOUT
-        // ============================================================
-        adminToggle.addEventListener('click', () => {
-            if (isAdmin) {
-                showToast('Anda sudah dalam mode admin. Klik Logout untuk keluar.', 'info');
-                return;
-            }
-            const pass = prompt('Masukkan password admin:');
-            if (pass === ADMIN_PASS) {
-                setAdminSession(true);
-                showToast('Mode admin aktif', 'success');
-                applyFiltersAndSort();
-            } else if (pass !== null) {
-                showToast('Password salah!', 'error');
-            }
-        });
+        // Save
+        saveBtn.addEventListener('click', saveChanges);
 
-        logoutBtn.addEventListener('click', logoutAdmin);
+        // Add row
+        addRowBtn.addEventListener('click', addNewRow);
 
+        // Definisi
         defBtn.addEventListener('click', () => {
             if (!isAdmin) {
-                showToast('Anda harus masuk sebagai admin terlebih dahulu', 'error');
+                showToast('Harus login sebagai admin', 'error');
                 return;
             }
             window.location.href = 'definisi.html';
         });
 
         // ============================================================
-        // MODAL
+        // PERINGATAN SEBELUM MENINGGALKAN HALAMAN
         // ============================================================
-        function isValidOption(value, list) {
-            if (!value) return true;
-            return list.some(item => item.nama.toLowerCase() === value.toLowerCase());
-        }
-
-        function openModal(title, data = {}) {
-            modalTitle.textContent = title;
-            editId.value = data.id || '';
-            f_nama.value = data.namaBarang || '';
-            f_jumlah.value = data.jumlahBarang || 0;
-            f_tahun.value = data.tahunPerolehan || '';
-            f_sumberDana.value = data.asalPerolehan || '';
-            f_baik.value = data.baik || 0;
-            f_ringan.value = data.rusakRingan || 0;
-            f_berat.value = data.rusakBerat || 0;
-            f_ruang.value = data.ruang || '';
-            f_gedung.value = data.lokasiGedung || '';
-            f_jenis.value = data.jenis || '';
-            f_anggaran.value = data.anggaranSatuan || '';
-
-            // Tutup dropdown jika terbuka
-            if (autocompleteNama) autocompleteNama.close();
-            if (autocompleteSumber) autocompleteSumber.close();
-
-            modal.classList.add('show');
-        }
-
-        function closeModal() {
-            modal.classList.remove('show');
-        }
-
-        modalCancel.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
-
-        modalSave.addEventListener('click', async () => {
-            const id = editId.value;
-            const namaBarang = f_nama.value.trim();
-            const sumberDana = f_sumberDana.value.trim();
-
-            if (!isValidOption(namaBarang, definitions.barang)) {
-                showToast('Nama barang harus dipilih dari daftar yang tersedia', 'error');
-                f_nama.focus();
-                return;
-            }
-            if (sumberDana && !isValidOption(sumberDana, definitions.sumberDana)) {
-                showToast('Sumber dana harus dipilih dari daftar yang tersedia', 'error');
-                f_sumberDana.focus();
-                return;
-            }
-
-            const data = {
-                namaBarang,
-                jumlahBarang: parseInt(f_jumlah.value) || 0,
-                tahunPerolehan: parseInt(f_tahun.value) || 0,
-                asalPerolehan: sumberDana,
-                baik: parseInt(f_baik.value) || 0,
-                rusakRingan: parseInt(f_ringan.value) || 0,
-                rusakBerat: parseInt(f_berat.value) || 0,
-                ruang: f_ruang.value,
-                lokasiGedung: f_gedung.value,
-                jenis: f_jenis.value,
-                anggaranSatuan: f_anggaran.value.trim()
-            };
-
-            try {
-                showLoading(true);
-                if (id) {
-                    await inventoryRef.doc(id).update(data);
-                    showToast('Data berhasil diperbarui', 'success');
-                } else {
-                    await inventoryRef.add(data);
-                    showToast('Data berhasil ditambahkan', 'success');
-                }
-                closeModal();
-            } catch (err) {
-                showToast('Gagal menyimpan: ' + err.message, 'error');
-            } finally {
-                showLoading(false);
+        window.addEventListener('beforeunload', (e) => {
+            if (isDirty && modifiedIds.size > 0) {
+                e.preventDefault();
+                e.returnValue = 'Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
+                return e.returnValue;
             }
         });
-
-        function openEdit(id) {
-            inventoryRef.doc(id).get().then(doc => {
-                if (doc.exists) openModal('Edit Barang', { id: doc.id, ...doc.data() });
-                else showToast('Data tidak ditemukan', 'error');
-            }).catch(err => showToast('Error: ' + err.message, 'error'));
-        }
-
-        function deleteItem(id) {
-            if (!confirm('Yakin ingin menghapus data ini?')) return;
-            inventoryRef.doc(id).delete().then(() => {
-                showToast('Data dihapus', 'success');
-            }).catch(err => showToast('Gagal hapus: ' + err.message, 'error'));
-        }
 
         // ============================================================
         // INIT
@@ -1308,8 +1081,8 @@
             showToast('Gagal inisialisasi: ' + err.message, 'error');
         });
 
+        // Set timeout untuk update UI admin
         setTimeout(() => updateAdminUI(), 500);
     </script>
-
 </body>
 </html>
