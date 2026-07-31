@@ -295,21 +295,25 @@
             background: #fff3e0;
         }
 
-        /* Kolom aksi */
+        /* ===== KOLOM AKSI - tombol kecil & tidak tebal ===== */
         .actions-cell {
             display: flex;
             gap: 4px;
             align-items: center;
             flex-wrap: wrap;
+            justify-content: center;
         }
         .actions-cell button {
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 15px;
-            padding: 2px 6px;
-            border-radius: 6px;
+            font-size: 13px;          /* lebih kecil */
+            font-weight: normal;      /* tidak tebal */
+            padding: 2px 4px;
+            border-radius: 4px;
             transition: 0.2s;
+            line-height: 1.2;
+            color: #4a5a4a;           /* warna netral */
         }
         .actions-cell button.delete-row {
             color: #b03a2e;
@@ -808,7 +812,7 @@
                     }
                 });
 
-                // Kolom aksi dengan tombol tambah (+) dan hapus
+                // Kolom aksi dengan tombol tambah (+) dan hapus (ukuran kecil, tidak tebal)
                 const actionCol = `
                     <td>
                         <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
@@ -937,7 +941,7 @@
                 lokasiGedung: '',
                 jenis: '',
                 anggaranSatuan: '',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp() // untuk urutan jika diperlukan
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             inventoryRef.add(newData).then(() => {
                 showToast('Baris baru ditambahkan', 'success');
