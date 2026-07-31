@@ -87,13 +87,27 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
-        .top-bar input {
+        .top-bar .left {
+            display: flex;
+            flex: 1;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .top-bar .left input {
             padding: 8px 16px;
             border: 1px solid #ccc;
             border-radius: 30px;
             flex: 1;
-            margin-right: 12px;
+            min-width: 150px;
+        }
+        .top-bar .right {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .top-bar button {
             padding: 8px 20px;
@@ -103,9 +117,17 @@
             border-radius: 30px;
             font-weight: 600;
             cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
         }
         .top-bar button:hover {
             background: #1a4d2e;
+        }
+        .top-bar button.import-btn {
+            background: #5c6b7a;
+        }
+        .top-bar button.import-btn:hover {
+            background: #3a4a5a;
         }
         table {
             width: 100%;
@@ -158,6 +180,8 @@
             padding: 30px;
             color: #7a8a7a;
         }
+
+        /* Modal umum */
         .modal {
             display: none;
             position: fixed;
@@ -175,7 +199,9 @@
             border-radius: 20px;
             padding: 28px;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal-content h2 {
             margin-bottom: 16px;
@@ -186,12 +212,18 @@
             margin: 8px 0 4px;
             font-weight: 600;
         }
-        .modal-content input {
+        .modal-content input,
+        .modal-content textarea {
             width: 100%;
             padding: 10px 14px;
             border: 1px solid #ccc;
             border-radius: 10px;
             font-size: 15px;
+            font-family: inherit;
+        }
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 150px;
         }
         .modal-content .btn-group {
             display: flex;
@@ -220,6 +252,7 @@
         .modal-content .btn-group .cancel:hover {
             background: #d0d8d0;
         }
+
         .footer {
             text-align: center;
             padding: 16px;
@@ -229,6 +262,7 @@
             background: #fff;
             margin-top: 20px;
         }
+
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -266,6 +300,7 @@
                 transform: translateY(0);
             }
         }
+
         .loading-overlay {
             position: fixed;
             inset: 0;
@@ -296,6 +331,7 @@
                 transform: rotate(360deg);
             }
         }
+
         @media (max-width: 600px) {
             .header {
                 padding: 12px 16px;
@@ -308,9 +344,12 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            .top-bar input {
+            .top-bar .left input {
                 margin-right: 0;
                 margin-bottom: 8px;
+            }
+            .modal-content {
+                max-width: 95%;
             }
         }
     </style>
@@ -329,96 +368,91 @@
             <button data-tab="sumber_dana">Sumber Dana</button>
         </div>
 
-        <!-- Ruangan -->
+        <!-- Tab Ruangan -->
         <div id="tab-ruangan" class="tab-content active">
             <div class="top-bar">
-                <input type="text" placeholder="Cari ruangan..." class="search-def" data-col="ruangan" />
-                <button class="add-def" data-col="ruangan">➕ Tambah</button>
+                <div class="left">
+                    <input type="text" placeholder="Cari ruangan..." class="search-def" data-col="ruangan" />
+                </div>
+                <div class="right">
+                    <button class="import-btn" data-col="ruangan">📥 Impor</button>
+                    <button class="add-def" data-col="ruangan">➕ Tambah</button>
+                </div>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Ruangan</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>No</th><th>Nama Ruangan</th><th>Aksi</th></tr></thead>
                 <tbody id="list-ruangan"></tbody>
             </table>
             <div class="no-data" id="empty-ruangan">Belum ada data ruangan.</div>
         </div>
 
-        <!-- Gedung -->
+        <!-- Tab Gedung -->
         <div id="tab-gedung" class="tab-content">
             <div class="top-bar">
-                <input type="text" placeholder="Cari gedung..." class="search-def" data-col="gedung" />
-                <button class="add-def" data-col="gedung">➕ Tambah</button>
+                <div class="left">
+                    <input type="text" placeholder="Cari gedung..." class="search-def" data-col="gedung" />
+                </div>
+                <div class="right">
+                    <button class="import-btn" data-col="gedung">📥 Impor</button>
+                    <button class="add-def" data-col="gedung">➕ Tambah</button>
+                </div>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Gedung</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>No</th><th>Nama Gedung</th><th>Aksi</th></tr></thead>
                 <tbody id="list-gedung"></tbody>
             </table>
             <div class="no-data" id="empty-gedung">Belum ada data gedung.</div>
         </div>
 
-        <!-- Barang -->
+        <!-- Tab Barang -->
         <div id="tab-barang" class="tab-content">
             <div class="top-bar">
-                <input type="text" placeholder="Cari barang..." class="search-def" data-col="barang" />
-                <button class="add-def" data-col="barang">➕ Tambah</button>
+                <div class="left">
+                    <input type="text" placeholder="Cari barang..." class="search-def" data-col="barang" />
+                </div>
+                <div class="right">
+                    <button class="import-btn" data-col="barang">📥 Impor</button>
+                    <button class="add-def" data-col="barang">➕ Tambah</button>
+                </div>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Barang</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>No</th><th>Nama Barang</th><th>Aksi</th></tr></thead>
                 <tbody id="list-barang"></tbody>
             </table>
             <div class="no-data" id="empty-barang">Belum ada data barang.</div>
         </div>
 
-        <!-- Jenis -->
+        <!-- Tab Jenis -->
         <div id="tab-jenis" class="tab-content">
             <div class="top-bar">
-                <input type="text" placeholder="Cari jenis..." class="search-def" data-col="jenis" />
-                <button class="add-def" data-col="jenis">➕ Tambah</button>
+                <div class="left">
+                    <input type="text" placeholder="Cari jenis..." class="search-def" data-col="jenis" />
+                </div>
+                <div class="right">
+                    <button class="import-btn" data-col="jenis">📥 Impor</button>
+                    <button class="add-def" data-col="jenis">➕ Tambah</button>
+                </div>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Jenis</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>No</th><th>Nama Jenis</th><th>Aksi</th></tr></thead>
                 <tbody id="list-jenis"></tbody>
             </table>
             <div class="no-data" id="empty-jenis">Belum ada data jenis.</div>
         </div>
 
-        <!-- Sumber Dana -->
+        <!-- Tab Sumber Dana -->
         <div id="tab-sumber_dana" class="tab-content">
             <div class="top-bar">
-                <input type="text" placeholder="Cari sumber dana..." class="search-def" data-col="sumber_dana" />
-                <button class="add-def" data-col="sumber_dana">➕ Tambah</button>
+                <div class="left">
+                    <input type="text" placeholder="Cari sumber dana..." class="search-def" data-col="sumber_dana" />
+                </div>
+                <div class="right">
+                    <button class="import-btn" data-col="sumber_dana">📥 Impor</button>
+                    <button class="add-def" data-col="sumber_dana">➕ Tambah</button>
+                </div>
             </div>
             <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Sumber Dana</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>No</th><th>Nama Sumber Dana</th><th>Aksi</th></tr></thead>
                 <tbody id="list-sumber_dana"></tbody>
             </table>
             <div class="no-data" id="empty-sumber_dana">Belum ada data sumber dana.</div>
@@ -426,7 +460,7 @@
     </div>
     <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
 
-    <!-- Modal -->
+    <!-- Modal Tambah/Edit -->
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2 id="modalTitle">Tambah</h2>
@@ -437,6 +471,20 @@
             <div class="btn-group">
                 <button class="cancel" id="modalCancel">Batal</button>
                 <button class="save" id="modalSave">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Impor Massal -->
+    <div class="modal" id="modalImport">
+        <div class="modal-content">
+            <h2 id="modalImportTitle">Impor Data</h2>
+            <input type="hidden" id="importCol" />
+            <label>Masukkan satu nama per baris:</label>
+            <textarea id="importText" rows="10" placeholder="Contoh:&#10;Meja&#10;Kursi&#10;Lemari"></textarea>
+            <div class="btn-group">
+                <button class="cancel" id="importCancel">Batal</button>
+                <button class="save" id="importSave">Simpan</button>
             </div>
         </div>
     </div>
@@ -493,12 +541,11 @@
                 const tab = btn.dataset.tab;
                 Object.keys(contents).forEach(key => contents[key].classList.toggle('active', key === tab));
                 currentTab = tab;
-                // Load collection for the tab
                 setTimeout(() => loadCollection(tab), 50);
             });
         });
 
-        // Modal
+        // Modal Tambah/Edit
         const modal = document.getElementById('modal');
         const modalTitle = document.getElementById('modalTitle');
         const editId = document.getElementById('editId');
@@ -545,6 +592,62 @@
                 loadCollection(col);
             } catch (err) {
                 showToast('Gagal: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Modal Impor
+        const modalImport = document.getElementById('modalImport');
+        const modalImportTitle = document.getElementById('modalImportTitle');
+        const importCol = document.getElementById('importCol');
+        const importText = document.getElementById('importText');
+        const importCancel = document.getElementById('importCancel');
+        const importSave = document.getElementById('importSave');
+
+        function openImportModal(col) {
+            const label = col === 'sumber_dana' ? 'Sumber Dana' : col.charAt(0).toUpperCase() + col.slice(1);
+            modalImportTitle.textContent = `Impor ${label}`;
+            importCol.value = col;
+            importText.value = '';
+            modalImport.classList.add('show');
+        }
+
+        function closeImportModal() {
+            modalImport.classList.remove('show');
+        }
+
+        importCancel.addEventListener('click', closeImportModal);
+        modalImport.addEventListener('click', (e) => {
+            if (e.target === modalImport) closeImportModal();
+        });
+
+        importSave.addEventListener('click', async () => {
+            const col = importCol.value;
+            const raw = importText.value;
+            const lines = raw.split('\n')
+                .map(line => line.trim())
+                .filter(name => name !== '');
+            if (lines.length === 0) {
+                showToast('Masukkan setidaknya satu nama', 'error');
+                return;
+            }
+            try {
+                showLoading(true);
+                const ref = db.collection(col);
+                const batch = db.batch();
+                let count = 0;
+                for (const nama of lines) {
+                    const docRef = ref.doc(); // auto-id
+                    batch.set(docRef, { nama });
+                    count++;
+                }
+                await batch.commit();
+                showToast(`${count} data berhasil diimpor`, 'success');
+                closeImportModal();
+                loadCollection(col);
+            } catch (err) {
+                showToast('Gagal impor: ' + err.message, 'error');
             } finally {
                 showLoading(false);
             }
@@ -619,8 +722,16 @@
         document.querySelectorAll('.add-def').forEach(btn => {
             btn.addEventListener('click', () => {
                 const col = btn.dataset.col;
-                const label = col === 'sumber_dana' ? 'Sumber Dana' : col;
+                const label = col === 'sumber_dana' ? 'Sumber Dana' : col.charAt(0).toUpperCase() + col.slice(1);
                 openModal('Tambah ' + label, col);
+            });
+        });
+
+        // Import button handlers
+        document.querySelectorAll('.import-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const col = btn.dataset.col;
+                openImportModal(col);
             });
         });
 
@@ -635,11 +746,7 @@
         // Initial load for default tab (ruangan)
         loadCollection('ruangan');
 
-        // Also load the other tabs when they become active via the click listener above
-        // The click listener already calls loadCollection with a delay.
-        // But we need to ensure the first load for non-active tabs happens when clicked.
-        // The loadCollection call in the click handler will handle that.
-        console.log('Definisi page loaded. Tab Sumber Dana tersedia.');
+        console.log('Definisi page loaded. Fitur impor massal tersedia.');
     </script>
 </body>
 </html>
