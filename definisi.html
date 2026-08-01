@@ -47,7 +47,7 @@
         }
         .container {
             flex: 1;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 24px;
             width: 100%;
@@ -199,7 +199,7 @@
             border-radius: 20px;
             padding: 28px;
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -221,6 +221,13 @@
             border-radius: 10px;
             font-size: 15px;
             font-family: inherit;
+        }
+        .modal-content .row-fields {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-content .row-fields > div {
+            flex: 1;
         }
         .modal-content textarea {
             resize: vertical;
@@ -352,6 +359,10 @@
             .modal-content {
                 max-width: 95%;
             }
+            .modal-content .row-fields {
+                flex-direction: column;
+                gap: 0;
+            }
         }
     </style>
 </head>
@@ -362,7 +373,6 @@
     </header>
     <div class="container">
         <div class="tabs">
-            <!-- Urutan tab baru: Gedung, Ruangan, Jenis, Barang, Sumber Dana -->
             <button class="active" data-tab="gedung">Gedung</button>
             <button data-tab="ruangan">Ruangan</button>
             <button data-tab="jenis">Jenis</button>
@@ -370,7 +380,7 @@
             <button data-tab="sumber_dana">Sumber Dana</button>
         </div>
 
-        <!-- Tab Gedung (tetap) -->
+        <!-- Tab Gedung -->
         <div id="tab-gedung" class="tab-content active">
             <div class="top-bar">
                 <div class="left">
@@ -388,7 +398,7 @@
             <div class="no-data" id="empty-gedung">Belum ada data gedung.</div>
         </div>
 
-        <!-- Tab Ruangan (dengan kolom Gedung) -->
+        <!-- Tab Ruangan -->
         <div id="tab-ruangan" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -404,7 +414,10 @@
                     <tr>
                         <th>No</th>
                         <th>Nama Ruang</th>
-                        <th>Nama Gedung</th>
+                        <th>Panjang</th>
+                        <th>Lebar</th>
+                        <th>Luas</th>
+                        <th>Lokasi (Gedung)</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -413,7 +426,7 @@
             <div class="no-data" id="empty-ruangan">Belum ada data ruangan.</div>
         </div>
 
-        <!-- Tab Jenis (tetap) -->
+        <!-- Tab Jenis -->
         <div id="tab-jenis" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -431,7 +444,7 @@
             <div class="no-data" id="empty-jenis">Belum ada data jenis.</div>
         </div>
 
-        <!-- Tab Barang (dengan kolom Jenis) -->
+        <!-- Tab Barang -->
         <div id="tab-barang" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -456,7 +469,7 @@
             <div class="no-data" id="empty-barang">Belum ada data barang.</div>
         </div>
 
-        <!-- Tab Sumber Dana (tetap) -->
+        <!-- Tab Sumber Dana -->
         <div id="tab-sumber_dana" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -476,7 +489,7 @@
     </div>
     <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
 
-    <!-- Modal Tambah/Edit untuk semua tab, dengan field tambahan sesuai tab -->
+    <!-- Modal Tambah/Edit -->
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2 id="modalTitle">Tambah</h2>
@@ -486,12 +499,28 @@
                 <!-- Field nama (umum) -->
                 <label id="labelName">Nama</label>
                 <input type="text" id="f_name" />
-                <!-- Field tambahan untuk ruangan: gedung -->
-                <div id="fieldGedung" style="display:none;">
-                    <label>Nama Gedung</label>
+
+                <!-- Field khusus ruangan: panjang, lebar, luas, lokasi gedung -->
+                <div id="fieldRuangan" style="display:none;">
+                    <div class="row-fields">
+                        <div>
+                            <label>Panjang (meter)</label>
+                            <input type="number" id="f_panjang" step="0.01" min="0" />
+                        </div>
+                        <div>
+                            <label>Lebar (meter)</label>
+                            <input type="number" id="f_lebar" step="0.01" min="0" />
+                        </div>
+                    </div>
+                    <div>
+                        <label>Luas (m²)</label>
+                        <input type="number" id="f_luas" step="0.01" min="0" />
+                    </div>
+                    <label>Lokasi (Gedung)</label>
                     <select id="f_gedung"><option value="">Pilih Gedung</option></select>
                 </div>
-                <!-- Field tambahan untuk barang: jenis -->
+
+                <!-- Field khusus barang: jenis -->
                 <div id="fieldJenis" style="display:none;">
                     <label>Jenis</label>
                     <select id="f_jenis"><option value="">Pilih Jenis</option></select>
@@ -504,7 +533,7 @@
         </div>
     </div>
 
-    <!-- Modal Impor Massal (tetap) -->
+    <!-- Modal Impor Massal -->
     <div class="modal" id="modalImport">
         <div class="modal-content">
             <h2 id="modalImportTitle">Impor Data</h2>
@@ -561,7 +590,7 @@
             barang: document.getElementById('tab-barang'),
             sumber_dana: document.getElementById('tab-sumber_dana')
         };
-        let currentTab = 'gedung'; // default
+        let currentTab = 'gedung';
 
         tabs.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -580,13 +609,33 @@
         const editId = document.getElementById('editId');
         const editCol = document.getElementById('editCol');
         const f_name = document.getElementById('f_name');
+        const f_panjang = document.getElementById('f_panjang');
+        const f_lebar = document.getElementById('f_lebar');
+        const f_luas = document.getElementById('f_luas');
         const f_gedung = document.getElementById('f_gedung');
         const f_jenis = document.getElementById('f_jenis');
-        const fieldGedung = document.getElementById('fieldGedung');
+        const fieldRuangan = document.getElementById('fieldRuangan');
         const fieldJenis = document.getElementById('fieldJenis');
         const labelName = document.getElementById('labelName');
         const modalCancel = document.getElementById('modalCancel');
         const modalSave = document.getElementById('modalSave');
+
+        // Auto-hitung luas saat panjang atau lebar berubah
+        f_panjang.addEventListener('input', autoHitungLuas);
+        f_lebar.addEventListener('input', autoHitungLuas);
+
+        function autoHitungLuas() {
+            const p = parseFloat(f_panjang.value);
+            const l = parseFloat(f_lebar.value);
+            if (!isNaN(p) && !isNaN(l) && p > 0 && l > 0) {
+                f_luas.value = (p * l).toFixed(2);
+                f_luas.readOnly = true;
+                f_luas.style.background = '#f0f8f0';
+            } else {
+                f_luas.readOnly = false;
+                f_luas.style.background = '#fff';
+            }
+        }
 
         function openModal(title, col, data = {}) {
             modalTitle.textContent = title;
@@ -594,19 +643,32 @@
             editCol.value = col;
             f_name.value = data.nama || '';
 
-            // Sembunyikan field tambahan
-            fieldGedung.style.display = 'none';
+            // Sembunyikan semua field tambahan
+            fieldRuangan.style.display = 'none';
             fieldJenis.style.display = 'none';
             labelName.textContent = 'Nama';
 
-            // Jika tab ruangan, tampilkan field gedung
             if (col === 'ruangan') {
-                fieldGedung.style.display = 'block';
+                fieldRuangan.style.display = 'block';
                 labelName.textContent = 'Nama Ruang';
-                // isi dropdown gedung
+                f_panjang.value = data.panjang || '';
+                f_lebar.value = data.lebar || '';
+                f_luas.value = data.luas || '';
+                f_luas.readOnly = false;
+                f_luas.style.background = '#fff';
+                // Jika panjang dan lebar terisi, hitung luas
+                if (data.panjang && data.lebar) {
+                    const p = parseFloat(data.panjang);
+                    const l = parseFloat(data.lebar);
+                    if (!isNaN(p) && !isNaN(l) && p > 0 && l > 0) {
+                        f_luas.value = (p * l).toFixed(2);
+                        f_luas.readOnly = true;
+                        f_luas.style.background = '#f0f8f0';
+                    }
+                }
                 populateGedungDropdown(data.gedung || '');
             }
-            // Jika tab barang, tampilkan field jenis
+
             if (col === 'barang') {
                 fieldJenis.style.display = 'block';
                 labelName.textContent = 'Nama Barang';
@@ -625,7 +687,6 @@
             if (e.target === modal) closeModal();
         });
 
-        // Populate dropdown gedung
         function populateGedungDropdown(selected) {
             const sel = f_gedung;
             sel.innerHTML = '<option value="">Pilih Gedung</option>';
@@ -641,7 +702,6 @@
             }).catch(err => showToast('Gagal memuat gedung', 'error'));
         }
 
-        // Populate dropdown jenis
         function populateJenisDropdown(selected) {
             const sel = f_jenis;
             sel.innerHTML = '<option value="">Pilih Jenis</option>';
@@ -668,11 +728,23 @@
 
             let data = { nama };
 
-            // Tambahan untuk ruangan
             if (col === 'ruangan') {
+                const p = parseFloat(f_panjang.value) || 0;
+                const l = parseFloat(f_lebar.value) || 0;
+                let luas = parseFloat(f_luas.value) || 0;
+                // Jika luas otomatis, pastikan sesuai
+                if (p > 0 && l > 0) {
+                    const hitung = p * l;
+                    if (Math.abs(luas - hitung) > 0.001) {
+                        luas = hitung;
+                    }
+                }
+                data.panjang = p;
+                data.lebar = l;
+                data.luas = luas;
                 data.gedung = f_gedung.value || '';
             }
-            // Tambahan untuk barang
+
             if (col === 'barang') {
                 data.jenis = f_jenis.value || '';
             }
@@ -696,7 +768,7 @@
             }
         });
 
-        // Modal Impor (tetap, hanya untuk nama, tidak untuk field tambahan)
+        // Modal Impor
         const modalImport = document.getElementById('modalImport');
         const modalImportTitle = document.getElementById('modalImportTitle');
         const importCol = document.getElementById('importCol');
@@ -738,10 +810,16 @@
                 let count = 0;
                 for (const nama of lines) {
                     const docRef = ref.doc();
-                    // Untuk ruangan dan barang, field tambahan default kosong
                     let data = { nama };
-                    if (col === 'ruangan') data.gedung = '';
-                    if (col === 'barang') data.jenis = '';
+                    if (col === 'ruangan') {
+                        data.panjang = 0;
+                        data.lebar = 0;
+                        data.luas = 0;
+                        data.gedung = '';
+                    }
+                    if (col === 'barang') {
+                        data.jenis = '';
+                    }
                     batch.set(docRef, data);
                     count++;
                 }
@@ -782,21 +860,22 @@
             }
             empty.style.display = 'none';
 
-            // Tentukan header tambahan
-            let extraHeaders = [];
-            if (col === 'ruangan') extraHeaders.push('Gedung');
-            if (col === 'barang') extraHeaders.push('Jenis');
-
             filtered.forEach((item, idx) => {
                 const tr = document.createElement('tr');
                 let rowHtml = `<td>${idx + 1}</td>`;
                 rowHtml += `<td>${item.nama || ''}</td>`;
+
                 if (col === 'ruangan') {
+                    rowHtml += `<td>${item.panjang || 0}</td>`;
+                    rowHtml += `<td>${item.lebar || 0}</td>`;
+                    rowHtml += `<td>${item.luas || 0}</td>`;
                     rowHtml += `<td>${item.gedung || ''}</td>`;
                 }
+
                 if (col === 'barang') {
                     rowHtml += `<td>${item.jenis || ''}</td>`;
                 }
+
                 rowHtml += `<td>
                     <div class="actions">
                         <button class="edit" data-id="${item.id}" data-col="${col}">✏️</button>
