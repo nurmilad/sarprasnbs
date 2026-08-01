@@ -213,6 +213,7 @@
             font-weight: 600;
         }
         .modal-content input,
+        .modal-content select,
         .modal-content textarea {
             width: 100%;
             padding: 10px 14px;
@@ -361,33 +362,16 @@
     </header>
     <div class="container">
         <div class="tabs">
-            <button class="active" data-tab="ruangan">Ruangan</button>
-            <button data-tab="gedung">Gedung</button>
-            <button data-tab="barang">Barang</button>
+            <!-- Urutan tab baru: Gedung, Ruangan, Jenis, Barang, Sumber Dana -->
+            <button class="active" data-tab="gedung">Gedung</button>
+            <button data-tab="ruangan">Ruangan</button>
             <button data-tab="jenis">Jenis</button>
+            <button data-tab="barang">Barang</button>
             <button data-tab="sumber_dana">Sumber Dana</button>
         </div>
 
-        <!-- Tab Ruangan -->
-        <div id="tab-ruangan" class="tab-content active">
-            <div class="top-bar">
-                <div class="left">
-                    <input type="text" placeholder="Cari ruangan..." class="search-def" data-col="ruangan" />
-                </div>
-                <div class="right">
-                    <button class="import-btn" data-col="ruangan">📥 Impor</button>
-                    <button class="add-def" data-col="ruangan">➕ Tambah</button>
-                </div>
-            </div>
-            <table>
-                <thead><tr><th>No</th><th>Nama Ruangan</th><th>Aksi</th></tr></thead>
-                <tbody id="list-ruangan"></tbody>
-            </table>
-            <div class="no-data" id="empty-ruangan">Belum ada data ruangan.</div>
-        </div>
-
-        <!-- Tab Gedung -->
-        <div id="tab-gedung" class="tab-content">
+        <!-- Tab Gedung (tetap) -->
+        <div id="tab-gedung" class="tab-content active">
             <div class="top-bar">
                 <div class="left">
                     <input type="text" placeholder="Cari gedung..." class="search-def" data-col="gedung" />
@@ -404,25 +388,32 @@
             <div class="no-data" id="empty-gedung">Belum ada data gedung.</div>
         </div>
 
-        <!-- Tab Barang -->
-        <div id="tab-barang" class="tab-content">
+        <!-- Tab Ruangan (dengan kolom Gedung) -->
+        <div id="tab-ruangan" class="tab-content">
             <div class="top-bar">
                 <div class="left">
-                    <input type="text" placeholder="Cari barang..." class="search-def" data-col="barang" />
+                    <input type="text" placeholder="Cari ruangan..." class="search-def" data-col="ruangan" />
                 </div>
                 <div class="right">
-                    <button class="import-btn" data-col="barang">📥 Impor</button>
-                    <button class="add-def" data-col="barang">➕ Tambah</button>
+                    <button class="import-btn" data-col="ruangan">📥 Impor</button>
+                    <button class="add-def" data-col="ruangan">➕ Tambah</button>
                 </div>
             </div>
             <table>
-                <thead><tr><th>No</th><th>Nama Barang</th><th>Aksi</th></tr></thead>
-                <tbody id="list-barang"></tbody>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Ruang</th>
+                        <th>Nama Gedung</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="list-ruangan"></tbody>
             </table>
-            <div class="no-data" id="empty-barang">Belum ada data barang.</div>
+            <div class="no-data" id="empty-ruangan">Belum ada data ruangan.</div>
         </div>
 
-        <!-- Tab Jenis -->
+        <!-- Tab Jenis (tetap) -->
         <div id="tab-jenis" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -440,7 +431,32 @@
             <div class="no-data" id="empty-jenis">Belum ada data jenis.</div>
         </div>
 
-        <!-- Tab Sumber Dana -->
+        <!-- Tab Barang (dengan kolom Jenis) -->
+        <div id="tab-barang" class="tab-content">
+            <div class="top-bar">
+                <div class="left">
+                    <input type="text" placeholder="Cari barang..." class="search-def" data-col="barang" />
+                </div>
+                <div class="right">
+                    <button class="import-btn" data-col="barang">📥 Impor</button>
+                    <button class="add-def" data-col="barang">➕ Tambah</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Barang</th>
+                        <th>Jenis</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="list-barang"></tbody>
+            </table>
+            <div class="no-data" id="empty-barang">Belum ada data barang.</div>
+        </div>
+
+        <!-- Tab Sumber Dana (tetap) -->
         <div id="tab-sumber_dana" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -460,14 +476,27 @@
     </div>
     <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
 
-    <!-- Modal Tambah/Edit -->
+    <!-- Modal Tambah/Edit untuk semua tab, dengan field tambahan sesuai tab -->
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2 id="modalTitle">Tambah</h2>
             <input type="hidden" id="editId" />
             <input type="hidden" id="editCol" />
-            <label>Nama</label>
-            <input type="text" id="f_name" />
+            <div id="modalFields">
+                <!-- Field nama (umum) -->
+                <label id="labelName">Nama</label>
+                <input type="text" id="f_name" />
+                <!-- Field tambahan untuk ruangan: gedung -->
+                <div id="fieldGedung" style="display:none;">
+                    <label>Nama Gedung</label>
+                    <select id="f_gedung"><option value="">Pilih Gedung</option></select>
+                </div>
+                <!-- Field tambahan untuk barang: jenis -->
+                <div id="fieldJenis" style="display:none;">
+                    <label>Jenis</label>
+                    <select id="f_jenis"><option value="">Pilih Jenis</option></select>
+                </div>
+            </div>
             <div class="btn-group">
                 <button class="cancel" id="modalCancel">Batal</button>
                 <button class="save" id="modalSave">Simpan</button>
@@ -475,7 +504,7 @@
         </div>
     </div>
 
-    <!-- Modal Impor Massal -->
+    <!-- Modal Impor Massal (tetap) -->
     <div class="modal" id="modalImport">
         <div class="modal-content">
             <h2 id="modalImportTitle">Impor Data</h2>
@@ -526,13 +555,13 @@
         // Tabs
         const tabs = document.querySelectorAll('.tabs button');
         const contents = {
-            ruangan: document.getElementById('tab-ruangan'),
             gedung: document.getElementById('tab-gedung'),
-            barang: document.getElementById('tab-barang'),
+            ruangan: document.getElementById('tab-ruangan'),
             jenis: document.getElementById('tab-jenis'),
+            barang: document.getElementById('tab-barang'),
             sumber_dana: document.getElementById('tab-sumber_dana')
         };
-        let currentTab = 'ruangan';
+        let currentTab = 'gedung'; // default
 
         tabs.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -551,6 +580,11 @@
         const editId = document.getElementById('editId');
         const editCol = document.getElementById('editCol');
         const f_name = document.getElementById('f_name');
+        const f_gedung = document.getElementById('f_gedung');
+        const f_jenis = document.getElementById('f_jenis');
+        const fieldGedung = document.getElementById('fieldGedung');
+        const fieldJenis = document.getElementById('fieldJenis');
+        const labelName = document.getElementById('labelName');
         const modalCancel = document.getElementById('modalCancel');
         const modalSave = document.getElementById('modalSave');
 
@@ -559,16 +593,69 @@
             editId.value = data.id || '';
             editCol.value = col;
             f_name.value = data.nama || '';
+
+            // Sembunyikan field tambahan
+            fieldGedung.style.display = 'none';
+            fieldJenis.style.display = 'none';
+            labelName.textContent = 'Nama';
+
+            // Jika tab ruangan, tampilkan field gedung
+            if (col === 'ruangan') {
+                fieldGedung.style.display = 'block';
+                labelName.textContent = 'Nama Ruang';
+                // isi dropdown gedung
+                populateGedungDropdown(data.gedung || '');
+            }
+            // Jika tab barang, tampilkan field jenis
+            if (col === 'barang') {
+                fieldJenis.style.display = 'block';
+                labelName.textContent = 'Nama Barang';
+                populateJenisDropdown(data.jenis || '');
+            }
+
             modal.classList.add('show');
         }
 
         function closeModal() {
             modal.classList.remove('show');
         }
+
         modalCancel.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
         });
+
+        // Populate dropdown gedung
+        function populateGedungDropdown(selected) {
+            const sel = f_gedung;
+            sel.innerHTML = '<option value="">Pilih Gedung</option>';
+            db.collection('gedung').orderBy('nama').get().then(snap => {
+                snap.forEach(doc => {
+                    const nama = doc.data().nama;
+                    const opt = document.createElement('option');
+                    opt.value = nama;
+                    opt.textContent = nama;
+                    if (nama === selected) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            }).catch(err => showToast('Gagal memuat gedung', 'error'));
+        }
+
+        // Populate dropdown jenis
+        function populateJenisDropdown(selected) {
+            const sel = f_jenis;
+            sel.innerHTML = '<option value="">Pilih Jenis</option>';
+            db.collection('jenis').orderBy('nama').get().then(snap => {
+                snap.forEach(doc => {
+                    const nama = doc.data().nama;
+                    const opt = document.createElement('option');
+                    opt.value = nama;
+                    opt.textContent = nama;
+                    if (nama === selected) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            }).catch(err => showToast('Gagal memuat jenis', 'error'));
+        }
 
         modalSave.addEventListener('click', async () => {
             const col = editCol.value;
@@ -578,14 +665,26 @@
                 showToast('Nama tidak boleh kosong', 'error');
                 return;
             }
+
+            let data = { nama };
+
+            // Tambahan untuk ruangan
+            if (col === 'ruangan') {
+                data.gedung = f_gedung.value || '';
+            }
+            // Tambahan untuk barang
+            if (col === 'barang') {
+                data.jenis = f_jenis.value || '';
+            }
+
             try {
                 showLoading(true);
                 const ref = db.collection(col);
                 if (id) {
-                    await ref.doc(id).update({ nama });
+                    await ref.doc(id).update(data);
                     showToast('Data diperbarui', 'success');
                 } else {
-                    await ref.add({ nama });
+                    await ref.add(data);
                     showToast('Data ditambahkan', 'success');
                 }
                 closeModal();
@@ -597,7 +696,7 @@
             }
         });
 
-        // Modal Impor
+        // Modal Impor (tetap, hanya untuk nama, tidak untuk field tambahan)
         const modalImport = document.getElementById('modalImport');
         const modalImportTitle = document.getElementById('modalImportTitle');
         const importCol = document.getElementById('importCol');
@@ -638,8 +737,12 @@
                 const batch = db.batch();
                 let count = 0;
                 for (const nama of lines) {
-                    const docRef = ref.doc(); // auto-id
-                    batch.set(docRef, { nama });
+                    const docRef = ref.doc();
+                    // Untuk ruangan dan barang, field tambahan default kosong
+                    let data = { nama };
+                    if (col === 'ruangan') data.gedung = '';
+                    if (col === 'barang') data.jenis = '';
+                    batch.set(docRef, data);
                     count++;
                 }
                 await batch.commit();
@@ -678,18 +781,29 @@
                 return;
             }
             empty.style.display = 'none';
+
+            // Tentukan header tambahan
+            let extraHeaders = [];
+            if (col === 'ruangan') extraHeaders.push('Gedung');
+            if (col === 'barang') extraHeaders.push('Jenis');
+
             filtered.forEach((item, idx) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${idx + 1}</td>
-                    <td>${item.nama || ''}</td>
-                    <td>
-                        <div class="actions">
-                            <button class="edit" data-id="${item.id}" data-col="${col}">✏️</button>
-                            <button class="delete" data-id="${item.id}" data-col="${col}">🗑️</button>
-                        </div>
-                    </td>
-                `;
+                let rowHtml = `<td>${idx + 1}</td>`;
+                rowHtml += `<td>${item.nama || ''}</td>`;
+                if (col === 'ruangan') {
+                    rowHtml += `<td>${item.gedung || ''}</td>`;
+                }
+                if (col === 'barang') {
+                    rowHtml += `<td>${item.jenis || ''}</td>`;
+                }
+                rowHtml += `<td>
+                    <div class="actions">
+                        <button class="edit" data-id="${item.id}" data-col="${col}">✏️</button>
+                        <button class="delete" data-id="${item.id}" data-col="${col}">🗑️</button>
+                    </div>
+                </td>`;
+                tr.innerHTML = rowHtml;
                 tbody.appendChild(tr);
             });
 
@@ -743,8 +857,8 @@
             });
         });
 
-        // Initial load for default tab (ruangan)
-        loadCollection('ruangan');
+        // Initial load for default tab (gedung)
+        loadCollection('gedung');
 
         console.log('Definisi page loaded. Fitur impor massal tersedia.');
     </script>
