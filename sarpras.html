@@ -219,11 +219,12 @@
             border-collapse: collapse;
             font-size: 12px;
             min-width: 800px;
-            border: 1px solid #d0d8d0;
+            border: 1px solid #d0d8d0; /* tambahan border luar */
         }
 
+        /* === HEADER & SEL dengan border === */
         th, td {
-            border: 1px solid #d0d8d0;
+            border: 1px solid #d0d8d0; /* garis untuk semua sel */
             padding: 6px 8px;
             vertical-align: middle;
             text-align: left;
@@ -239,10 +240,10 @@
             resize: horizontal;
             overflow: hidden;
             font-size: 12px;
-            text-align: center !important;
+            text-align: center !important; /* tetap rata tengah */
         }
         th:last-child {
-            border-right: 1px solid #d0d8d0;
+            border-right: 1px solid #d0d8d0; /* agar konsisten */
             resize: none;
         }
         th .sort-icon {
@@ -266,10 +267,14 @@
             min-height: 32px;
             font-size: 12px;
         }
+        tr {
+            /* tidak perlu border-bottom lagi karena sudah ada border di td */
+        }
         tr:last-child td {
-            border-bottom: 1px solid #d0d8d0;
+            border-bottom: 1px solid #d0d8d0; /* agar baris terakhir tetap ada garis */
         }
 
+        /* === KOLOM YANG RATA TENGAH === */
         .text-center {
             text-align: center !important;
         }
@@ -277,6 +282,7 @@
             text-align: right !important;
         }
 
+        /* Select di dalam td */
         td select {
             width: 100%;
             padding: 2px 4px;
@@ -296,6 +302,7 @@
             background: #fff3e0;
         }
 
+        /* ===== KOLOM AKSI - tombol kecil & tidak tebal ===== */
         .actions-cell {
             display: flex;
             gap: 4px;
@@ -328,6 +335,7 @@
             background: #e0f0e0;
         }
 
+        /* ===== EMPTY STATE dengan tombol ===== */
         .no-data {
             text-align: center;
             padding: 40px 16px;
@@ -357,6 +365,7 @@
             transform: none;
         }
 
+        /* ===== MOBILE ===== */
         @media (max-width: 700px) {
             .table-wrapper {
                 background: transparent;
@@ -383,6 +392,7 @@
             }
         }
 
+        /* ===== TOAST & LOADING ===== */
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -550,14 +560,18 @@
             document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
         }
 
+        // Format angka dengan ribuan (titik)
         function formatRupiah(angka) {
             if (angka === undefined || angka === null || isNaN(angka)) return '0';
             return Number(angka).toLocaleString('id-ID');
         }
 
+        // Parsing angka dari string yang mungkin mengandung titik ribuan
         function parseAngka(str) {
             if (typeof str === 'string') {
+                // Hapus titik ribuan dan spasi
                 str = str.replace(/\./g, '').replace(/\s/g, '');
+                // Ganti koma dengan titik (desimal)
                 str = str.replace(',', '.');
             }
             const num = parseFloat(str);
@@ -615,6 +629,7 @@
             document.querySelectorAll('td select').forEach(sel => {
                 sel.disabled = !isAdmin;
             });
+            // Untuk contenteditable, kita update di render
             const firstBtn = document.getElementById('firstRowBtn');
             if (firstBtn) {
                 firstBtn.style.display = isAdmin ? 'inline-block' : 'none';
@@ -641,8 +656,6 @@
             barang: []
         };
         let ruangNames = [];
-        // Map untuk luas ruangan berdasarkan nama ruang
-        let ruangLuasMap = {};
 
         const tbody = document.getElementById('inventoryBody');
         const searchInput = document.getElementById('searchInput');
@@ -669,17 +682,11 @@
                     db.collection('sumber_dana').get(),
                     db.collection('barang').get()
                 ]);
-                definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama, panjang: d.data().panjang || 0, lebar: d.data().lebar || 0, luas: d.data().luas || 0 }));
+                definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-
-                // Buat map luas ruangan
-                ruangLuasMap = {};
-                definitions.ruangan.forEach(r => {
-                    ruangLuasMap[r.nama] = r.luas || 0;
-                });
 
                 ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean).sort();
                 populateFilterRuang();
@@ -808,10 +815,12 @@
                     jenis: { list: definitions.jenis, placeholder: 'Pilih Jenis' }
                 };
 
+                // Urutan kolom
                 const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
                     'asalPerolehan', 'baik', 'rusakRingan', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
                 ];
 
+                // Kolom yang rata tengah
                 const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'];
 
                 let html = '';
@@ -827,6 +836,7 @@
                     let classAttr = '';
 
                     if (key === 'anggaranSatuan') {
+                        // Rata kanan dan format ribuan
                         classAttr = ' class="text-right' + extraClass + '"';
                         value = formatRupiah(value);
                     } else if (centerKeys.includes(key) || key === 'no') {
@@ -847,22 +857,9 @@
                             </select>
                         </td>`;
                     } else {
-                        // === PERUBAHAN UTAMA: kolom namaBarang ditampilkan dengan luas ===
-                        let displayValue = value;
-                        if (key === 'namaBarang') {
-                            // Cari luas ruangan berdasarkan ruang yang dipilih
-                            const ruangName = item.data.ruang || '';
-                            const luas = ruangLuasMap[ruangName] || 0;
-                            if (luas > 0) {
-                                displayValue = `${value} (${luas} m²)`;
-                            } else {
-                                displayValue = value;
-                            }
-                        }
+                        // Semua kolom editable (termasuk anggaran) jika admin
                         const editable = isAdmin ? 'contenteditable="true"' : '';
-                        // Untuk kolom namaBarang, kita tampilkan displayValue tapi saat edit, tetap nilai asli
-                        // Kita simpan data asli di atribut data-original
-                        html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr} data-original="${value}">${displayValue}</td>`;
+                        html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
                     }
                 });
 
@@ -885,9 +882,10 @@
                 sel.addEventListener('change', onSelectChange);
             });
 
-            // Event listener untuk contenteditable
+            // Event listener untuk contenteditable (semua kolom termasuk anggaran)
             tbody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
                 td.addEventListener('input', onCellInput);
+                // Tambahkan event blur untuk format ulang angka
                 td.addEventListener('blur', onCellBlur);
                 if (!isAdmin) td.contentEditable = 'false';
             });
@@ -938,24 +936,10 @@
                     updateSaveUI();
                 }
             }
-
-            // Jika kolom ruang berubah, update tampilan nama barang (luas)
-            if (key === 'ruang') {
-                // Cari sel nama barang di baris yang sama
-                const tr = sel.closest('tr');
-                const namaTd = tr.querySelector('td[data-key="namaBarang"]');
-                if (namaTd) {
-                    const namaAsli = namaTd.dataset.original || item.data.namaBarang || '';
-                    const luas = ruangLuasMap[newValue] || 0;
-                    namaTd.textContent = luas > 0 ? `${namaAsli} (${luas} m²)` : namaAsli;
-                    // Update data original jika berubah
-                    namaTd.dataset.original = namaAsli;
-                }
-            }
         }
 
         // ============================================================
-        // EVENT HANDLER CONTENTEDITABLE
+        // EVENT HANDLER CONTENTEDITABLE (input)
         // ============================================================
         function onCellInput(e) {
             const td = e.target;
@@ -963,54 +947,23 @@
             const key = td.dataset.key;
             let rawText = td.textContent.trim();
 
-            // Jika kolom namaBarang, kita harus pisahkan dari teks (luas)
-            if (key === 'namaBarang') {
-                // Simpan nilai asli di dataset.original saat pertama kali
-                if (!td.dataset.original) {
-                    td.dataset.original = rawText;
-                }
-                // Jika user mengedit, kita gunakan teks mentah sebagai nama asli
-                // Karena user mungkin menghapus (luas)
-                const originalName = td.dataset.original;
-                // Kita update data dengan originalName (tanpa (luas))
-                const item = allItems.find(it => it.id === id);
-                if (item) {
-                    item.data[key] = originalName;
-                    modifiedIds.add(id);
-                    td.classList.add('modified');
-                    isDirty = true;
-                    updateSaveUI();
-                    // Cek kembali ke original
-                    const orig = originalData[id];
-                    if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
-                        modifiedIds.delete(id);
-                        td.classList.remove('modified');
-                        if (modifiedIds.size === 0) {
-                            isDirty = false;
-                            updateSaveUI();
-                        }
-                    }
-                    // Update display dengan luas
-                    const ruang = item.data.ruang || '';
-                    const luas = ruangLuasMap[ruang] || 0;
-                    td.textContent = luas > 0 ? `${originalName} (${luas} m²)` : originalName;
-                    td.dataset.original = originalName;
-                }
-                return;
-            }
-
-            // Kolom lain
             const item = allItems.find(it => it.id === id);
             if (!item) return;
 
-            let parsedValue = rawText;
-            if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
-                parsedValue = parseFloat(rawText) || 0;
-            }
+            // Untuk kolom anggaran, kita perlu parse angka dan format ulang
             if (key === 'anggaranSatuan') {
+                // Biarkan teks apa adanya, nanti di blur akan diformat
+                // Tapi kita tetap tandai sebagai modified
                 const numericValue = parseAngka(rawText);
                 item.data[key] = numericValue;
+                // Tidak langsung ubah teks di sini agar user bisa mengetik
+                // Kita akan handle di blur
             } else {
+                // Kolom lain
+                let parsedValue = rawText;
+                if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
+                    parsedValue = parseFloat(rawText) || 0;
+                }
                 item.data[key] = parsedValue;
             }
 
@@ -1019,6 +972,7 @@
             isDirty = true;
             updateSaveUI();
 
+            // Cek apakah kembali ke original
             const orig = originalData[id];
             if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
                 modifiedIds.delete(id);
