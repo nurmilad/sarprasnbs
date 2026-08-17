@@ -212,6 +212,8 @@
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             margin-bottom: 20px;
+            max-height: calc(100vh - 220px); /* batas tinggi agar scroll */
+            position: relative;
         }
 
         table {
@@ -219,12 +221,21 @@
             border-collapse: collapse;
             font-size: 12px;
             min-width: 800px;
-            border: 1px solid #d0d8d0; /* tambahan border luar */
+            border: 1px solid #d0d8d0;
+        }
+
+        /* === HEADER STICKY === */
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #eaf0ea;
+            border-bottom: 2px solid #b0c0b0;
         }
 
         /* === HEADER & SEL dengan border === */
         th, td {
-            border: 1px solid #d0d8d0; /* garis untuk semua sel */
+            border: 1px solid #d0d8d0;
             padding: 6px 8px;
             vertical-align: middle;
             text-align: left;
@@ -240,10 +251,10 @@
             resize: horizontal;
             overflow: hidden;
             font-size: 12px;
-            text-align: center !important; /* tetap rata tengah */
+            text-align: center !important;
         }
         th:last-child {
-            border-right: 1px solid #d0d8d0; /* agar konsisten */
+            border-right: 1px solid #d0d8d0;
             resize: none;
         }
         th .sort-icon {
@@ -267,14 +278,10 @@
             min-height: 32px;
             font-size: 12px;
         }
-        tr {
-            /* tidak perlu border-bottom lagi karena sudah ada border di td */
-        }
         tr:last-child td {
-            border-bottom: 1px solid #d0d8d0; /* agar baris terakhir tetap ada garis */
+            border-bottom: 1px solid #d0d8d0;
         }
 
-        /* === KOLOM YANG RATA TENGAH === */
         .text-center {
             text-align: center !important;
         }
@@ -282,7 +289,6 @@
             text-align: right !important;
         }
 
-        /* Select di dalam td */
         td select {
             width: 100%;
             padding: 2px 4px;
@@ -302,7 +308,6 @@
             background: #fff3e0;
         }
 
-        /* ===== KOLOM AKSI - tombol kecil & tidak tebal ===== */
         .actions-cell {
             display: flex;
             gap: 4px;
@@ -335,7 +340,6 @@
             background: #e0f0e0;
         }
 
-        /* ===== EMPTY STATE dengan tombol ===== */
         .no-data {
             text-align: center;
             padding: 40px 16px;
@@ -365,12 +369,12 @@
             transform: none;
         }
 
-        /* ===== MOBILE ===== */
         @media (max-width: 700px) {
             .table-wrapper {
                 background: transparent;
                 box-shadow: none;
                 overflow-x: auto;
+                max-height: none;
             }
             table {
                 min-width: 600px;
@@ -392,7 +396,6 @@
             }
         }
 
-        /* ===== TOAST & LOADING ===== */
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -560,18 +563,14 @@
             document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
         }
 
-        // Format angka dengan ribuan (titik)
         function formatRupiah(angka) {
             if (angka === undefined || angka === null || isNaN(angka)) return '0';
             return Number(angka).toLocaleString('id-ID');
         }
 
-        // Parsing angka dari string yang mungkin mengandung titik ribuan
         function parseAngka(str) {
             if (typeof str === 'string') {
-                // Hapus titik ribuan dan spasi
                 str = str.replace(/\./g, '').replace(/\s/g, '');
-                // Ganti koma dengan titik (desimal)
                 str = str.replace(',', '.');
             }
             const num = parseFloat(str);
@@ -629,7 +628,6 @@
             document.querySelectorAll('td select').forEach(sel => {
                 sel.disabled = !isAdmin;
             });
-            // Untuk contenteditable, kita update di render
             const firstBtn = document.getElementById('firstRowBtn');
             if (firstBtn) {
                 firstBtn.style.display = isAdmin ? 'inline-block' : 'none';
@@ -649,13 +647,17 @@
         let isDirty = false;
 
         let definitions = {
-            ruangan: [],
+            ruangan: [],       // [{ id, nama, gedung, panjang, lebar, luas }]
             gedung: [],
             jenis: [],
             sumberDana: [],
-            barang: []
+            barang: []         // [{ id, nama, jenis }]
         };
         let ruangNames = [];
+
+        // Map untuk lookup cepat
+        let ruangGedungMap = {};
+        let barangJenisMap = {};
 
         const tbody = document.getElementById('inventoryBody');
         const searchInput = document.getElementById('searchInput');
@@ -671,7 +673,7 @@
         let unsubscribe = null;
 
         // ============================================================
-        // LOAD DEFINISI
+        // LOAD DEFINISI (dengan field tambahan untuk ruangan dan barang)
         // ============================================================
         async function loadDefinitions() {
             try {
@@ -682,11 +684,22 @@
                     db.collection('sumber_dana').get(),
                     db.collection('barang').get()
                 ]);
-                definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama, gedung: d.data().gedung || '' }));
                 definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama, jenis: d.data().jenis || '' }));
+
+                // Build lookup maps
+                ruangGedungMap = {};
+                definitions.ruangan.forEach(r => {
+                    ruangGedungMap[r.nama] = r.gedung || '';
+                });
+
+                barangJenisMap = {};
+                definitions.barang.forEach(b => {
+                    barangJenisMap[b.nama] = b.jenis || '';
+                });
 
                 ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean).sort();
                 populateFilterRuang();
@@ -815,12 +828,10 @@
                     jenis: { list: definitions.jenis, placeholder: 'Pilih Jenis' }
                 };
 
-                // Urutan kolom
                 const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
                     'asalPerolehan', 'baik', 'rusakRingan', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
                 ];
 
-                // Kolom yang rata tengah
                 const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'];
 
                 let html = '';
@@ -836,7 +847,6 @@
                     let classAttr = '';
 
                     if (key === 'anggaranSatuan') {
-                        // Rata kanan dan format ribuan
                         classAttr = ' class="text-right' + extraClass + '"';
                         value = formatRupiah(value);
                     } else if (centerKeys.includes(key) || key === 'no') {
@@ -857,13 +867,11 @@
                             </select>
                         </td>`;
                     } else {
-                        // Semua kolom editable (termasuk anggaran) jika admin
                         const editable = isAdmin ? 'contenteditable="true"' : '';
                         html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
                     }
                 });
 
-                // Kolom aksi
                 const actionCol = `
                     <td class="text-center">
                         <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
@@ -880,12 +888,18 @@
             // Event listener untuk SELECT
             tbody.querySelectorAll('td select').forEach(sel => {
                 sel.addEventListener('change', onSelectChange);
+                // Tambahkan auto-fill untuk ruang dan namaBarang
+                if (sel.dataset.key === 'ruang') {
+                    sel.addEventListener('change', autoFillGedung);
+                }
+                if (sel.dataset.key === 'namaBarang') {
+                    sel.addEventListener('change', autoFillJenis);
+                }
             });
 
-            // Event listener untuk contenteditable (semua kolom termasuk anggaran)
+            // Event listener untuk contenteditable
             tbody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
                 td.addEventListener('input', onCellInput);
-                // Tambahkan event blur untuk format ulang angka
                 td.addEventListener('blur', onCellBlur);
                 if (!isAdmin) td.contentEditable = 'false';
             });
@@ -907,13 +921,110 @@
                     if (confirm('Hapus baris ini?')) deleteItem(id);
                 });
             });
+
+            // Setelah render, pastikan nilai Gedung dan Jenis sudah sesuai (jika ada data)
+            tbody.querySelectorAll('tr').forEach(tr => {
+                const id = tr.dataset.id;
+                const item = allItems.find(it => it.id === id);
+                if (!item) return;
+                // Set Gedung otomatis jika ruang terpilih
+                const ruangSelect = tr.querySelector('select[data-key="ruang"]');
+                const gedungSelect = tr.querySelector('select[data-key="lokasiGedung"]');
+                if (ruangSelect && gedungSelect) {
+                    const ruangVal = ruangSelect.value;
+                    if (ruangVal && ruangGedungMap[ruangVal]) {
+                        gedungSelect.value = ruangGedungMap[ruangVal];
+                        // Update data juga
+                        item.data.lokasiGedung = ruangGedungMap[ruangVal];
+                    }
+                }
+                // Set Jenis otomatis jika nama barang terpilih
+                const barangSelect = tr.querySelector('select[data-key="namaBarang"]');
+                const jenisSelect = tr.querySelector('select[data-key="jenis"]');
+                if (barangSelect && jenisSelect) {
+                    const barangVal = barangSelect.value;
+                    if (barangVal && barangJenisMap[barangVal]) {
+                        jenisSelect.value = barangJenisMap[barangVal];
+                        item.data.jenis = barangJenisMap[barangVal];
+                    }
+                }
+            });
         }
 
         // ============================================================
-        // EVENT HANDLER SELECT
+        // AUTO-FILL FUNCTIONS
+        // ============================================================
+        function autoFillGedung(e) {
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const id = tr.dataset.id;
+            const ruangVal = sel.value;
+            const gedungSelect = tr.querySelector('select[data-key="lokasiGedung"]');
+            if (!gedungSelect) return;
+
+            const gedung = ruangGedungMap[ruangVal] || '';
+            gedungSelect.value = gedung;
+
+            // Update data item
+            const item = allItems.find(it => it.id === id);
+            if (item) {
+                item.data.lokasiGedung = gedung;
+                // Tandai modified
+                modifiedIds.add(id);
+                gedungSelect.classList.add('modified');
+                isDirty = true;
+                updateSaveUI();
+                // Cek apakah kembali ke original
+                const orig = originalData[id];
+                if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                    modifiedIds.delete(id);
+                    gedungSelect.classList.remove('modified');
+                    if (modifiedIds.size === 0) {
+                        isDirty = false;
+                        updateSaveUI();
+                    }
+                }
+            }
+        }
+
+        function autoFillJenis(e) {
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const id = tr.dataset.id;
+            const barangVal = sel.value;
+            const jenisSelect = tr.querySelector('select[data-key="jenis"]');
+            if (!jenisSelect) return;
+
+            const jenis = barangJenisMap[barangVal] || '';
+            jenisSelect.value = jenis;
+
+            const item = allItems.find(it => it.id === id);
+            if (item) {
+                item.data.jenis = jenis;
+                modifiedIds.add(id);
+                jenisSelect.classList.add('modified');
+                isDirty = true;
+                updateSaveUI();
+                const orig = originalData[id];
+                if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                    modifiedIds.delete(id);
+                    jenisSelect.classList.remove('modified');
+                    if (modifiedIds.size === 0) {
+                        isDirty = false;
+                        updateSaveUI();
+                    }
+                }
+            }
+        }
+
+        // ============================================================
+        // EVENT HANDLER SELECT (umum)
         // ============================================================
         function onSelectChange(e) {
             const sel = e.target;
+            // Abaikan jika event sudah ditangani oleh auto-fill
+            if (sel.dataset.key === 'ruang' || sel.dataset.key === 'namaBarang') return;
+
             const id = sel.dataset.id;
             const key = sel.dataset.key;
             const newValue = sel.value;
@@ -939,7 +1050,7 @@
         }
 
         // ============================================================
-        // EVENT HANDLER CONTENTEDITABLE (input)
+        // EVENT HANDLER CONTENTEDITABLE
         // ============================================================
         function onCellInput(e) {
             const td = e.target;
@@ -950,16 +1061,10 @@
             const item = allItems.find(it => it.id === id);
             if (!item) return;
 
-            // Untuk kolom anggaran, kita perlu parse angka dan format ulang
             if (key === 'anggaranSatuan') {
-                // Biarkan teks apa adanya, nanti di blur akan diformat
-                // Tapi kita tetap tandai sebagai modified
                 const numericValue = parseAngka(rawText);
                 item.data[key] = numericValue;
-                // Tidak langsung ubah teks di sini agar user bisa mengetik
-                // Kita akan handle di blur
             } else {
-                // Kolom lain
                 let parsedValue = rawText;
                 if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
                     parsedValue = parseFloat(rawText) || 0;
@@ -972,7 +1077,6 @@
             isDirty = true;
             updateSaveUI();
 
-            // Cek apakah kembali ke original
             const orig = originalData[id];
             if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
                 modifiedIds.delete(id);
@@ -984,9 +1088,6 @@
             }
         }
 
-        // ============================================================
-        // EVENT HANDLER BLUR (format ulang angka)
-        // ============================================================
         function onCellBlur(e) {
             const td = e.target;
             const key = td.dataset.key;
@@ -1001,7 +1102,7 @@
         }
 
         // ============================================================
-        // ADD ROW BELOW (copy data)
+        // ADD ROW BELOW
         // ============================================================
         function addRowBelow(id) {
             if (!isAdmin) {
