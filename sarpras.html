@@ -306,7 +306,6 @@
             background: #fff3e0;
         }
 
-        /* Untuk kolom yang hanya baca (jenis & gedung) */
         td .readonly-value {
             display: block;
             padding: 2px 4px;
@@ -685,12 +684,13 @@
         // ============================================================
         async function loadDefinitions() {
             try {
+                // Data definisi diurutkan berdasarkan nama agar dropdown terurut abjad
                 const [ruangSnap, gedungSnap, jenisSnap, sumberSnap, barangSnap] = await Promise.all([
-                    db.collection('ruangan').get(),
-                    db.collection('gedung').get(),
-                    db.collection('jenis').get(),
-                    db.collection('sumber_dana').get(),
-                    db.collection('barang').get()
+                    db.collection('ruangan').orderBy('nama').get(),
+                    db.collection('gedung').orderBy('nama').get(),
+                    db.collection('jenis').orderBy('nama').get(),
+                    db.collection('sumber_dana').orderBy('nama').get(),
+                    db.collection('barang').orderBy('nama').get()
                 ]);
                 definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama, gedung: d.data().gedung || '' }));
                 definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
@@ -698,6 +698,7 @@
                 definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama, jenis: d.data().jenis || '' }));
 
+                // Map untuk lookup (tidak perlu diurutkan)
                 ruangGedungMap = {};
                 definitions.ruangan.forEach(r => {
                     ruangGedungMap[r.nama] = r.gedung || '';
@@ -708,7 +709,7 @@
                     barangJenisMap[b.nama] = b.jenis || '';
                 });
 
-                ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean).sort();
+                ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean);
                 populateFilterRuang();
             } catch (err) {
                 console.error('Load definitions error:', err);
@@ -717,8 +718,10 @@
         }
 
         function populateFilterRuang() {
+            // Filter ruang juga diurutkan (sudah dari orderBy, tapi kita sort ulang untuk amannya)
+            const sorted = ruangNames.slice().sort((a, b) => a.localeCompare(b));
             filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
-            ruangNames.forEach(r => {
+            sorted.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r;
                 opt.textContent = r;
@@ -728,8 +731,10 @@
         }
 
         function buildSelectOptions(list, selectedValue, placeholder = '') {
+            // list sudah terurut dari Firebase, tapi kita urutkan ulang agar konsisten
+            const sorted = list.slice().sort((a, b) => a.nama.localeCompare(b.nama));
             let html = `<option value="">${placeholder}</option>`;
-            list.forEach(item => {
+            sorted.forEach(item => {
                 const sel = (item.nama === selectedValue) ? 'selected' : '';
                 html += `<option value="${item.nama}" ${sel}>${item.nama}</option>`;
             });
@@ -831,7 +836,6 @@
                     namaBarang: { list: definitions.barang, placeholder: 'Pilih Barang' },
                     asalPerolehan: { list: definitions.sumberDana, placeholder: 'Pilih Sumber Dana' },
                     ruang: { list: definitions.ruangan, placeholder: 'Pilih Ruang' }
-                    // lokasiGedung dan jenis sekarang hanya readonly
                 };
 
                 const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
@@ -864,7 +868,6 @@
                     if (key === 'no') {
                         html += `<td${classAttr}>${value}</td>`;
                     } else if (selectFields[key]) {
-                        // Kolom dengan select: namaBarang, asalPerolehan, ruang
                         const selectData = selectFields[key];
                         const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
                         const disabled = isAdmin ? '' : 'disabled';
@@ -874,13 +877,11 @@
                             </select>
                         </td>`;
                     } else if (key === 'lokasiGedung' || key === 'jenis') {
-                        // Kolom readonly (hanya tampilan)
                         const displayVal = key === 'lokasiGedung' ? (item.data.lokasiGedung || '') : (item.data.jenis || '');
                         html += `<td class="text-center${extraClass}">
                             <span class="readonly-value" data-key="${key}" data-id="${item.id}">${displayVal}</span>
                         </td>`;
                     } else {
-                        // Kolom editable lainnya
                         const editable = isAdmin ? 'contenteditable="true"' : '';
                         html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
                     }
@@ -902,7 +903,6 @@
             // Event listener untuk SELECT
             tbody.querySelectorAll('td select').forEach(sel => {
                 sel.addEventListener('change', onSelectChange);
-                // Auto-fill untuk ruang -> gedung dan barang -> jenis
                 if (sel.dataset.key === 'ruang') {
                     sel.addEventListener('change', autoFillGedung);
                 }
@@ -942,13 +942,11 @@
                 const item = allItems.find(it => it.id === id);
                 if (!item) return;
 
-                // Update tampilan gedung & jenis dari data
                 const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
                 const jenisSpan = tr.querySelector('span[data-key="jenis"]');
                 if (gedungSpan) gedungSpan.textContent = item.data.lokasiGedung || '';
                 if (jenisSpan) jenisSpan.textContent = item.data.jenis || '';
 
-                // Sinkronkan select ruang dan barang dengan data (jika ada)
                 const ruangSelect = tr.querySelector('select[data-key="ruang"]');
                 if (ruangSelect && item.data.ruang) {
                     ruangSelect.value = item.data.ruang;
@@ -974,17 +972,10 @@
             const gedung = ruangGedungMap[ruangVal] || '';
             gedungSpan.textContent = gedung;
 
-            // Update data item
             const item = allItems.find(it => it.id === id);
             if (item) {
                 item.data.lokasiGedung = gedung;
-                // Tandai modified
                 modifiedIds.add(id);
-                // Juga tandai ruang sebagai modified (karena berubah)
-                // Ruang sudah terpilih, tapi kita perlu menandai bahwa ada perubahan
-                // Select ruang akan otomatis termodified via onSelectChange
-                // Tapi karena kita panggil dari event, onSelectChange sudah dipanggil sebelumnya
-                // Kita tambahkan modified untuk memastikan
                 isDirty = true;
                 updateSaveUI();
             }
@@ -1022,14 +1013,12 @@
             const item = allItems.find(it => it.id === id);
             if (!item) return;
 
-            // Update data
             item.data[key] = newValue;
             modifiedIds.add(id);
             sel.classList.add('modified');
             isDirty = true;
             updateSaveUI();
 
-            // Cek apakah kembali ke original
             const orig = originalData[id];
             if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
                 modifiedIds.delete(id);
