@@ -212,7 +212,7 @@
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             margin-bottom: 20px;
-            max-height: calc(100vh - 220px); /* batas tinggi agar scroll */
+            max-height: calc(100vh - 220px);
             position: relative;
         }
 
@@ -224,7 +224,6 @@
             border: 1px solid #d0d8d0;
         }
 
-        /* === HEADER STICKY === */
         thead th {
             position: sticky;
             top: 0;
@@ -233,7 +232,6 @@
             border-bottom: 2px solid #b0c0b0;
         }
 
-        /* === HEADER & SEL dengan border === */
         th, td {
             border: 1px solid #d0d8d0;
             padding: 6px 8px;
@@ -306,6 +304,17 @@
         }
         td select.modified {
             background: #fff3e0;
+        }
+
+        /* Untuk kolom yang hanya baca (jenis & gedung) */
+        td .readonly-value {
+            display: block;
+            padding: 2px 4px;
+            min-height: 22px;
+            color: #1a3d2e;
+            background: #f4f7f4;
+            border-radius: 4px;
+            border: 1px solid #e0e8e0;
         }
 
         .actions-cell {
@@ -647,15 +656,14 @@
         let isDirty = false;
 
         let definitions = {
-            ruangan: [],       // [{ id, nama, gedung, panjang, lebar, luas }]
+            ruangan: [],
             gedung: [],
             jenis: [],
             sumberDana: [],
-            barang: []         // [{ id, nama, jenis }]
+            barang: []
         };
         let ruangNames = [];
 
-        // Map untuk lookup cepat
         let ruangGedungMap = {};
         let barangJenisMap = {};
 
@@ -673,7 +681,7 @@
         let unsubscribe = null;
 
         // ============================================================
-        // LOAD DEFINISI (dengan field tambahan untuk ruangan dan barang)
+        // LOAD DEFINISI
         // ============================================================
         async function loadDefinitions() {
             try {
@@ -690,7 +698,6 @@
                 definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama, jenis: d.data().jenis || '' }));
 
-                // Build lookup maps
                 ruangGedungMap = {};
                 definitions.ruangan.forEach(r => {
                     ruangGedungMap[r.nama] = r.gedung || '';
@@ -823,9 +830,8 @@
                 const selectFields = {
                     namaBarang: { list: definitions.barang, placeholder: 'Pilih Barang' },
                     asalPerolehan: { list: definitions.sumberDana, placeholder: 'Pilih Sumber Dana' },
-                    ruang: { list: definitions.ruangan, placeholder: 'Pilih Ruang' },
-                    lokasiGedung: { list: definitions.gedung, placeholder: 'Pilih Gedung' },
-                    jenis: { list: definitions.jenis, placeholder: 'Pilih Jenis' }
+                    ruang: { list: definitions.ruangan, placeholder: 'Pilih Ruang' }
+                    // lokasiGedung dan jenis sekarang hanya readonly
                 };
 
                 const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
@@ -858,6 +864,7 @@
                     if (key === 'no') {
                         html += `<td${classAttr}>${value}</td>`;
                     } else if (selectFields[key]) {
+                        // Kolom dengan select: namaBarang, asalPerolehan, ruang
                         const selectData = selectFields[key];
                         const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
                         const disabled = isAdmin ? '' : 'disabled';
@@ -866,7 +873,14 @@
                                 ${optionsHtml}
                             </select>
                         </td>`;
+                    } else if (key === 'lokasiGedung' || key === 'jenis') {
+                        // Kolom readonly (hanya tampilan)
+                        const displayVal = key === 'lokasiGedung' ? (item.data.lokasiGedung || '') : (item.data.jenis || '');
+                        html += `<td class="text-center${extraClass}">
+                            <span class="readonly-value" data-key="${key}" data-id="${item.id}">${displayVal}</span>
+                        </td>`;
                     } else {
+                        // Kolom editable lainnya
                         const editable = isAdmin ? 'contenteditable="true"' : '';
                         html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
                     }
@@ -888,7 +902,7 @@
             // Event listener untuk SELECT
             tbody.querySelectorAll('td select').forEach(sel => {
                 sel.addEventListener('change', onSelectChange);
-                // Tambahkan auto-fill untuk ruang dan namaBarang
+                // Auto-fill untuk ruang -> gedung dan barang -> jenis
                 if (sel.dataset.key === 'ruang') {
                     sel.addEventListener('change', autoFillGedung);
                 }
@@ -922,31 +936,26 @@
                 });
             });
 
-            // Setelah render, pastikan nilai Gedung dan Jenis sudah sesuai (jika ada data)
+            // Setelah render, pastikan nilai Gedung dan Jenis sudah sesuai
             tbody.querySelectorAll('tr').forEach(tr => {
                 const id = tr.dataset.id;
                 const item = allItems.find(it => it.id === id);
                 if (!item) return;
-                // Set Gedung otomatis jika ruang terpilih
+
+                // Update tampilan gedung & jenis dari data
+                const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
+                const jenisSpan = tr.querySelector('span[data-key="jenis"]');
+                if (gedungSpan) gedungSpan.textContent = item.data.lokasiGedung || '';
+                if (jenisSpan) jenisSpan.textContent = item.data.jenis || '';
+
+                // Sinkronkan select ruang dan barang dengan data (jika ada)
                 const ruangSelect = tr.querySelector('select[data-key="ruang"]');
-                const gedungSelect = tr.querySelector('select[data-key="lokasiGedung"]');
-                if (ruangSelect && gedungSelect) {
-                    const ruangVal = ruangSelect.value;
-                    if (ruangVal && ruangGedungMap[ruangVal]) {
-                        gedungSelect.value = ruangGedungMap[ruangVal];
-                        // Update data juga
-                        item.data.lokasiGedung = ruangGedungMap[ruangVal];
-                    }
+                if (ruangSelect && item.data.ruang) {
+                    ruangSelect.value = item.data.ruang;
                 }
-                // Set Jenis otomatis jika nama barang terpilih
                 const barangSelect = tr.querySelector('select[data-key="namaBarang"]');
-                const jenisSelect = tr.querySelector('select[data-key="jenis"]');
-                if (barangSelect && jenisSelect) {
-                    const barangVal = barangSelect.value;
-                    if (barangVal && barangJenisMap[barangVal]) {
-                        jenisSelect.value = barangJenisMap[barangVal];
-                        item.data.jenis = barangJenisMap[barangVal];
-                    }
+                if (barangSelect && item.data.namaBarang) {
+                    barangSelect.value = item.data.namaBarang;
                 }
             });
         }
@@ -959,11 +968,11 @@
             const tr = sel.closest('tr');
             const id = tr.dataset.id;
             const ruangVal = sel.value;
-            const gedungSelect = tr.querySelector('select[data-key="lokasiGedung"]');
-            if (!gedungSelect) return;
+            const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
+            if (!gedungSpan) return;
 
             const gedung = ruangGedungMap[ruangVal] || '';
-            gedungSelect.value = gedung;
+            gedungSpan.textContent = gedung;
 
             // Update data item
             const item = allItems.find(it => it.id === id);
@@ -971,19 +980,13 @@
                 item.data.lokasiGedung = gedung;
                 // Tandai modified
                 modifiedIds.add(id);
-                gedungSelect.classList.add('modified');
+                // Juga tandai ruang sebagai modified (karena berubah)
+                // Ruang sudah terpilih, tapi kita perlu menandai bahwa ada perubahan
+                // Select ruang akan otomatis termodified via onSelectChange
+                // Tapi karena kita panggil dari event, onSelectChange sudah dipanggil sebelumnya
+                // Kita tambahkan modified untuk memastikan
                 isDirty = true;
                 updateSaveUI();
-                // Cek apakah kembali ke original
-                const orig = originalData[id];
-                if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
-                    modifiedIds.delete(id);
-                    gedungSelect.classList.remove('modified');
-                    if (modifiedIds.size === 0) {
-                        isDirty = false;
-                        updateSaveUI();
-                    }
-                }
             }
         }
 
@@ -992,28 +995,18 @@
             const tr = sel.closest('tr');
             const id = tr.dataset.id;
             const barangVal = sel.value;
-            const jenisSelect = tr.querySelector('select[data-key="jenis"]');
-            if (!jenisSelect) return;
+            const jenisSpan = tr.querySelector('span[data-key="jenis"]');
+            if (!jenisSpan) return;
 
             const jenis = barangJenisMap[barangVal] || '';
-            jenisSelect.value = jenis;
+            jenisSpan.textContent = jenis;
 
             const item = allItems.find(it => it.id === id);
             if (item) {
                 item.data.jenis = jenis;
                 modifiedIds.add(id);
-                jenisSelect.classList.add('modified');
                 isDirty = true;
                 updateSaveUI();
-                const orig = originalData[id];
-                if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
-                    modifiedIds.delete(id);
-                    jenisSelect.classList.remove('modified');
-                    if (modifiedIds.size === 0) {
-                        isDirty = false;
-                        updateSaveUI();
-                    }
-                }
             }
         }
 
@@ -1022,9 +1015,6 @@
         // ============================================================
         function onSelectChange(e) {
             const sel = e.target;
-            // Abaikan jika event sudah ditangani oleh auto-fill
-            if (sel.dataset.key === 'ruang' || sel.dataset.key === 'namaBarang') return;
-
             const id = sel.dataset.id;
             const key = sel.dataset.key;
             const newValue = sel.value;
@@ -1032,12 +1022,14 @@
             const item = allItems.find(it => it.id === id);
             if (!item) return;
 
+            // Update data
             item.data[key] = newValue;
             modifiedIds.add(id);
             sel.classList.add('modified');
             isDirty = true;
             updateSaveUI();
 
+            // Cek apakah kembali ke original
             const orig = originalData[id];
             if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
                 modifiedIds.delete(id);
