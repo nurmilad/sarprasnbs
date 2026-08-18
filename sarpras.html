@@ -654,6 +654,7 @@
         let modifiedIds = new Set();
         let isDirty = false;
 
+        // DEFINISI (akan diupdate oleh listener)
         let definitions = {
             ruangan: [],
             gedung: [],
@@ -662,9 +663,9 @@
             barang: []
         };
         let ruangNames = [];
-
         let ruangGedungMap = {};
         let barangJenisMap = {};
+        let definitionsReady = false;
 
         const tbody = document.getElementById('inventoryBody');
         const searchInput = document.getElementById('searchInput');
@@ -677,76 +678,67 @@
         const emptyMsg = document.getElementById('emptyMessage');
 
         const inventoryRef = db.collection('inventory');
-        let unsubscribe = null;
+        let unsubscribeInventory = null;
+        let unsubscribeListeners = [];
 
         // ============================================================
-        // LOAD DEFINISI
+        // FUNGSI UNTUK MENSTART LISTENER DEFINISI (REALTIME)
         // ============================================================
-        async function loadDefinitions() {
-            try {
-                // Data definisi diurutkan berdasarkan nama agar dropdown terurut abjad
-                const [ruangSnap, gedungSnap, jenisSnap, sumberSnap, barangSnap] = await Promise.all([
-                    db.collection('ruangan').orderBy('nama').get(),
-                    db.collection('gedung').orderBy('nama').get(),
-                    db.collection('jenis').orderBy('nama').get(),
-                    db.collection('sumber_dana').orderBy('nama').get(),
-                    db.collection('barang').orderBy('nama').get()
-                ]);
-                definitions.ruangan = ruangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama, gedung: d.data().gedung || '' }));
-                definitions.gedung = gedungSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.jenis = jenisSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.sumberDana = sumberSnap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                definitions.barang = barangSnap.docs.map(d => ({ id: d.id, nama: d.data().nama, jenis: d.data().jenis || '' }));
-
-                // Map untuk lookup (tidak perlu diurutkan)
+        function startDefinitionListeners() {
+            // Listener untuk ruangan
+            const unsubRuang = db.collection('ruangan').orderBy('nama').onSnapshot(snap => {
+                definitions.ruangan = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, gedung: d.data().gedung || '' }));
                 ruangGedungMap = {};
                 definitions.ruangan.forEach(r => {
                     ruangGedungMap[r.nama] = r.gedung || '';
                 });
+                ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean);
+                populateFilterRuang();
+                if (definitionsReady) refreshAfterDefinitionChange();
+            }, err => showToast('Gagal memuat ruangan: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubRuang);
 
+            // Listener untuk barang
+            const unsubBarang = db.collection('barang').orderBy('nama').onSnapshot(snap => {
+                definitions.barang = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, jenis: d.data().jenis || '' }));
                 barangJenisMap = {};
                 definitions.barang.forEach(b => {
                     barangJenisMap[b.nama] = b.jenis || '';
                 });
+                if (definitionsReady) refreshAfterDefinitionChange();
+            }, err => showToast('Gagal memuat barang: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubBarang);
 
-                ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean);
-                populateFilterRuang();
-            } catch (err) {
-                console.error('Load definitions error:', err);
-                showToast('Gagal memuat definisi: ' + err.message, 'error');
-            }
+            // Listener untuk sumber dana
+            const unsubSumber = db.collection('sumber_dana').orderBy('nama').onSnapshot(snap => {
+                definitions.sumberDana = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                if (definitionsReady) refreshAfterDefinitionChange();
+            }, err => showToast('Gagal memuat sumber dana: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubSumber);
+
+            // Listener untuk gedung (opsional, untuk dropdown jika ada)
+            const unsubGedung = db.collection('gedung').orderBy('nama').onSnapshot(snap => {
+                definitions.gedung = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                // tidak perlu refresh, karena gedung hanya digunakan sebagai referensi di ruangan
+            }, err => showToast('Gagal memuat gedung: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubGedung);
+
+            definitionsReady = true;
         }
 
-        function populateFilterRuang() {
-            // Filter ruang juga diurutkan (sudah dari orderBy, tapi kita sort ulang untuk amannya)
-            const sorted = ruangNames.slice().sort((a, b) => a.localeCompare(b));
-            filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
-            sorted.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r;
-                opt.textContent = r;
-                filterRuangSelect.appendChild(opt);
-            });
-            if (filterRuang) filterRuangSelect.value = filterRuang;
-        }
-
-        function buildSelectOptions(list, selectedValue, placeholder = '') {
-            // list sudah terurut dari Firebase, tapi kita urutkan ulang agar konsisten
-            const sorted = list.slice().sort((a, b) => a.nama.localeCompare(b.nama));
-            let html = `<option value="">${placeholder}</option>`;
-            sorted.forEach(item => {
-                const sel = (item.nama === selectedValue) ? 'selected' : '';
-                html += `<option value="${item.nama}" ${sel}>${item.nama}</option>`;
-            });
-            return html;
+        function refreshAfterDefinitionChange() {
+            // Saat definisi berubah, kita perlu refresh tampilan agar nilai jenis/gedung terbaru
+            // Tapi kita tidak mau mereset modifiedIds atau isDirty
+            // Cukup render ulang dengan data terbaru, tanpa mengubah data inventory
+            applyFiltersAndSort();
         }
 
         // ============================================================
         // LOAD INVENTORY (REALTIME)
         // ============================================================
         function loadInventory() {
-            if (unsubscribe) unsubscribe();
-            unsubscribe = inventoryRef.onSnapshot(snapshot => {
+            if (unsubscribeInventory) unsubscribeInventory();
+            unsubscribeInventory = inventoryRef.onSnapshot(snapshot => {
                 allItems = [];
                 originalData = {};
                 snapshot.forEach(doc => {
@@ -877,7 +869,13 @@
                             </select>
                         </td>`;
                     } else if (key === 'lokasiGedung' || key === 'jenis') {
-                        const displayVal = key === 'lokasiGedung' ? (item.data.lokasiGedung || '') : (item.data.jenis || '');
+                        // Kolom readonly, tampilkan nilai terbaru dari map
+                        let displayVal = '';
+                        if (key === 'lokasiGedung') {
+                            displayVal = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
+                        } else if (key === 'jenis') {
+                            displayVal = barangJenisMap[item.data.namaBarang] || item.data.jenis || '';
+                        }
                         html += `<td class="text-center${extraClass}">
                             <span class="readonly-value" data-key="${key}" data-id="${item.id}">${displayVal}</span>
                         </td>`;
@@ -936,16 +934,11 @@
                 });
             });
 
-            // Setelah render, pastikan nilai Gedung dan Jenis sudah sesuai
+            // Setelah render, sinkronkan select dengan data (jika ada)
             tbody.querySelectorAll('tr').forEach(tr => {
                 const id = tr.dataset.id;
                 const item = allItems.find(it => it.id === id);
                 if (!item) return;
-
-                const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
-                const jenisSpan = tr.querySelector('span[data-key="jenis"]');
-                if (gedungSpan) gedungSpan.textContent = item.data.lokasiGedung || '';
-                if (jenisSpan) jenisSpan.textContent = item.data.jenis || '';
 
                 const ruangSelect = tr.querySelector('select[data-key="ruang"]');
                 if (ruangSelect && item.data.ruang) {
@@ -955,6 +948,7 @@
                 if (barangSelect && item.data.namaBarang) {
                     barangSelect.value = item.data.namaBarang;
                 }
+                // Untuk readonly, sudah diisi dari map saat render
             });
         }
 
@@ -1234,6 +1228,28 @@
             });
         }
 
+        function populateFilterRuang() {
+            const sorted = ruangNames.slice().sort((a, b) => a.localeCompare(b));
+            filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
+            sorted.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                filterRuangSelect.appendChild(opt);
+            });
+            if (filterRuang) filterRuangSelect.value = filterRuang;
+        }
+
+        function buildSelectOptions(list, selectedValue, placeholder = '') {
+            const sorted = list.slice().sort((a, b) => a.nama.localeCompare(b.nama));
+            let html = `<option value="">${placeholder}</option>`;
+            sorted.forEach(item => {
+                const sel = (item.nama === selectedValue) ? 'selected' : '';
+                html += `<option value="${item.nama}" ${sel}>${item.nama}</option>`;
+            });
+            return html;
+        }
+
         function updateFilterInfo(ruang) {
             if (ruang) {
                 filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
@@ -1298,14 +1314,25 @@
         isAdmin = getAdminSession();
         updateAdminUI();
 
-        loadDefinitions().then(() => {
-            loadInventory();
-        }).catch(err => {
-            console.error('Init error:', err);
-            showToast('Gagal inisialisasi: ' + err.message, 'error');
-        });
+        // 1. Load inventory terlebih dahulu
+        loadInventory();
 
-        setTimeout(() => updateAdminUI(), 500);
+        // 2. Setelah inventory siap, start listener definisi
+        // (pastikan applyFiltersAndSort() akan dipanggil saat definisi berubah)
+        startDefinitionListeners();
+
+        // 3. Setelah semua siap, kita tandai definitionsReady = true
+        // sudah di dalam startDefinitionListeners
+
+        // Tapi karena ada kemungkinan inventory snapshot pertama kali belum selesai,
+        // kita tunggu sebentar lalu panggil applyFiltersAndSort() jika perlu
+        setTimeout(() => {
+            if (allItems.length > 0 && definitionsReady) {
+                applyFiltersAndSort();
+            }
+        }, 1000);
+
+        console.log('Sarpras page loaded dengan realtime definisi.');
     </script>
 </body>
 </html>
