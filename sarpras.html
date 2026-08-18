@@ -348,24 +348,30 @@
             border: 1px solid #e0e8e0;
         }
 
+        /* ===== KOLOM AKSI - tombol kecil dalam satu baris ===== */
         .actions-cell {
             display: flex;
-            gap: 4px;
+            gap: 2px; /* lebih rapat */
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap; /* jangan turun ke baris berikutnya */
             justify-content: center;
         }
         .actions-cell button {
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px; /* lebih kecil */
             font-weight: normal;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 0px 3px; /* padding minimal */
+            border-radius: 3px;
             transition: 0.2s;
-            line-height: 1.2;
+            line-height: 1.4;
             color: #4a5a4a;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        .actions-cell button:hover {
+            background: #e8f0e8;
         }
         .actions-cell button.delete-row {
             color: #b03a2e;
@@ -534,6 +540,10 @@
                 font-size: 12px;
                 padding: 6px 10px;
             }
+            .actions-cell button {
+                font-size: 11px;
+                padding: 0 2px;
+            }
         }
 
         /* ===== TOAST & LOADING ===== */
@@ -666,7 +676,7 @@
                             <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
                             <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
                             <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
-                            <th style="width:90px; resize:none;" class="text-center">Aksi</th>
+                            <th style="width:70px; resize:none;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryBody"></tbody>
@@ -690,7 +700,7 @@
                             <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
                             <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
                             <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
-                            <th style="width:90px; resize:none;" class="text-center">Aksi</th>
+                            <th style="width:70px; resize:none;" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="nonaktifBody"></tbody>
@@ -1133,8 +1143,8 @@
                 const actionCol = `
                     <td class="text-center">
                         <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
-                            <button class="add-row-below" data-id="${item.id}" title="Tambah baris di bawah">➕</button>
-                            <button class="soft-delete" data-id="${item.id}" title="Nonaktifkan (Hapus Buku)">📤</button>
+                            <button class="add-row-below" data-id="${item.id}" title="Tambah baris">➕</button>
+                            <button class="soft-delete" data-id="${item.id}" title="Nonaktifkan">📤</button>
                             <button class="delete-row" data-id="${item.id}" title="Hapus Permanen">🗑️</button>
                         </div>
                     </td>
@@ -1274,7 +1284,7 @@
                 const actionCol = `
                     <td class="text-center">
                         <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
-                            <button class="restore-row" data-id="${item.id}" title="Kembalikan ke aktif">↩️</button>
+                            <button class="restore-row" data-id="${item.id}" title="Kembalikan">↩️</button>
                             <button class="permanent-delete" data-id="${item.id}" title="Hapus permanen">❌</button>
                         </div>
                     </td>
