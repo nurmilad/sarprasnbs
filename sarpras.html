@@ -8,6 +8,10 @@
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
     </script>
+    <!-- Flatpickr untuk datepicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -88,7 +92,7 @@
             width: 100%;
         }
 
-        /* ===== TOOLBAR ===== */
+        /* ===== TOOLBAR dengan TAB ===== */
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -105,6 +109,7 @@
             flex-wrap: wrap;
             gap: 10px;
             flex: 1;
+            align-items: center;
         }
         .toolbar .left input,
         .toolbar .left select {
@@ -140,6 +145,33 @@
             padding: 2px 14px;
             border-radius: 30px;
             display: inline-block;
+        }
+        /* Tab navigasi */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            background: #eef4ee;
+            border-radius: 30px;
+            padding: 4px;
+        }
+        .tab-nav button {
+            padding: 6px 18px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            background: transparent;
+            color: #4a5a4a;
+            transition: 0.2s;
+        }
+        .tab-nav button.active {
+            background: #2d6a4f;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(45, 106, 79, 0.2);
+        }
+        .tab-nav button:hover:not(.active) {
+            background: #dce8dc;
         }
 
         .toolbar .right {
@@ -212,7 +244,7 @@
             border-radius: 16px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             margin-bottom: 20px;
-            max-height: calc(100vh - 220px);
+            max-height: calc(100vh - 260px);
             position: relative;
         }
 
@@ -327,9 +359,9 @@
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: normal;
-            padding: 2px 4px;
+            padding: 2px 6px;
             border-radius: 4px;
             transition: 0.2s;
             line-height: 1.2;
@@ -347,7 +379,26 @@
         .actions-cell button.add-row-below:hover {
             background: #e0f0e0;
         }
+        .actions-cell button.soft-delete {
+            color: #c07a2e;
+        }
+        .actions-cell button.soft-delete:hover {
+            background: #fce8d0;
+        }
+        .actions-cell button.restore-row {
+            color: #2d6a4f;
+        }
+        .actions-cell button.restore-row:hover {
+            background: #e0f0e0;
+        }
+        .actions-cell button.permanent-delete {
+            color: #b03a2e;
+        }
+        .actions-cell button.permanent-delete:hover {
+            background: #fce4e0;
+        }
 
+        /* ===== EMPTY STATE ===== */
         .no-data {
             text-align: center;
             padding: 40px 16px;
@@ -377,6 +428,77 @@
             transform: none;
         }
 
+        /* ===== MODAL SOFT DELETE ===== */
+        .modal-soft {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            padding: 16px;
+        }
+        .modal-soft.show {
+            display: flex;
+        }
+        .modal-soft .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 28px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .modal-soft .modal-content h2 {
+            margin-bottom: 16px;
+            color: #1a3d2e;
+            font-size: 20px;
+        }
+        .modal-soft .modal-content label {
+            display: block;
+            font-weight: 600;
+            margin: 12px 0 4px;
+            font-size: 14px;
+        }
+        .modal-soft .modal-content input,
+        .modal-soft .modal-content select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        .modal-soft .modal-content .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+        .modal-soft .modal-content .btn-group button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .modal-soft .modal-content .btn-group .btn-confirm {
+            background: #c07a2e;
+            color: #fff;
+        }
+        .modal-soft .modal-content .btn-group .btn-confirm:hover {
+            background: #a06020;
+        }
+        .modal-soft .modal-content .btn-group .btn-cancel {
+            background: #e0e8e0;
+            color: #2a4a3a;
+        }
+        .modal-soft .modal-content .btn-group .btn-cancel:hover {
+            background: #d0d8d0;
+        }
+
+        /* ===== MOBILE ===== */
         @media (max-width: 700px) {
             .table-wrapper {
                 background: transparent;
@@ -402,8 +524,19 @@
             .toolbar .status {
                 font-size: 12px;
             }
+            .tab-nav {
+                width: 100%;
+                justify-content: center;
+            }
+            .tab-nav button {
+                flex: 1;
+                text-align: center;
+                font-size: 12px;
+                padding: 6px 10px;
+            }
         }
 
+        /* ===== TOAST & LOADING ===== */
         .toast-container {
             position: fixed;
             bottom: 24px;
@@ -470,6 +603,14 @@
             background: #fff;
             margin-top: 10px;
         }
+
+        /* Tab content visibility */
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -486,7 +627,11 @@
         <!-- TOOLBAR -->
         <div class="toolbar">
             <div class="left">
-                <input type="text" id="searchInput" placeholder="🔍 Cari barang, ruang, gedung..." />
+                <div class="tab-nav" id="tabNav">
+                    <button class="active" data-tab="aktif">📦 Data Aktif</button>
+                    <button data-tab="nonaktif">📋 Data Nonaktif</button>
+                </div>
+                <input type="text" id="searchInput" placeholder="🔍 Cari..." style="flex:1; min-width:120px;" />
                 <div class="filter-row">
                     <select id="filterRuang">
                         <option value="">🏢 Semua Ruang</option>
@@ -502,34 +647,84 @@
             </div>
         </div>
 
-        <!-- TABLE -->
-        <div class="table-wrapper">
-            <table id="inventoryTable">
-                <thead>
-                    <tr>
-                        <th data-field="no" style="cursor:default; width:36px; resize:none;" class="text-center">No</th>
-                        <th data-field="namaBarang" style="min-width:100px;" class="text-center">Nama Barang <span class="sort-icon">↕</span></th>
-                        <th data-field="jumlahBarang" style="min-width:60px;" class="text-center">Jumlah <span class="sort-icon">↕</span></th>
-                        <th data-field="anggaranSatuan" style="min-width:100px;" class="text-center">Anggaran / satuan (Rp.) <span class="sort-icon">↕</span></th>
-                        <th data-field="tahunPerolehan" style="min-width:60px;" class="text-center">Tahun <span class="sort-icon">↕</span></th>
-                        <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
-                        <th data-field="baik" style="min-width:50px;" class="text-center">Baik <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakRingan" style="min-width:50px;" class="text-center">Rusak Ringan <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakSedang" style="min-width:50px;" class="text-center">Rusak Sedang <span class="sort-icon">↕</span></th>
-                        <th data-field="rusakBerat" style="min-width:50px;" class="text-center">Rusak Berat <span class="sort-icon">↕</span></th>
-                        <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
-                        <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
-                        <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
-                        <th style="width:70px; resize:none;" class="text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="inventoryBody"></tbody>
-            </table>
+        <!-- TAB PANE: AKTIF -->
+        <div class="tab-pane active" id="pane-aktif">
+            <div class="table-wrapper">
+                <table id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th data-field="no" style="cursor:default; width:36px; resize:none;" class="text-center">No</th>
+                            <th data-field="namaBarang" style="min-width:100px;" class="text-center">Nama Barang <span class="sort-icon">↕</span></th>
+                            <th data-field="jumlahBarang" style="min-width:60px;" class="text-center">Jumlah <span class="sort-icon">↕</span></th>
+                            <th data-field="anggaranSatuan" style="min-width:100px;" class="text-center">Anggaran / satuan (Rp.) <span class="sort-icon">↕</span></th>
+                            <th data-field="tahunPerolehan" style="min-width:60px;" class="text-center">Tahun <span class="sort-icon">↕</span></th>
+                            <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
+                            <th data-field="baik" style="min-width:50px;" class="text-center">Baik <span class="sort-icon">↕</span></th>
+                            <th data-field="rusakRingan" style="min-width:50px;" class="text-center">Rusak Ringan <span class="sort-icon">↕</span></th>
+                            <th data-field="rusakSedang" style="min-width:50px;" class="text-center">Rusak Sedang <span class="sort-icon">↕</span></th>
+                            <th data-field="rusakBerat" style="min-width:50px;" class="text-center">Rusak Berat <span class="sort-icon">↕</span></th>
+                            <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
+                            <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
+                            <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
+                            <th style="width:90px; resize:none;" class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyMessage" class="no-data">Belum ada data. Klik tombol ➕ di kolom Aksi untuk menambahkan.</div>
         </div>
-        <div id="emptyMessage" class="no-data">Belum ada data. Klik tombol ➕ di kolom Aksi untuk menambahkan.</div>
+
+        <!-- TAB PANE: NONAKTIF -->
+        <div class="tab-pane" id="pane-nonaktif">
+            <div class="table-wrapper">
+                <table id="nonaktifTable">
+                    <thead>
+                        <tr>
+                            <th data-field="no" style="cursor:default; width:36px; resize:none;" class="text-center">No</th>
+                            <th data-field="namaBarang" style="min-width:100px;" class="text-center">Nama Barang <span class="sort-icon">↕</span></th>
+                            <th data-field="jumlahBarang" style="min-width:60px;" class="text-center">Jumlah <span class="sort-icon">↕</span></th>
+                            <th data-field="anggaranSatuan" style="min-width:100px;" class="text-center">Anggaran / satuan (Rp.) <span class="sort-icon">↕</span></th>
+                            <th data-field="tahunPerolehan" style="min-width:60px;" class="text-center">Tahun <span class="sort-icon">↕</span></th>
+                            <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
+                            <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
+                            <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
+                            <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
+                            <th style="width:90px; resize:none;" class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nonaktifBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyNonaktif" class="no-data">Tidak ada data nonaktif.</div>
+        </div>
     </div>
 
     <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
+
+    <!-- MODAL SOFT DELETE (Hapus Buku) -->
+    <div class="modal-soft" id="modalSoft">
+        <div class="modal-content">
+            <h2>📤 Hapus Buku (Nonaktifkan)</h2>
+            <p style="color:#4a5a4a; margin-bottom:12px;">Data akan dipindahkan ke tab Data Nonaktif.</p>
+            <input type="hidden" id="softItemId" />
+            <label>Tanggal Nonaktif</label>
+            <input type="text" id="softTanggal" />
+            <label>Alasan Nonaktif</label>
+            <select id="softAlasan">
+                <option value="Rusak">Rusak</option>
+                <option value="Kadaluwarsa">Kadaluwarsa</option>
+                <option value="Hilang">Hilang</option>
+                <option value="Tidak Terpakai">Tidak Terpakai</option>
+                <option value="Diganti">Diganti</option>
+                <option value="Lainnya">Lainnya</option>
+            </select>
+            <div class="btn-group">
+                <button class="btn-cancel" id="softCancel">Batal</button>
+                <button class="btn-confirm" id="softConfirm">Konfirmasi Nonaktif</button>
+            </div>
+        </div>
+    </div>
 
     <!-- TOAST & LOADING -->
     <div class="toast-container" id="toastContainer"></div>
@@ -630,7 +825,8 @@
                     }
                 };
             }
-            document.querySelectorAll('.delete-row, .add-row-below').forEach(btn => {
+            // Update button visibility
+            document.querySelectorAll('.delete-row, .add-row-below, .restore-row, .permanent-delete, .soft-delete').forEach(btn => {
                 btn.style.display = isAdmin ? 'inline-block' : 'none';
             });
             document.getElementById('defBtn').style.display = isAdmin ? 'inline-block' : 'none';
@@ -647,6 +843,7 @@
         // ============================================================
         // STATE
         // ============================================================
+        let currentTab = 'aktif';
         let sortField = 'namaBarang';
         let sortAsc = true;
         let filterRuang = '';
@@ -655,7 +852,11 @@
         let modifiedIds = new Set();
         let isDirty = false;
 
-        // DEFINISI (akan diupdate oleh listener)
+        let nonaktifItems = [];
+        let nonaktifOriginalData = {};
+        let nonaktifModifiedIds = new Set();
+        let nonaktifIsDirty = false;
+
         let definitions = {
             ruangan: [],
             gedung: [],
@@ -669,6 +870,7 @@
         let definitionsReady = false;
 
         const tbody = document.getElementById('inventoryBody');
+        const nonaktifBody = document.getElementById('nonaktifBody');
         const searchInput = document.getElementById('searchInput');
         const filterRuangSelect = document.getElementById('filterRuang');
         const filterInfo = document.getElementById('filterInfo');
@@ -677,16 +879,43 @@
         const defBtn = document.getElementById('defBtn');
         const statusIndicator = document.getElementById('statusIndicator');
         const emptyMsg = document.getElementById('emptyMessage');
+        const emptyNonaktif = document.getElementById('emptyNonaktif');
 
         const inventoryRef = db.collection('inventory');
+        const nonaktifRef = db.collection('inventory_nonaktif');
         let unsubscribeInventory = null;
+        let unsubscribeNonaktif = null;
         let unsubscribeListeners = [];
 
+        // Modal soft delete
+        const modalSoft = document.getElementById('modalSoft');
+        const softItemId = document.getElementById('softItemId');
+        const softTanggal = document.getElementById('softTanggal');
+        const softAlasan = document.getElementById('softAlasan');
+        const softCancel = document.getElementById('softCancel');
+        const softConfirm = document.getElementById('softConfirm');
+        let flatpickrInstance = null;
+
         // ============================================================
-        // FUNGSI UNTUK MENSTART LISTENER DEFINISI (REALTIME)
+        // FUNGSI TAB
+        // ============================================================
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById('pane-' + tab).classList.add('active');
+            document.querySelectorAll('.tab-nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            if (tab === 'aktif') {
+                applyFiltersAndSort();
+            } else {
+                renderNonaktifItems();
+            }
+            updateAdminUI();
+        }
+
+        // ============================================================
+        // LISTENER DEFINISI (REALTIME)
         // ============================================================
         function startDefinitionListeners() {
-            // Listener untuk ruangan
             const unsubRuang = db.collection('ruangan').orderBy('nama').onSnapshot(snap => {
                 definitions.ruangan = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, gedung: d.data().gedung || '' }));
                 ruangGedungMap = {};
@@ -699,7 +928,6 @@
             }, err => showToast('Gagal memuat ruangan: ' + err.message, 'error'));
             unsubscribeListeners.push(unsubRuang);
 
-            // Listener untuk barang
             const unsubBarang = db.collection('barang').orderBy('nama').onSnapshot(snap => {
                 definitions.barang = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, jenis: d.data().jenis || '' }));
                 barangJenisMap = {};
@@ -710,17 +938,14 @@
             }, err => showToast('Gagal memuat barang: ' + err.message, 'error'));
             unsubscribeListeners.push(unsubBarang);
 
-            // Listener untuk sumber dana
             const unsubSumber = db.collection('sumber_dana').orderBy('nama').onSnapshot(snap => {
                 definitions.sumberDana = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 if (definitionsReady) refreshAfterDefinitionChange();
             }, err => showToast('Gagal memuat sumber dana: ' + err.message, 'error'));
             unsubscribeListeners.push(unsubSumber);
 
-            // Listener untuk gedung (opsional, untuk dropdown jika ada)
             const unsubGedung = db.collection('gedung').orderBy('nama').onSnapshot(snap => {
                 definitions.gedung = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-                // tidak perlu refresh, karena gedung hanya digunakan sebagai referensi di ruangan
             }, err => showToast('Gagal memuat gedung: ' + err.message, 'error'));
             unsubscribeListeners.push(unsubGedung);
 
@@ -728,14 +953,12 @@
         }
 
         function refreshAfterDefinitionChange() {
-            // Saat definisi berubah, kita perlu refresh tampilan agar nilai jenis/gedung terbaru
-            // Tapi kita tidak mau mereset modifiedIds atau isDirty
-            // Cukup render ulang dengan data terbaru, tanpa mengubah data inventory
-            applyFiltersAndSort();
+            if (currentTab === 'aktif') applyFiltersAndSort();
+            else renderNonaktifItems();
         }
 
         // ============================================================
-        // LOAD INVENTORY (REALTIME)
+        // LOAD INVENTORY (AKTIF)
         // ============================================================
         function loadInventory() {
             if (unsubscribeInventory) unsubscribeInventory();
@@ -750,15 +973,37 @@
                 modifiedIds.clear();
                 isDirty = false;
                 updateSaveUI();
-                applyFiltersAndSort();
+                if (currentTab === 'aktif') applyFiltersAndSort();
             }, err => {
                 console.error('Snapshot error:', err);
-                showToast('Gagal memuat data: ' + err.message, 'error');
+                showToast('Gagal memuat data aktif: ' + err.message, 'error');
             });
         }
 
         // ============================================================
-        // FILTER & SORT
+        // LOAD NONAKTIF INVENTORY
+        // ============================================================
+        function loadNonaktif() {
+            if (unsubscribeNonaktif) unsubscribeNonaktif();
+            unsubscribeNonaktif = nonaktifRef.orderBy('nonaktifAt', 'desc').onSnapshot(snapshot => {
+                nonaktifItems = [];
+                nonaktifOriginalData = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    nonaktifItems.push({ id: doc.id, data: data });
+                    nonaktifOriginalData[doc.id] = JSON.parse(JSON.stringify(data));
+                });
+                nonaktifModifiedIds.clear();
+                nonaktifIsDirty = false;
+                if (currentTab === 'nonaktif') renderNonaktifItems();
+            }, err => {
+                console.error('Snapshot error nonaktif:', err);
+                showToast('Gagal memuat data nonaktif: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // FILTER & SORT (AKTIF)
         // ============================================================
         function applyFiltersAndSort() {
             const search = searchInput.value.toLowerCase().trim();
@@ -804,7 +1049,7 @@
         }
 
         // ============================================================
-        // RENDER
+        // RENDER AKTIF
         // ============================================================
         function renderItems(items) {
             tbody.innerHTML = '';
@@ -870,7 +1115,6 @@
                             </select>
                         </td>`;
                     } else if (key === 'lokasiGedung' || key === 'jenis') {
-                        // Kolom readonly, tampilkan nilai terbaru dari map
                         let displayVal = '';
                         if (key === 'lokasiGedung') {
                             displayVal = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
@@ -890,7 +1134,8 @@
                     <td class="text-center">
                         <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
                             <button class="add-row-below" data-id="${item.id}" title="Tambah baris di bawah">➕</button>
-                            <button class="delete-row" data-id="${item.id}" title="Hapus">🗑️</button>
+                            <button class="soft-delete" data-id="${item.id}" title="Nonaktifkan (Hapus Buku)">📤</button>
+                            <button class="delete-row" data-id="${item.id}" title="Hapus Permanen">🗑️</button>
                         </div>
                     </td>
                 `;
@@ -899,7 +1144,7 @@
                 tbody.appendChild(tr);
             });
 
-            // Event listener untuk SELECT
+            // Event listener
             tbody.querySelectorAll('td select').forEach(sel => {
                 sel.addEventListener('change', onSelectChange);
                 if (sel.dataset.key === 'ruang') {
@@ -910,14 +1155,12 @@
                 }
             });
 
-            // Event listener untuk contenteditable
             tbody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
                 td.addEventListener('input', onCellInput);
                 td.addEventListener('blur', onCellBlur);
                 if (!isAdmin) td.contentEditable = 'false';
             });
 
-            // Event listener tombol tambah baris
             tbody.querySelectorAll('.add-row-below').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     if (!isAdmin) return;
@@ -926,35 +1169,387 @@
                 });
             });
 
-            // Event listener tombol hapus
+            tbody.querySelectorAll('.soft-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    openSoftModal(id);
+                });
+            });
+
             tbody.querySelectorAll('.delete-row').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     if (!isAdmin) return;
                     const id = e.target.dataset.id;
-                    if (confirm('Hapus baris ini?')) deleteItem(id);
+                    if (confirm('Hapus permanen data ini? Tindakan tidak bisa dibatalkan.')) {
+                        permanentDeleteActive(id);
+                    }
                 });
             });
 
-            // Setelah render, sinkronkan select dengan data (jika ada)
+            // Sinkronkan select
             tbody.querySelectorAll('tr').forEach(tr => {
                 const id = tr.dataset.id;
                 const item = allItems.find(it => it.id === id);
                 if (!item) return;
-
                 const ruangSelect = tr.querySelector('select[data-key="ruang"]');
-                if (ruangSelect && item.data.ruang) {
-                    ruangSelect.value = item.data.ruang;
-                }
+                if (ruangSelect && item.data.ruang) ruangSelect.value = item.data.ruang;
                 const barangSelect = tr.querySelector('select[data-key="namaBarang"]');
-                if (barangSelect && item.data.namaBarang) {
-                    barangSelect.value = item.data.namaBarang;
-                }
-                // Untuk readonly, sudah diisi dari map saat render
+                if (barangSelect && item.data.namaBarang) barangSelect.value = item.data.namaBarang;
             });
         }
 
         // ============================================================
-        // AUTO-FILL FUNCTIONS
+        // RENDER NONAKTIF
+        // ============================================================
+        function renderNonaktifItems() {
+            nonaktifBody.innerHTML = '';
+            if (nonaktifItems.length === 0) {
+                emptyNonaktif.style.display = 'block';
+                return;
+            }
+            emptyNonaktif.style.display = 'none';
+
+            const selectFields = {
+                namaBarang: { list: definitions.barang, placeholder: 'Pilih Barang' },
+                asalPerolehan: { list: definitions.sumberDana, placeholder: 'Pilih Sumber Dana' },
+                ruang: { list: definitions.ruangan, placeholder: 'Pilih Ruang' }
+            };
+
+            const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
+                'asalPerolehan', 'ruang', 'lokasiGedung', 'jenis'
+            ];
+            const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan'];
+
+            nonaktifItems.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.dataset.id = item.id;
+                let html = '';
+                fieldKeys.forEach((key) => {
+                    let value = item.data[key] ?? '';
+                    if (key === 'no') value = idx + 1;
+                    if (['jumlahBarang', 'tahunPerolehan'].includes(key)) {
+                        value = Number(value) || 0;
+                    }
+                    const isModified = nonaktifModifiedIds.has(item.id);
+                    const extraClass = isModified ? ' modified' : '';
+                    let classAttr = '';
+
+                    if (key === 'anggaranSatuan') {
+                        classAttr = ' class="text-right' + extraClass + '"';
+                        value = formatRupiah(value);
+                    } else if (centerKeys.includes(key) || key === 'no') {
+                        classAttr = ' class="text-center' + extraClass + '"';
+                    } else {
+                        classAttr = ' class="' + extraClass + '"';
+                    }
+
+                    if (key === 'no') {
+                        html += `<td${classAttr}>${value}</td>`;
+                    } else if (selectFields[key]) {
+                        const selectData = selectFields[key];
+                        const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
+                        const disabled = isAdmin ? '' : 'disabled';
+                        html += `<td class="text-center${extraClass}">
+                            <select data-key="${key}" data-id="${item.id}" ${disabled}>
+                                ${optionsHtml}
+                            </select>
+                        </td>`;
+                    } else if (key === 'lokasiGedung' || key === 'jenis') {
+                        let displayVal = '';
+                        if (key === 'lokasiGedung') {
+                            displayVal = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
+                        } else if (key === 'jenis') {
+                            displayVal = barangJenisMap[item.data.namaBarang] || item.data.jenis || '';
+                        }
+                        html += `<td class="text-center${extraClass}">
+                            <span class="readonly-value" data-key="${key}" data-id="${item.id}">${displayVal}</span>
+                        </td>`;
+                    } else {
+                        const editable = isAdmin ? 'contenteditable="true"' : '';
+                        html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
+                    }
+                });
+
+                const actionCol = `
+                    <td class="text-center">
+                        <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
+                            <button class="restore-row" data-id="${item.id}" title="Kembalikan ke aktif">↩️</button>
+                            <button class="permanent-delete" data-id="${item.id}" title="Hapus permanen">❌</button>
+                        </div>
+                    </td>
+                `;
+                html += actionCol;
+                tr.innerHTML = html;
+                nonaktifBody.appendChild(tr);
+            });
+
+            // Event listener select
+            nonaktifBody.querySelectorAll('td select').forEach(sel => {
+                sel.addEventListener('change', onNonaktifSelectChange);
+                if (sel.dataset.key === 'ruang') {
+                    sel.addEventListener('change', nonaktifAutoFillGedung);
+                }
+                if (sel.dataset.key === 'namaBarang') {
+                    sel.addEventListener('change', nonaktifAutoFillJenis);
+                }
+            });
+
+            nonaktifBody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
+                td.addEventListener('input', onNonaktifCellInput);
+                td.addEventListener('blur', onNonaktifCellBlur);
+                if (!isAdmin) td.contentEditable = 'false';
+            });
+
+            nonaktifBody.querySelectorAll('.restore-row').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    restoreItem(id);
+                });
+            });
+
+            nonaktifBody.querySelectorAll('.permanent-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    if (confirm('Hapus permanen data ini? Tindakan tidak bisa dibatalkan.')) {
+                        permanentDeleteNonaktif(id);
+                    }
+                });
+            });
+
+            // Sinkronkan select
+            nonaktifBody.querySelectorAll('tr').forEach(tr => {
+                const id = tr.dataset.id;
+                const item = nonaktifItems.find(it => it.id === id);
+                if (!item) return;
+                const ruangSelect = tr.querySelector('select[data-key="ruang"]');
+                if (ruangSelect && item.data.ruang) ruangSelect.value = item.data.ruang;
+                const barangSelect = tr.querySelector('select[data-key="namaBarang"]');
+                if (barangSelect && item.data.namaBarang) barangSelect.value = item.data.namaBarang;
+            });
+        }
+
+        // ============================================================
+        // EVENT HANDLER NONAKTIF
+        // ============================================================
+        function onNonaktifSelectChange(e) {
+            const sel = e.target;
+            const id = sel.dataset.id;
+            const key = sel.dataset.key;
+            const newValue = sel.value;
+            const item = nonaktifItems.find(it => it.id === id);
+            if (!item) return;
+            item.data[key] = newValue;
+            nonaktifModifiedIds.add(id);
+            sel.classList.add('modified');
+            nonaktifIsDirty = true;
+            updateSaveUI();
+            const orig = nonaktifOriginalData[id];
+            if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                nonaktifModifiedIds.delete(id);
+                sel.classList.remove('modified');
+                if (nonaktifModifiedIds.size === 0) nonaktifIsDirty = false;
+                updateSaveUI();
+            }
+        }
+
+        function nonaktifAutoFillGedung(e) {
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const id = tr.dataset.id;
+            const ruangVal = sel.value;
+            const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
+            if (!gedungSpan) return;
+            const gedung = ruangGedungMap[ruangVal] || '';
+            gedungSpan.textContent = gedung;
+            const item = nonaktifItems.find(it => it.id === id);
+            if (item) {
+                item.data.lokasiGedung = gedung;
+                nonaktifModifiedIds.add(id);
+                nonaktifIsDirty = true;
+                updateSaveUI();
+            }
+        }
+
+        function nonaktifAutoFillJenis(e) {
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const id = tr.dataset.id;
+            const barangVal = sel.value;
+            const jenisSpan = tr.querySelector('span[data-key="jenis"]');
+            if (!jenisSpan) return;
+            const jenis = barangJenisMap[barangVal] || '';
+            jenisSpan.textContent = jenis;
+            const item = nonaktifItems.find(it => it.id === id);
+            if (item) {
+                item.data.jenis = jenis;
+                nonaktifModifiedIds.add(id);
+                nonaktifIsDirty = true;
+                updateSaveUI();
+            }
+        }
+
+        function onNonaktifCellInput(e) {
+            const td = e.target;
+            const id = td.dataset.id;
+            const key = td.dataset.key;
+            let rawText = td.textContent.trim();
+            const item = nonaktifItems.find(it => it.id === id);
+            if (!item) return;
+            if (key === 'anggaranSatuan') {
+                item.data[key] = parseAngka(rawText);
+            } else {
+                let parsedValue = rawText;
+                if (['jumlahBarang', 'tahunPerolehan'].includes(key)) {
+                    parsedValue = parseFloat(rawText) || 0;
+                }
+                item.data[key] = parsedValue;
+            }
+            nonaktifModifiedIds.add(id);
+            td.classList.add('modified');
+            nonaktifIsDirty = true;
+            updateSaveUI();
+            const orig = nonaktifOriginalData[id];
+            if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                nonaktifModifiedIds.delete(id);
+                td.classList.remove('modified');
+                if (nonaktifModifiedIds.size === 0) nonaktifIsDirty = false;
+                updateSaveUI();
+            }
+        }
+
+        function onNonaktifCellBlur(e) {
+            const td = e.target;
+            const key = td.dataset.key;
+            if (key === 'anggaranSatuan') {
+                const id = td.dataset.id;
+                const item = nonaktifItems.find(it => it.id === id);
+                if (item) {
+                    td.textContent = formatRupiah(item.data[key] || 0);
+                }
+            }
+        }
+
+        // ============================================================
+        // MODAL SOFT DELETE
+        // ============================================================
+        function openSoftModal(id) {
+            softItemId.value = id;
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            softTanggal.value = `${yyyy}-${mm}-${dd}`;
+            softAlasan.value = 'Rusak';
+            modalSoft.classList.add('show');
+            if (!flatpickrInstance) {
+                flatpickrInstance = flatpickr(softTanggal, {
+                    dateFormat: 'Y-m-d',
+                    locale: 'id',
+                    defaultDate: today
+                });
+            } else {
+                flatpickrInstance.setDate(today);
+            }
+        }
+
+        function closeSoftModal() {
+            modalSoft.classList.remove('show');
+        }
+
+        softCancel.addEventListener('click', closeSoftModal);
+        modalSoft.addEventListener('click', (e) => {
+            if (e.target === modalSoft) closeSoftModal();
+        });
+
+        softConfirm.addEventListener('click', async () => {
+            const id = softItemId.value;
+            if (!id) return;
+            const tanggal = softTanggal.value;
+            const alasan = softAlasan.value;
+            if (!tanggal) {
+                showToast('Tanggal harus diisi', 'error');
+                return;
+            }
+            try {
+                showLoading(true);
+                const docSnap = await inventoryRef.doc(id).get();
+                if (!docSnap.exists) {
+                    showToast('Data tidak ditemukan', 'error');
+                    return;
+                }
+                const data = docSnap.data();
+                const nonaktifData = {
+                    ...data,
+                    nonaktifAt: new Date(tanggal + 'T00:00:00'),
+                    alasanNonaktif: alasan,
+                    originalId: id
+                };
+                await nonaktifRef.add(nonaktifData);
+                await inventoryRef.doc(id).delete();
+                showToast('Data dinonaktifkan', 'success');
+                closeSoftModal();
+            } catch (err) {
+                showToast('Gagal: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // ============================================================
+        // RESTORE & PERMANENT DELETE (NONAKTIF)
+        // ============================================================
+        async function restoreItem(id) {
+            if (!confirm('Kembalikan data ini ke data aktif?')) return;
+            try {
+                showLoading(true);
+                const docSnap = await nonaktifRef.doc(id).get();
+                if (!docSnap.exists) {
+                    showToast('Data tidak ditemukan', 'error');
+                    return;
+                }
+                const data = docSnap.data();
+                const { nonaktifAt, alasanNonaktif, originalId, ...restoreData } = data;
+                await inventoryRef.add(restoreData);
+                await nonaktifRef.doc(id).delete();
+                showToast('Data berhasil dikembalikan', 'success');
+            } catch (err) {
+                showToast('Gagal restore: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function permanentDeleteNonaktif(id) {
+            if (!confirm('Hapus permanen data ini? Tindakan tidak bisa dibatalkan.')) return;
+            try {
+                showLoading(true);
+                await nonaktifRef.doc(id).delete();
+                showToast('Data dihapus permanen', 'success');
+            } catch (err) {
+                showToast('Gagal hapus permanen: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function permanentDeleteActive(id) {
+            if (!confirm('Hapus permanen data ini? Tindakan tidak bisa dibatalkan.')) return;
+            try {
+                showLoading(true);
+                await inventoryRef.doc(id).delete();
+                showToast('Data dihapus permanen', 'success');
+            } catch (err) {
+                showToast('Gagal hapus permanen: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ============================================================
+        // AUTO-FILL FUNCTIONS (AKTIF)
         // ============================================================
         function autoFillGedung(e) {
             const sel = e.target;
@@ -963,10 +1558,8 @@
             const ruangVal = sel.value;
             const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
             if (!gedungSpan) return;
-
             const gedung = ruangGedungMap[ruangVal] || '';
             gedungSpan.textContent = gedung;
-
             const item = allItems.find(it => it.id === id);
             if (item) {
                 item.data.lokasiGedung = gedung;
@@ -983,10 +1576,8 @@
             const barangVal = sel.value;
             const jenisSpan = tr.querySelector('span[data-key="jenis"]');
             if (!jenisSpan) return;
-
             const jenis = barangJenisMap[barangVal] || '';
             jenisSpan.textContent = jenis;
-
             const item = allItems.find(it => it.id === id);
             if (item) {
                 item.data.jenis = jenis;
@@ -997,49 +1588,41 @@
         }
 
         // ============================================================
-        // EVENT HANDLER SELECT (umum)
+        // EVENT HANDLER SELECT (AKTIF)
         // ============================================================
         function onSelectChange(e) {
             const sel = e.target;
             const id = sel.dataset.id;
             const key = sel.dataset.key;
             const newValue = sel.value;
-
             const item = allItems.find(it => it.id === id);
             if (!item) return;
-
             item.data[key] = newValue;
             modifiedIds.add(id);
             sel.classList.add('modified');
             isDirty = true;
             updateSaveUI();
-
             const orig = originalData[id];
             if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
                 modifiedIds.delete(id);
                 sel.classList.remove('modified');
-                if (modifiedIds.size === 0) {
-                    isDirty = false;
-                    updateSaveUI();
-                }
+                if (modifiedIds.size === 0) isDirty = false;
+                updateSaveUI();
             }
         }
 
         // ============================================================
-        // EVENT HANDLER CONTENTEDITABLE
+        // EVENT HANDLER CONTENTEDITABLE (AKTIF)
         // ============================================================
         function onCellInput(e) {
             const td = e.target;
             const id = td.dataset.id;
             const key = td.dataset.key;
             let rawText = td.textContent.trim();
-
             const item = allItems.find(it => it.id === id);
             if (!item) return;
-
             if (key === 'anggaranSatuan') {
-                const numericValue = parseAngka(rawText);
-                item.data[key] = numericValue;
+                item.data[key] = parseAngka(rawText);
             } else {
                 let parsedValue = rawText;
                 if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat'].includes(key)) {
@@ -1047,20 +1630,16 @@
                 }
                 item.data[key] = parsedValue;
             }
-
             modifiedIds.add(id);
             td.classList.add('modified');
             isDirty = true;
             updateSaveUI();
-
             const orig = originalData[id];
             if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
                 modifiedIds.delete(id);
                 td.classList.remove('modified');
-                if (modifiedIds.size === 0) {
-                    isDirty = false;
-                    updateSaveUI();
-                }
+                if (modifiedIds.size === 0) isDirty = false;
+                updateSaveUI();
             }
         }
 
@@ -1071,14 +1650,13 @@
                 const id = td.dataset.id;
                 const item = allItems.find(it => it.id === id);
                 if (item) {
-                    const val = item.data[key] || 0;
-                    td.textContent = formatRupiah(val);
+                    td.textContent = formatRupiah(item.data[key] || 0);
                 }
             }
         }
 
         // ============================================================
-        // ADD ROW BELOW
+        // ADD ROW
         // ============================================================
         function addRowBelow(id) {
             if (!isAdmin) {
@@ -1113,9 +1691,6 @@
             });
         }
 
-        // ============================================================
-        // ADD FIRST ROW
-        // ============================================================
         function addFirstRow() {
             if (!isAdmin) {
                 showToast('Anda harus login sebagai admin', 'error');
@@ -1144,55 +1719,73 @@
         }
 
         // ============================================================
-        // DELETE ITEM
-        // ============================================================
-        function deleteItem(id) {
-            if (!confirm('Hapus data ini secara permanen?')) return;
-            showLoading(true);
-            inventoryRef.doc(id).delete().then(() => {
-                showToast('Data dihapus', 'success');
-            }).catch(err => {
-                showToast('Gagal hapus: ' + err.message, 'error');
-            }).finally(() => showLoading(false));
-        }
-
-        // ============================================================
-        // SAVE CHANGES
+        // SAVE CHANGES (untuk kedua tab)
         // ============================================================
         async function saveChanges() {
             if (!isAdmin) {
                 showToast('Anda harus login sebagai admin untuk menyimpan', 'error');
                 return;
             }
-            if (modifiedIds.size === 0) {
-                showToast('Tidak ada perubahan untuk disimpan', 'info');
-                return;
-            }
-
-            showLoading(true);
-            try {
-                const batch = db.batch();
-                let count = 0;
-                for (const id of modifiedIds) {
-                    const item = allItems.find(it => it.id === id);
-                    if (!item) continue;
-                    const ref = inventoryRef.doc(id);
-                    batch.update(ref, item.data);
-                    count++;
+            if (currentTab === 'aktif') {
+                if (modifiedIds.size === 0 && !isDirty) {
+                    showToast('Tidak ada perubahan untuk disimpan', 'info');
+                    return;
                 }
-                await batch.commit();
-                showToast(`${count} perubahan berhasil disimpan`, 'success');
-                modifiedIds.clear();
-                isDirty = false;
-                allItems.forEach(item => {
-                    originalData[item.id] = JSON.parse(JSON.stringify(item.data));
-                });
-                updateSaveUI();
-                document.querySelectorAll('td select.modified, td.modified').forEach(el => el.classList.remove('modified'));
-            } catch (err) {
-                showToast('Gagal menyimpan: ' + err.message, 'error');
-            } finally {
-                showLoading(false);
+                showLoading(true);
+                try {
+                    const batch = db.batch();
+                    let count = 0;
+                    for (const id of modifiedIds) {
+                        const item = allItems.find(it => it.id === id);
+                        if (!item) continue;
+                        const ref = inventoryRef.doc(id);
+                        batch.update(ref, item.data);
+                        count++;
+                    }
+                    await batch.commit();
+                    showToast(`${count} perubahan berhasil disimpan`, 'success');
+                    modifiedIds.clear();
+                    isDirty = false;
+                    allItems.forEach(item => {
+                        originalData[item.id] = JSON.parse(JSON.stringify(item.data));
+                    });
+                    updateSaveUI();
+                    document.querySelectorAll('#inventoryBody td select.modified, #inventoryBody td.modified').forEach(el => el.classList.remove('modified'));
+                } catch (err) {
+                    showToast('Gagal menyimpan: ' + err.message, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            } else {
+                if (nonaktifModifiedIds.size === 0 && !nonaktifIsDirty) {
+                    showToast('Tidak ada perubahan untuk disimpan', 'info');
+                    return;
+                }
+                showLoading(true);
+                try {
+                    const batch = db.batch();
+                    let count = 0;
+                    for (const id of nonaktifModifiedIds) {
+                        const item = nonaktifItems.find(it => it.id === id);
+                        if (!item) continue;
+                        const ref = nonaktifRef.doc(id);
+                        batch.update(ref, item.data);
+                        count++;
+                    }
+                    await batch.commit();
+                    showToast(`${count} perubahan berhasil disimpan`, 'success');
+                    nonaktifModifiedIds.clear();
+                    nonaktifIsDirty = false;
+                    nonaktifItems.forEach(item => {
+                        nonaktifOriginalData[item.id] = JSON.parse(JSON.stringify(item.data));
+                    });
+                    updateSaveUI();
+                    document.querySelectorAll('#nonaktifBody td select.modified, #nonaktifBody td.modified').forEach(el => el.classList.remove('modified'));
+                } catch (err) {
+                    showToast('Gagal menyimpan: ' + err.message, 'error');
+                } finally {
+                    showLoading(false);
+                }
             }
         }
 
@@ -1200,10 +1793,13 @@
         // UPDATE SAVE UI
         // ============================================================
         function updateSaveUI() {
-            if (isDirty && modifiedIds.size > 0) {
+            const hasDirty = (currentTab === 'aktif' && isDirty && modifiedIds.size > 0) ||
+                (currentTab === 'nonaktif' && nonaktifIsDirty && nonaktifModifiedIds.size > 0);
+            const count = currentTab === 'aktif' ? modifiedIds.size : nonaktifModifiedIds.size;
+            if (hasDirty) {
                 saveBtn.classList.add('dirty');
-                saveBtn.textContent = `💾 Simpan (${modifiedIds.size})`;
-                statusIndicator.textContent = `⚠️ ${modifiedIds.size} perubahan belum disimpan`;
+                saveBtn.textContent = `💾 Simpan (${count})`;
+                statusIndicator.textContent = `⚠️ ${count} perubahan belum disimpan`;
                 statusIndicator.className = 'status dirty';
             } else {
                 saveBtn.classList.remove('dirty');
@@ -1217,7 +1813,7 @@
         // SORT ICONS
         // ============================================================
         function updateSortIcons() {
-            document.querySelectorAll('th[data-field]').forEach(th => {
+            document.querySelectorAll('#inventoryTable th[data-field]').forEach(th => {
                 const field = th.dataset.field;
                 const icon = th.querySelector('.sort-icon');
                 if (!icon) return;
@@ -1231,6 +1827,9 @@
             });
         }
 
+        // ============================================================
+        // UTILITY
+        // ============================================================
         function populateFilterRuang() {
             const sorted = ruangNames.slice().sort((a, b) => a.localeCompare(b));
             filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
@@ -1267,7 +1866,13 @@
         // ============================================================
         // EVENT LISTENERS
         // ============================================================
-        document.querySelectorAll('th[data-field]').forEach(th => {
+        document.querySelectorAll('.tab-nav button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+            });
+        });
+
+        document.querySelectorAll('#inventoryTable th[data-field]').forEach(th => {
             th.addEventListener('click', () => {
                 const field = th.dataset.field;
                 if (field === 'no') return;
@@ -1291,7 +1896,10 @@
             applyFiltersAndSort();
         });
 
-        searchInput.addEventListener('input', applyFiltersAndSort);
+        searchInput.addEventListener('input', () => {
+            if (currentTab === 'aktif') applyFiltersAndSort();
+            else renderNonaktifItems();
+        });
 
         saveBtn.addEventListener('click', saveChanges);
 
@@ -1304,7 +1912,9 @@
         });
 
         window.addEventListener('beforeunload', (e) => {
-            if (isDirty && modifiedIds.size > 0) {
+            const hasDirty = (currentTab === 'aktif' && isDirty && modifiedIds.size > 0) ||
+                (currentTab === 'nonaktif' && nonaktifIsDirty && nonaktifModifiedIds.size > 0);
+            if (hasDirty) {
                 e.preventDefault();
                 e.returnValue = 'Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
                 return e.returnValue;
@@ -1317,25 +1927,19 @@
         isAdmin = getAdminSession();
         updateAdminUI();
 
-        // 1. Load inventory terlebih dahulu
         loadInventory();
-
-        // 2. Setelah inventory siap, start listener definisi
-        // (pastikan applyFiltersAndSort() akan dipanggil saat definisi berubah)
+        loadNonaktif();
         startDefinitionListeners();
 
-        // 3. Setelah semua siap, kita tandai definitionsReady = true
-        // sudah di dalam startDefinitionListeners
+        switchTab('aktif');
 
-        // Tapi karena ada kemungkinan inventory snapshot pertama kali belum selesai,
-        // kita tunggu sebentar lalu panggil applyFiltersAndSort() jika perlu
         setTimeout(() => {
             if (allItems.length > 0 && definitionsReady) {
                 applyFiltersAndSort();
             }
         }, 1000);
 
-        console.log('Sarpras page loaded dengan realtime definisi.');
+        console.log('Sarpras page loaded dengan fitur nonaktif.');
     </script>
 </body>
 </html>
