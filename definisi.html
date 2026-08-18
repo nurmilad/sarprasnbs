@@ -444,7 +444,7 @@
             <div class="no-data" id="empty-jenis">Belum ada data jenis.</div>
         </div>
 
-        <!-- Tab Barang (dengan kolom statistik dari inventory) -->
+        <!-- Tab Barang (dengan kolom statistik dari inventory dan nonaktif) -->
         <div id="tab-barang" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -465,6 +465,7 @@
                         <th>Rusak Sedang</th>
                         <th>Rusak Berat</th>
                         <th>Baik</th>
+                        <th>Non Aktif</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -606,11 +607,14 @@
             });
         });
 
-        // ========== INVENTORY AGREGAT ==========
-        let inventoryAggregates = {};
+        // ========== INVENTORY AGREGAT (AKTIF & NONAKTIF) ==========
+        let inventoryAggregates = {};      // untuk data aktif (inventory)
+        let nonaktifAggregates = {};       // untuk data nonaktif (inventory_nonaktif)
         let invUnsubscribe = null;
+        let nonaktifUnsubscribe = null;
 
         function loadInventoryAggregates() {
+            // Listener untuk inventory aktif
             if (invUnsubscribe) invUnsubscribe();
             invUnsubscribe = db.collection('inventory').onSnapshot(snapshot => {
                 inventoryAggregates = {};
@@ -626,13 +630,28 @@
                     inventoryAggregates[nama].rusakBerat += Number(data.rusakBerat) || 0;
                     inventoryAggregates[nama].baik += Number(data.baik) || 0;
                 });
-                // Jika tab barang sedang aktif, refresh tampilan
-                if (currentTab === 'barang') {
-                    const searchInput = document.querySelector('#tab-barang .search-def');
-                    const filter = searchInput ? searchInput.value : '';
-                    loadCollection('barang', filter);
-                }
-            }, err => showToast('Gagal memuat agregasi inventory', 'error'));
+                if (currentTab === 'barang') refreshBarangTab();
+            }, err => showToast('Gagal memuat agregasi inventory: ' + err.message, 'error'));
+
+            // Listener untuk inventory nonaktif
+            if (nonaktifUnsubscribe) nonaktifUnsubscribe();
+            nonaktifUnsubscribe = db.collection('inventory_nonaktif').onSnapshot(snapshot => {
+                nonaktifAggregates = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const nama = data.namaBarang || '';
+                    if (!nama) return;
+                    if (!nonaktifAggregates[nama]) nonaktifAggregates[nama] = 0;
+                    nonaktifAggregates[nama] += Number(data.jumlahBarang) || 0;
+                });
+                if (currentTab === 'barang') refreshBarangTab();
+            }, err => showToast('Gagal memuat agregasi nonaktif: ' + err.message, 'error'));
+        }
+
+        function refreshBarangTab() {
+            const searchInput = document.querySelector('#tab-barang .search-def');
+            const filter = searchInput ? searchInput.value : '';
+            loadCollection('barang', filter);
         }
 
         // ========== MODAL ==========
@@ -893,7 +912,6 @@
                 let rowHtml = `<td>${idx + 1}</td>`;
                 rowHtml += `<td>${item.nama || ''}</td>`;
 
-                // Kolom tambahan untuk ruangan
                 if (col === 'ruangan') {
                     rowHtml += `<td>${item.panjang || 0}</td>`;
                     rowHtml += `<td>${item.lebar || 0}</td>`;
@@ -901,7 +919,6 @@
                     rowHtml += `<td>${item.gedung || ''}</td>`;
                 }
 
-                // Kolom tambahan untuk barang: statistik dari inventory
                 if (col === 'barang') {
                     rowHtml += `<td>${item.jenis || ''}</td>`;
                     const agg = inventoryAggregates[item.nama] || { rusakRingan: 0, rusakSedang: 0, rusakBerat: 0, baik: 0 };
@@ -909,6 +926,9 @@
                     rowHtml += `<td>${agg.rusakSedang}</td>`;
                     rowHtml += `<td>${agg.rusakBerat}</td>`;
                     rowHtml += `<td>${agg.baik}</td>`;
+                    // Kolom Non Aktif
+                    const nonaktif = nonaktifAggregates[item.nama] || 0;
+                    rowHtml += `<td>${nonaktif}</td>`;
                 }
 
                 rowHtml += `<td>
@@ -970,9 +990,9 @@
 
         // ========== INIT ==========
         loadCollection('gedung');
-        loadInventoryAggregates(); // mulai mendengarkan inventory
+        loadInventoryAggregates(); // mulai mendengarkan inventory aktif dan nonaktif
 
-        console.log('Definisi page loaded. Fitur agregasi inventory aktif.');
+        console.log('Definisi page loaded. Fitur agregasi inventory + nonaktif aktif.');
     </script>
 </body>
 </html>
