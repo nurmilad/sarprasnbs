@@ -515,6 +515,7 @@
                         <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
                         <th data-field="baik" style="min-width:50px;" class="text-center">Baik <span class="sort-icon">↕</span></th>
                         <th data-field="rusakRingan" style="min-width:50px;" class="text-center">Rusak Ringan <span class="sort-icon">↕</span></th>
+                        <th data-field="rusakSedang" style="min-width:50px;" class="text-center">Rusak Sedang <span class="sort-icon">↕</span></th>
                         <th data-field="rusakBerat" style="min-width:50px;" class="text-center">Rusak Berat <span class="sort-icon">↕</span></th>
                         <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
                         <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
@@ -784,7 +785,7 @@
                 filtered.sort((a, b) => {
                     let valA = a.data[sortField] ?? '';
                     let valB = b.data[sortField] ?? '';
-                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat', 'anggaranSatuan'].includes(sortField)) {
+                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat', 'anggaranSatuan'].includes(sortField)) {
                         valA = Number(valA) || 0;
                         valB = Number(valB) || 0;
                         return sortAsc ? valA - valB : valB - valA;
@@ -831,16 +832,16 @@
                 };
 
                 const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
-                    'asalPerolehan', 'baik', 'rusakRingan', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
+                    'asalPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
                 ];
 
-                const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'];
+                const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat'];
 
                 let html = '';
                 fieldKeys.forEach((key) => {
                     let value = item.data[key] ?? '';
                     if (key === 'no') value = idx + 1;
-                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
+                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat'].includes(key)) {
                         value = Number(value) || 0;
                     }
 
@@ -1041,7 +1042,7 @@
                 item.data[key] = numericValue;
             } else {
                 let parsedValue = rawText;
-                if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakBerat'].includes(key)) {
+                if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat'].includes(key)) {
                     parsedValue = parseFloat(rawText) || 0;
                 }
                 item.data[key] = parsedValue;
@@ -1097,6 +1098,7 @@
                 asalPerolehan: sourceData.asalPerolehan || '',
                 baik: sourceData.baik || 0,
                 rusakRingan: sourceData.rusakRingan || 0,
+                rusakSedang: sourceData.rusakSedang || 0,
                 rusakBerat: sourceData.rusakBerat || 0,
                 ruang: sourceData.ruang || '',
                 lokasiGedung: sourceData.lokasiGedung || '',
@@ -1126,6 +1128,7 @@
                 asalPerolehan: '',
                 baik: 0,
                 rusakRingan: 0,
+                rusakSedang: 0,
                 rusakBerat: 0,
                 ruang: '',
                 lokasiGedung: '',
