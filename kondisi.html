@@ -145,11 +145,6 @@
       min-width: 40px;
     }
 
-    /* Warna default untuk bar (akan di-override oleh JS) */
-    .bar-fill.hijau { background: #27ae60; }
-    .bar-fill.kuning { background: #f1c40f; }
-    .bar-fill.merah { background: #e74c3c; }
-
     /* ===== TOOLBAR ===== */
     .toolbar {
       display: flex;
@@ -264,43 +259,16 @@
       background: #f6faf6;
     }
 
-    /* Badge status */
-    .badge {
+    /* Badge persentase */
+    .badge-persen {
       display: inline-block;
       padding: 2px 12px;
       border-radius: 30px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       text-align: center;
-      min-width: 70px;
-    }
-    .badge.baik {
-      background: #d4edda;
-      color: #155724;
-    }
-    .badge.rusak-ringan {
-      background: #fff3cd;
-      color: #856404;
-    }
-    .badge.rusak-sedang {
-      background: #ffeaa7;
-      color: #856404;
-    }
-    .badge.rusak-berat {
-      background: #f8d7da;
-      color: #721c24;
-    }
-    .badge.aman {
-      background: #d4edda;
-      color: #155724;
-    }
-    .badge.kurang-aman {
-      background: #fff3cd;
-      color: #856404;
-    }
-    .badge.tidak-aman {
-      background: #f8d7da;
-      color: #721c24;
+      min-width: 60px;
+      color: #fff;
     }
 
     /* Detail kondisi dalam cell */
@@ -738,7 +706,7 @@
           <tr>
             <th style="width:40px;">No</th>
             <th>Nama Ruangan</th>
-            <th style="min-width:140px;">Kondisi Fisik</th>
+            <th style="min-width:120px;">Kondisi Fisik (%)</th>
             <th style="min-width:130px;">Detail Kondisi</th>
             <th style="min-width:120px;">Keamanan Listrik</th>
             <th style="min-width:100px;">Rencana Perbaikan</th>
@@ -880,25 +848,40 @@
       return map[status] || '';
     }
 
-    // ===== WARNA GRADASI =====
+    // ===== WARNA GRADASI untuk persentase =====
     function getColor(percent) {
-      // percent 0-100, return warna dari hijau (0%) -> kuning (50%) -> merah (100%)
       const p = Math.min(100, Math.max(0, percent));
       let r, g, b;
       if (p <= 50) {
-        // hijau -> kuning: (0,255,0) ke (255,255,0)
         const ratio = p / 50;
         r = Math.round(255 * ratio);
         g = 255;
         b = 0;
       } else {
-        // kuning -> merah: (255,255,0) ke (255,0,0)
         const ratio = (p - 50) / 50;
         r = 255;
         g = Math.round(255 * (1 - ratio));
         b = 0;
       }
       return `rgb(${r},${g},${b})`;
+    }
+
+    // ===== Konversi status ke persentase kerusakan =====
+    function statusToDamage(status) {
+      switch(status) {
+        case 'Baik': return 0;
+        case 'Rusak Ringan': return 30;
+        case 'Rusak Sedang': return 50;
+        case 'Rusak Berat': return 80; // sesuai permintaan 80% untuk rusak berat
+        default: return 0;
+      }
+    }
+
+    // ===== Hitung rata-rata persentase kerusakan dari 5 komponen =====
+    function getDamagePercentage(pondasi, lantai, dinding, plafon, atap) {
+      const total = statusToDamage(pondasi) + statusToDamage(lantai) + statusToDamage(dinding) + 
+                    statusToDamage(plafon) + statusToDamage(atap);
+      return total / 5; // rata-rata (masing-masing 20% bobot)
     }
 
     // ============================================================
@@ -1033,8 +1016,8 @@
       filteredRows = allRows.filter(r => {
         if (search && !r.nama.toLowerCase().includes(search)) return false;
         if (filterKond) {
-          const statuses = [r.pondasi, r.lantai, r.dinding, r.plafon, r.atap];
-          const worst = getWorstStatus(statuses);
+          // Filter berdasarkan status terburuk (untuk konsistensi dengan statistik)
+          const worst = getWorstStatus([r.pondasi, r.lantai, r.dinding, r.plafon, r.atap]);
           if (worst !== filterKond) return false;
         }
         if (filterList && r.listrik !== filterList) return false;
@@ -1056,26 +1039,33 @@
 
       tbody.innerHTML = '';
       filteredRows.forEach((row, idx) => {
-        const statuses = [row.pondasi, row.lantai, row.dinding, row.plafon, row.atap];
-        const worst = getWorstStatus(statuses);
-        const worstClass = getStatusClass(worst);
+        // Hitung persentase kerusakan rata-rata
+        const damage = getDamagePercentage(row.pondasi, row.lantai, row.dinding, row.plafon, row.atap);
+        const rounded = Math.round(damage);
+        const color = getColor(damage);
+        // Status terburuk untuk keperluan badge (opsional, tapi kita tampilkan persentase)
+        // Kita tetap tampilkan badge persentase dengan warna latar sesuai persentase
 
-        const detailHtml = statuses.map((s, i) => {
-          const names = ['Pondasi', 'Lantai', 'Dinding', 'Plafon', 'Atap'];
-          const cls = getStatusClass(s);
-          return `<span><span class="dot ${cls}"></span>${names[i]}: ${s}</span>`;
+        const detailHtml = [
+          ['Pondasi', row.pondasi],
+          ['Lantai', row.lantai],
+          ['Dinding', row.dinding],
+          ['Plafon', row.plafon],
+          ['Atap', row.atap]
+        ].map(([name, status]) => {
+          const cls = getStatusClass(status);
+          return `<span><span class="dot ${cls}"></span>${name}: ${status}</span>`;
         }).join('');
 
         const listrikClass = getStatusClass(row.listrik);
-        const rencanaText = row.rencana ? (row.rencana.length > 35 ? row.rencana.substring(0, 35) + '…' : row.rencana) :
-        '—';
+        const rencanaText = row.rencana ? (row.rencana.length > 35 ? row.rencana.substring(0, 35) + '…' : row.rencana) : '—';
 
         const tr = document.createElement('tr');
         tr.dataset.id = row.id;
         tr.innerHTML = `
           <td>${idx + 1}</td>
           <td><strong>${row.nama}</strong></td>
-          <td><span class="badge ${worstClass}">${worst}</span></td>
+          <td><span class="badge-persen" style="background:${color};">${rounded}%</span></td>
           <td><div class="kondisi-detail">${detailHtml}</div></td>
           <td><span class="badge ${listrikClass}">${row.listrik}</span></td>
           <td style="font-size:13px; color:#3a5a3a;">${rencanaText}</td>
@@ -1105,24 +1095,19 @@
       let worstVal = 0;
       statuses.forEach(s => {
         const v = urut[s] || 0;
-        if (v > worstVal) { worstVal = v;
-          worst = s; }
+        if (v > worstVal) { worstVal = v; worst = s; }
       });
       return worst;
     }
 
     // ============================================================
-    // STATISTIK (PERSENTASE + WARNA GRADASI)
+    // STATISTIK (PERSENTASE + WARNA GRADASI) - tetap berdasarkan status terburuk
     // ============================================================
     function updateStats() {
       const total = allRows.length;
       document.getElementById('statTotal').textContent = total;
 
-      // Hitung kondisi fisik
-      let baik = 0,
-        rr = 0,
-        rs = 0,
-        rb = 0;
+      let baik = 0, rr = 0, rs = 0, rb = 0;
       allRows.forEach(r => {
         const statuses = [r.pondasi, r.lantai, r.dinding, r.plafon, r.atap];
         const worst = getWorstStatus(statuses);
@@ -1132,22 +1117,17 @@
         else if (worst === 'Rusak Berat') rb++;
       });
 
-      // Persentase
       const pBaik = total ? (baik / total) * 100 : 0;
       const pRingan = total ? (rr / total) * 100 : 0;
       const pSedang = total ? (rs / total) * 100 : 0;
       const pBerat = total ? (rb / total) * 100 : 0;
 
-      // Update bar & label
       updateBar('barBaik', 'valBaik', pBaik);
       updateBar('barRingan', 'valRingan', pRingan);
       updateBar('barSedang', 'valSedang', pSedang);
       updateBar('barBerat', 'valBerat', pBerat);
 
-      // Listrik (angka)
-      let listrikAman = 0,
-        listrikKurang = 0,
-        listrikTidak = 0;
+      let listrikAman = 0, listrikKurang = 0, listrikTidak = 0;
       allRows.forEach(r => {
         if (r.listrik === 'Aman') listrikAman++;
         else if (r.listrik === 'Kurang Aman') listrikKurang++;
@@ -1402,21 +1382,22 @@
         showToast('Tidak ada data untuk diexport', 'error');
         return;
       }
-      const headers = ['No', 'Ruangan', 'Kondisi Terburuk', 'Pondasi', 'Lantai', 'Dinding', 'Plafon', 'Atap', 'Listrik',
-        'Rencana Perbaikan'
-      ];
-      const rows = filteredRows.map((r, i) => [
-        i + 1,
-        r.nama,
-        getWorstStatus([r.pondasi, r.lantai, r.dinding, r.plafon, r.atap]),
-        r.pondasi,
-        r.lantai,
-        r.dinding,
-        r.plafon,
-        r.atap,
-        r.listrik,
-        r.rencana
-      ]);
+      const headers = ['No', 'Ruangan', 'Persentase Kerusakan', 'Pondasi', 'Lantai', 'Dinding', 'Plafon', 'Atap', 'Listrik', 'Rencana Perbaikan'];
+      const rows = filteredRows.map((r, i) => {
+        const damage = getDamagePercentage(r.pondasi, r.lantai, r.dinding, r.plafon, r.atap);
+        return [
+          i + 1,
+          r.nama,
+          Math.round(damage) + '%',
+          r.pondasi,
+          r.lantai,
+          r.dinding,
+          r.plafon,
+          r.atap,
+          r.listrik,
+          r.rencana
+        ];
+      });
       const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -1453,7 +1434,7 @@
     updateAdminUI();
     startListeners();
 
-    console.log('Halaman kondisi & keamanan ruangan loaded (persentase + warna gradasi).');
+    console.log('Halaman kondisi & keamanan ruangan loaded (persentase gabungan 5 komponen).');
   </script>
 </body>
 </html>
