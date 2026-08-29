@@ -1,1090 +1,1957 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kondisi & Keamanan Ruangan - Nurmilad</title>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <style>
-    /* ===== RESET & BASE ===== */
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #f4f7f4;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      color: #1a2e1a;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Sarpras NBS - Nurmilad</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js">
+    </script>
+    <!-- Flatpickr untuk datepicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f4f7f4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 16px;
+            line-height: 1.5;
+        }
 
-    /* ===== HEADER ===== */
-    .header {
-      background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
-      color: #fff;
-      padding: 16px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .header h1 { font-size: 22px; display: flex; align-items: center; gap: 12px; }
-    .header .back {
-      color: #fff;
-      text-decoration: none;
-      font-weight: 600;
-      padding: 6px 16px;
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 30px;
-      transition: 0.2s;
-    }
-    .header .back:hover { background: rgba(255,255,255,0.1); }
-    .header .admin-status {
-      background: rgba(255,200,0,0.15);
-      padding: 4px 16px;
-      border-radius: 30px;
-      font-size: 13px;
-      font-weight: 600;
-      border: 1px solid rgba(255,200,0,0.25);
-      color: #ffd966;
-      display: none;
-    }
-    .header .admin-status.show { display: inline-block; }
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header .right-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .header .back {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 4px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .header .back:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .admin-toggle-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .admin-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .admin-toggle-btn.active {
+            background: #b03a2e;
+            border-color: #b03a2e;
+        }
 
-    /* ===== CONTAINER ===== */
-    .container { flex:1; max-width:1400px; margin:0 auto; padding:24px; width:100%; }
+        /* ===== CONTAINER ===== */
+        .container {
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px 16px 0;
+            width: 100%;
+        }
 
-    /* ===== TOOLBAR ===== */
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      background: #fff;
-      padding: 12px 20px;
-      border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-    .toolbar .left {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      flex:1;
-    }
-    .toolbar .left input {
-      padding: 8px 16px;
-      border: 1px solid #ccc;
-      border-radius: 30px;
-      font-size: 14px;
-      flex:1;
-      min-width:180px;
-    }
-    .toolbar .left .filter-info {
-      font-size: 13px;
-      color: #3a5a3a;
-      background: #e8f0e8;
-      padding: 2px 14px;
-      border-radius: 30px;
-    }
-    .toolbar .right {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .toolbar .admin-toggle {
-      background: rgba(0,0,0,0.05);
-      border: 1px solid #ccc;
-      padding: 6px 18px;
-      border-radius: 30px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 14px;
-    }
-    .toolbar .admin-toggle.active {
-      background: #b03a2e;
-      color: #fff;
-      border-color: #b03a2e;
-    }
-    .toolbar .status {
-      font-size: 13px;
-      color: #5a6a5a;
-      padding: 4px 14px;
-      background: #f0f4f0;
-      border-radius: 20px;
-    }
-    .toolbar .btn-save {
-      padding: 8px 24px;
-      border: none;
-      border-radius: 30px;
-      font-weight: 600;
-      background: #2d6a4f;
-      color: #fff;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 14px;
-    }
-    .toolbar .btn-save:hover { background: #1a4d2e; }
-    .toolbar .btn-save.dirty {
-      background: #b03a2e;
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
+        /* ===== TOOLBAR dengan TAB ===== */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .toolbar .left {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex: 1;
+            align-items: center;
+        }
+        .toolbar .left input,
+        .toolbar .left select {
+            padding: 8px 14px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            font-size: 14px;
+            background: #fff;
+            min-width: 160px;
+        }
+        .toolbar .left .filter-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .toolbar .left .filter-row .reset-filter {
+            background: transparent;
+            border: none;
+            color: #b03a2e;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .toolbar .left .filter-row .reset-filter:hover {
+            text-decoration: underline;
+        }
+        .filter-info {
+            font-size: 13px;
+            color: #3a5a3a;
+            background: #e8f0e8;
+            padding: 2px 14px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        /* Tab navigasi */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            background: #eef4ee;
+            border-radius: 30px;
+            padding: 4px;
+        }
+        .tab-nav button {
+            padding: 6px 18px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            background: transparent;
+            color: #4a5a4a;
+            transition: 0.2s;
+        }
+        .tab-nav button.active {
+            background: #2d6a4f;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(45, 106, 79, 0.2);
+        }
+        .tab-nav button:hover:not(.active) {
+            background: #dce8dc;
+        }
 
-    /* ===== TABLE ===== */
-    .table-wrapper {
-      background: #fff;
-      border-radius: 16px;
-      overflow: auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      min-width: 900px;
-    }
-    th {
-      background: #eaf0ea;
-      padding: 12px 16px;
-      text-align: left;
-      font-weight: 600;
-      color: #1a3d2e;
-      position: sticky;
-      top:0;
-      z-index:5;
-    }
-    td {
-      padding: 10px 16px;
-      border-bottom: 1px solid #eef4ee;
-      vertical-align: middle;
-    }
-    tr:hover { background: #f6faf6; }
+        .toolbar .right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .toolbar .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #e0e8e0;
+            color: #2a4a3a;
+        }
+        .toolbar .btn:hover {
+            background: #d0d8d0;
+        }
+        .toolbar .btn-primary {
+            background: #2d6a4f;
+            color: #fff;
+        }
+        .toolbar .btn-primary:hover {
+            background: #1a4d2e;
+        }
+        .toolbar .btn-danger {
+            background: #b03a2e;
+            color: #fff;
+        }
+        .toolbar .btn-danger:hover {
+            background: #8a2e24;
+        }
+        .toolbar .btn-save {
+            background: #5c6b7a;
+            color: #fff;
+        }
+        .toolbar .btn-save.dirty {
+            background: #b03a2e;
+            animation: pulse 1.5s infinite;
+        }
+        .toolbar .btn-save.dirty:hover {
+            background: #8a2e24;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .toolbar .status {
+            font-size: 13px;
+            color: #5a6a5a;
+            padding: 4px 12px;
+            background: #f0f4f0;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .toolbar .status.dirty {
+            background: #fce4e0;
+            color: #b03a2e;
+            font-weight: 600;
+        }
 
-    /* Status badge */
-    .badge {
-      display: inline-block;
-      padding: 2px 12px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 600;
-      text-align: center;
-      min-width: 70px;
-    }
-    .badge.bagus { background: #d4edda; color: #155724; }
-    .badge.baik { background: #d4edda; color: #155724; }
-    .badge.rusak-ringan { background: #fff3cd; color: #856404; }
-    .badge.rusak-sedang { background: #ffeaa7; color: #856404; }
-    .badge.rusak-berat { background: #f8d7da; color: #721c24; }
-    .badge.aman { background: #d4edda; color: #155724; }
-    .badge.kurang-aman { background: #fff3cd; color: #856404; }
-    .badge.tidak-aman { background: #f8d7da; color: #721c24; }
+        /* ===== TABLE WRAPPER ===== */
+        .table-wrapper {
+            overflow: auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 20px;
+            max-height: calc(100vh - 260px);
+            position: relative;
+        }
 
-    .actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .actions button {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: 0.2s;
-    }
-    .actions button.edit { color: #2d6a4f; }
-    .actions button.edit:hover { background: #e0f0e0; }
-    .actions button.history { color: #2c6f9b; }
-    .actions button.history:hover { background: #dcecf5; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            min-width: 800px;
+            border: 1px solid #d0d8d0;
+        }
 
-    .no-data {
-      text-align: center;
-      padding: 40px;
-      color: #7a8a7a;
-      font-size: 16px;
-    }
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #eaf0ea;
+            border-bottom: 2px solid #b0c0b0;
+        }
 
-    /* ===== MODAL ===== */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 16px;
-    }
-    .modal.show { display: flex; }
-    .modal-content {
-      background: #fff;
-      border-radius: 20px;
-      padding: 32px;
-      width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    }
-    .modal-content h2 {
-      margin-bottom: 16px;
-      color: #1a3d2e;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .modal-content label {
-      display: block;
-      margin: 12px 0 4px;
-      font-weight: 600;
-      color: #2a4a3a;
-      font-size: 14px;
-    }
-    .modal-content select,
-    .modal-content input,
-    .modal-content textarea {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 14px;
-      font-family: inherit;
-    }
-    .modal-content textarea { resize: vertical; min-height: 60px; }
-    .modal-content .row-fields {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .modal-content .btn-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
-      justify-content: flex-end;
-    }
-    .modal-content .btn-group button {
-      padding: 10px 28px;
-      border: none;
-      border-radius: 30px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .modal-content .btn-group .save { background: #2d6a4f; color: #fff; }
-    .modal-content .btn-group .save:hover { background: #1a4d2e; }
-    .modal-content .btn-group .cancel { background: #e0e8e0; color: #2a4a3a; }
-    .modal-content .btn-group .cancel:hover { background: #d0d8d0; }
-    .modal-content .btn-group .danger { background: #b03a2e; color: #fff; }
-    .modal-content .btn-group .danger:hover { background: #8a2e24; }
+        th, td {
+            border: 1px solid #d0d8d0;
+            padding: 6px 8px;
+            vertical-align: middle;
+            text-align: left;
+        }
 
-    /* Riwayat dalam modal */
-    .history-list {
-      max-height: 200px;
-      overflow-y: auto;
-      margin: 8px 0 16px;
-      border: 1px solid #eef4ee;
-      border-radius: 8px;
-    }
-    .history-item {
-      padding: 8px 12px;
-      border-bottom: 1px solid #eef4ee;
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-    }
-    .history-item:last-child { border-bottom: none; }
-    .history-item .date { color: #5a6a5a; font-weight: 600; }
-    .history-item .desc { flex:1; margin:0 12px; }
-    .history-item .status-badge { font-size: 11px; }
+        th {
+            background: #eaf0ea;
+            font-weight: 600;
+            color: #1a3d2e;
+            position: relative;
+            user-select: none;
+            min-width: 60px;
+            resize: horizontal;
+            overflow: hidden;
+            font-size: 12px;
+            text-align: center !important;
+        }
+        th:last-child {
+            border-right: 1px solid #d0d8d0;
+            resize: none;
+        }
+        th .sort-icon {
+            margin-left: 4px;
+            opacity: 0.5;
+            font-size: 11px;
+        }
+        th .sort-icon.active {
+            opacity: 1;
+            font-weight: bold;
+        }
+        th::-webkit-resizer {
+            background-color: transparent;
+            border-right: 2px solid #b0c0b0;
+            border-bottom: 2px solid #b0c0b0;
+            width: 8px;
+            height: 8px;
+        }
 
-    /* ===== TOAST ===== */
-    .toast-container {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .toast {
-      padding: 14px 28px;
-      border-radius: 12px;
-      color: #fff;
-      font-weight: 500;
-      font-size: 14px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      animation: slideUp 0.3s ease;
-    }
-    .toast.success { background: #2d6a4f; }
-    .toast.error { background: #c0392b; }
-    .toast.info { background: #2c6f9b; }
-    @keyframes slideUp {
-      from { opacity:0; transform:translateY(20px); }
-      to { opacity:1; transform:translateY(0); }
-    }
+        td {
+            min-height: 32px;
+            font-size: 12px;
+        }
+        tr:last-child td {
+            border-bottom: 1px solid #d0d8d0;
+        }
 
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.7);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9998;
-      font-size: 18px;
-      color: #1a3d2e;
-      font-weight: 600;
-    }
-    .loading-overlay.hidden { display: none; }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #dce4dc;
-      border-top-color: #2d6a4f;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 14px;
-    }
-    @keyframes spin { to { transform:rotate(360deg); } }
+        .text-center {
+            text-align: center !important;
+        }
+        .text-right {
+            text-align: right !important;
+        }
 
-    .footer {
-      text-align: center;
-      padding: 16px;
-      color: #5a6a5a;
-      font-size: 14px;
-      border-top: 1px solid #dce4dc;
-      background: #fff;
-      margin-top: 20px;
-    }
+        td select {
+            width: 100%;
+            padding: 2px 4px;
+            border: 1px solid #d0d8d0;
+            border-radius: 4px;
+            background: #fff;
+            font-size: 12px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        td select:focus {
+            border-color: #2d6a4f;
+            box-shadow: 0 0 0 2px rgba(45, 106, 79, 0.2);
+        }
+        td select.modified {
+            background: #fff3e0;
+        }
 
-    @media (max-width:700px) {
-      .header { padding:12px 16px; }
-      .container { padding:16px; }
-      .toolbar { flex-direction:column; align-items:stretch; }
-      .modal-content { max-width:95%; padding:24px; }
-      .row-fields { grid-template-columns:1fr !important; }
-    }
-  </style>
+        td .readonly-value {
+            display: block;
+            padding: 2px 4px;
+            min-height: 22px;
+            color: #1a3d2e;
+            background: #f4f7f4;
+            border-radius: 4px;
+            border: 1px solid #e0e8e0;
+        }
+
+        /* ===== KOLOM AKSI - tombol kecil dalam satu baris ===== */
+        .actions-cell {
+            display: flex;
+            gap: 2px; /* lebih rapat */
+            align-items: center;
+            flex-wrap: nowrap; /* jangan turun ke baris berikutnya */
+            justify-content: center;
+        }
+        .actions-cell button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 12px; /* lebih kecil */
+            font-weight: normal;
+            padding: 0px 3px; /* padding minimal */
+            border-radius: 3px;
+            transition: 0.2s;
+            line-height: 1.4;
+            color: #4a5a4a;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        .actions-cell button:hover {
+            background: #e8f0e8;
+        }
+        .actions-cell button.delete-row {
+            color: #b03a2e;
+        }
+        .actions-cell button.delete-row:hover {
+            background: #fce4e0;
+        }
+        .actions-cell button.add-row-below {
+            color: #2d6a4f;
+        }
+        .actions-cell button.add-row-below:hover {
+            background: #e0f0e0;
+        }
+        .actions-cell button.soft-delete {
+            color: #c07a2e;
+        }
+        .actions-cell button.soft-delete:hover {
+            background: #fce8d0;
+        }
+        .actions-cell button.restore-row {
+            color: #2d6a4f;
+        }
+        .actions-cell button.restore-row:hover {
+            background: #e0f0e0;
+        }
+        .actions-cell button.permanent-delete {
+            color: #b03a2e;
+        }
+        .actions-cell button.permanent-delete:hover {
+            background: #fce4e0;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .no-data {
+            text-align: center;
+            padding: 40px 16px;
+            color: #7a8a7a;
+            font-size: 16px;
+        }
+        .no-data .first-row-btn {
+            margin-top: 16px;
+            padding: 10px 28px;
+            background: #2d6a4f;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .no-data .first-row-btn:hover {
+            background: #1a4d2e;
+            transform: scale(1.02);
+        }
+        .no-data .first-row-btn:disabled {
+            background: #a0b0a0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== MODAL SOFT DELETE ===== */
+        .modal-soft {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            padding: 16px;
+        }
+        .modal-soft.show {
+            display: flex;
+        }
+        .modal-soft .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 28px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .modal-soft .modal-content h2 {
+            margin-bottom: 16px;
+            color: #1a3d2e;
+            font-size: 20px;
+        }
+        .modal-soft .modal-content label {
+            display: block;
+            font-weight: 600;
+            margin: 12px 0 4px;
+            font-size: 14px;
+        }
+        .modal-soft .modal-content input,
+        .modal-soft .modal-content select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+        .modal-soft .modal-content .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+        .modal-soft .modal-content .btn-group button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .modal-soft .modal-content .btn-group .btn-confirm {
+            background: #c07a2e;
+            color: #fff;
+        }
+        .modal-soft .modal-content .btn-group .btn-confirm:hover {
+            background: #a06020;
+        }
+        .modal-soft .modal-content .btn-group .btn-cancel {
+            background: #e0e8e0;
+            color: #2a4a3a;
+        }
+        .modal-soft .modal-content .btn-group .btn-cancel:hover {
+            background: #d0d8d0;
+        }
+
+        /* ===== MOBILE ===== */
+        @media (max-width: 700px) {
+            .table-wrapper {
+                background: transparent;
+                box-shadow: none;
+                overflow-x: auto;
+                max-height: none;
+            }
+            table {
+                min-width: 600px;
+            }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .toolbar .left,
+            .toolbar .right {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .toolbar .right {
+                justify-content: flex-end;
+            }
+            .toolbar .status {
+                font-size: 12px;
+            }
+            .tab-nav {
+                width: 100%;
+                justify-content: center;
+            }
+            .tab-nav button {
+                flex: 1;
+                text-align: center;
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+            .actions-cell button {
+                font-size: 11px;
+                padding: 0 2px;
+            }
+        }
+
+        /* ===== TOAST & LOADING ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.3s ease;
+            text-align: center;
+        }
+        .toast.success { background: #2d6a4f; }
+        .toast.error { background: #c0392b; }
+        .toast.info { background: #2c6f9b; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            font-size: 18px;
+            color: #1a3d2e;
+            font-weight: 600;
+        }
+        .loading-overlay.hidden { display: none; }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 4px solid #dce4dc;
+            border-top-color: #2d6a4f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 14px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 16px;
+            color: #5a6a5a;
+            font-size: 13px;
+            border-top: 1px solid #dce4dc;
+            background: #fff;
+            margin-top: 10px;
+        }
+
+        /* Tab content visibility */
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
 
-  <header class="header">
-    <h1>🏗️ Kondisi &amp; Keamanan Ruangan</h1>
-    <div>
-      <span class="admin-status" id="adminStatus">🔑 Mode Admin</span>
-      <a href="index.html" class="back">← Kembali</a>
-    </div>
-  </header>
-
-  <div class="container">
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="left">
-        <input type="text" id="searchInput" placeholder="🔍 Cari ruangan..." />
-        <span class="filter-info" id="filterInfo"></span>
-      </div>
-      <div class="right">
-        <span class="status" id="statusIndicator">✅ Semua tersimpan</span>
-        <button class="btn-save" id="saveBtn">💾 Simpan</button>
-        <button class="admin-toggle" id="adminToggle">🔐 Admin</button>
-      </div>
-    </div>
-
-    <!-- Tabel -->
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:40px;">No</th>
-            <th>Nama Ruangan</th>
-            <th style="min-width:120px;">Kondisi Fisik</th>
-            <th style="min-width:120px;">Keamanan Listrik</th>
-            <th style="min-width:100px;">Rencana Perbaikan</th>
-            <th style="width:120px;">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="kondisiBody"></tbody>
-      </table>
-    </div>
-    <div id="emptyMessage" class="no-data">Belum ada data ruangan. Pastikan data ruangan sudah diisi di halaman Definisi.</div>
-  </div>
-
-  <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
-
-  <!-- ===== MODAL EDIT KONDISI ===== -->
-  <div class="modal" id="modalEdit">
-    <div class="modal-content">
-      <h2 id="modalEditTitle">✏️ Edit Kondisi &amp; Keamanan</h2>
-      <input type="hidden" id="editRuanganId" />
-      <input type="hidden" id="editRuanganNama" />
-
-      <div style="margin-bottom:12px; padding:8px 14px; background:#f0f6f0; border-radius:8px; font-weight:600; color:#1a3d2e;" id="editRuanganDisplay"></div>
-
-      <h3 style="margin-top:8px; font-size:16px; color:#1a3d2e;">🏠 Kondisi Fisik</h3>
-      <div class="row-fields">
-        <div><label>Pondasi</label><select id="e_pondasi"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
-        <div><label>Lantai</label><select id="e_lantai"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
-        <div><label>Dinding</label><select id="e_dinding"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
-        <div><label>Plafon</label><select id="e_plafon"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
-        <div><label>Atap</label><select id="e_atap"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
-      </div>
-
-      <h3 style="margin-top:16px; font-size:16px; color:#1a3d2e;">⚡ Keamanan Listrik</h3>
-      <div style="margin-bottom:8px;">
-        <label>Status Listrik</label>
-        <select id="e_listrik"><option value="Aman">Aman</option><option value="Kurang Aman">Kurang Aman</option><option value="Tidak Aman">Tidak Aman</option></select>
-      </div>
-
-      <h3 style="margin-top:16px; font-size:16px; color:#1a3d2e;">📋 Rencana Tindakan / Perbaikan</h3>
-      <textarea id="e_rencana" rows="2" placeholder="Misal: Perbaikan atap bocor, ganti instalasi listrik..."></textarea>
-
-      <div class="btn-group">
-        <button class="cancel" id="editCancel">Batal</button>
-        <button class="save" id="editSave">Simpan Perubahan</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== MODAL RIWAYAT PERBAIKAN ===== -->
-  <div class="modal" id="modalHistory">
-    <div class="modal-content">
-      <h2 id="historyTitle">📜 Riwayat Perbaikan</h2>
-      <input type="hidden" id="historyRuanganId" />
-      <div id="historyRuanganName" style="font-weight:600; color:#2d6a4f; margin-bottom:12px;"></div>
-
-      <div id="historyList" class="history-list">
-        <!-- item akan di-render -->
-      </div>
-
-      <button class="btn-save" id="historyAddBtn" style="width:100%; margin-bottom:12px;">➕ Tambah Riwayat</button>
-
-      <!-- Form tambah riwayat (toggle) -->
-      <div id="historyForm" style="display:none; border-top:1px solid #eef4ee; padding-top:16px;">
-        <h3 style="font-size:16px; color:#1a3d2e;">Tambah Riwayat</h3>
-        <label>Tanggal</label>
-        <input type="date" id="h_tanggal" />
-        <label>Jenis Perbaikan</label>
-        <select id="h_jenis"><option value="Kondisi">Kondisi Fisik</option><option value="Listrik">Keamanan Listrik</option></select>
-        <label>Deskripsi</label>
-        <textarea id="h_deskripsi" rows="2" placeholder="Uraian perbaikan..."></textarea>
-        <div class="row-fields">
-          <div><label>Status Sebelum</label><input type="text" id="h_statusSebelum" placeholder="Baik / Aman" /></div>
-          <div><label>Status Sesudah</label><input type="text" id="h_statusSesudah" placeholder="Baik / Aman" /></div>
+    <header class="header">
+        <h1>🏗️ Sarpras NBS</h1>
+        <div class="right-group">
+            <a href="index.html" class="back">← Kembali</a>
+            <!-- LINK KE KONDISI.HTML -->
+            <a href="kondisi.html" class="back" style="background:rgba(255,255,255,0.1);">🔧 Kondisi</a>
+            <button class="admin-toggle-btn" id="adminToggle">🔐 Admin</button>
         </div>
-        <label>Biaya (Rp)</label>
-        <input type="number" id="h_biaya" step="1000" value="0" />
-        <div class="btn-group">
-          <button class="cancel" id="historyFormCancel">Batal</button>
-          <button class="save" id="historyFormSave">Simpan Riwayat</button>
-        </div>
-      </div>
+    </header>
 
-      <div class="btn-group" style="margin-top:8px;">
-        <button class="cancel" id="historyClose">Tutup</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== TOAST & LOADING ===== -->
-  <div class="toast-container" id="toastContainer"></div>
-  <div class="loading-overlay hidden" id="loadingOverlay">
-    <div class="spinner"></div>
-    <span>Memuat…</span>
-  </div>
-
-  <script>
-    // ============================================================
-    // FIREBASE CONFIG
-    // ============================================================
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
-      authDomain: "sarprasnbs.firebaseapp.com",
-      projectId: "sarprasnbs",
-      storageBucket: "sarprasnbs.firebasestorage.app",
-      messagingSenderId: "604042513677",
-      appId: "1:604042513677:web:3d186ae98c9dd8fe09f444"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // ============================================================
-    // HELPERS
-    // ============================================================
-    function showToast(msg, type='info') {
-      const container = document.getElementById('toastContainer');
-      const t = document.createElement('div');
-      t.className = 'toast '+type;
-      t.textContent = msg;
-      container.appendChild(t);
-      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
-    }
-    function showLoading(show) {
-      document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
-    }
-    function formatRupiah(angka) {
-      if (!angka) return '0';
-      return Number(angka).toLocaleString('id-ID');
-    }
-
-    // ============================================================
-    // ADMIN SESSION
-    // ============================================================
-    const ADMIN_PASS = 'sarpras123';
-    const SESSION_KEY = 'nbs_admin_session';
-    let isAdmin = false;
-
-    function getAdminSession() {
-      return localStorage.getItem(SESSION_KEY) === 'true';
-    }
-    function setAdminSession(val) {
-      localStorage.setItem(SESSION_KEY, val ? 'true' : 'false');
-      isAdmin = val;
-      updateAdminUI();
-    }
-    function logoutAdmin() {
-      setAdminSession(false);
-      showToast('Anda logout dari mode admin', 'info');
-      window.location.reload();
-    }
-
-    function updateAdminUI() {
-      const btn = document.getElementById('adminToggle');
-      const statusEl = document.getElementById('adminStatus');
-      if (isAdmin) {
-        btn.textContent = '🔓 Admin (aktif)';
-        btn.classList.add('active');
-        statusEl.classList.add('show');
-        statusEl.textContent = '🔑 Mode Admin';
-        btn.onclick = () => {
-          if (confirm('Logout dari mode admin?')) logoutAdmin();
-        };
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
-        document.querySelectorAll('.admin-edit').forEach(el => el.style.display = 'inline-block');
-      } else {
-        btn.textContent = '🔐 Admin';
-        btn.classList.remove('active');
-        statusEl.classList.remove('show');
-        btn.onclick = () => {
-          const pass = prompt('Masukkan password admin:');
-          if (pass === ADMIN_PASS) {
-            setAdminSession(true);
-            showToast('Mode admin aktif', 'success');
-          } else if (pass !== null) {
-            showToast('Password salah!', 'error');
-          }
-        };
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.admin-edit').forEach(el => el.style.display = 'none');
-      }
-      // Tombol di modal juga ikut
-      document.querySelectorAll('.admin-edit-btn').forEach(el => el.style.display = isAdmin ? 'inline-block' : 'none');
-      document.querySelectorAll('.admin-edit-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
-    }
-
-    // ============================================================
-    // STATE
-    // ============================================================
-    let ruanganList = [];           // data ruangan dari koleksi 'ruangan'
-    let kondisiData = {};          // key: ruanganId, value: data kondisi + keamanan
-    let originalKondisi = {};      // untuk deteksi perubahan
-    let modifiedIds = new Set();
-    let isDirty = false;
-
-    const tbody = document.getElementById('kondisiBody');
-    const searchInput = document.getElementById('searchInput');
-    const filterInfo = document.getElementById('filterInfo');
-    const saveBtn = document.getElementById('saveBtn');
-    const statusIndicator = document.getElementById('statusIndicator');
-    const emptyMsg = document.getElementById('emptyMessage');
-
-    // Koleksi
-    const ruanganRef = db.collection('ruangan');
-    const kondisiRef = db.collection('kondisi_ruangan');
-    const riwayatRef = db.collection('riwayat_perbaikan');
-
-    let unsubRuangan = null;
-    let unsubKondisi = null;
-    let unsubRiwayat = null;
-
-    // ============================================================
-    // LOAD DATA
-    // ============================================================
-    function startListeners() {
-      // 1) Ruangan
-      if (unsubRuangan) unsubRuangan();
-      unsubRuangan = ruanganRef.orderBy('nama').onSnapshot(snap => {
-        ruanganList = [];
-        snap.forEach(doc => {
-          const data = doc.data();
-          ruanganList.push({ id: doc.id, nama: data.nama || 'Tanpa Nama' });
-        });
-        // Jika kondisiData sudah ada, render ulang
-        if (Object.keys(kondisiData).length > 0 || ruanganList.length > 0) {
-          renderTable();
-        } else {
-          // Belum ada kondisi, tampilkan placeholder
-          renderTable();
-        }
-      }, err => {
-        showToast('Gagal memuat ruangan: '+err.message, 'error');
-      });
-
-      // 2) Kondisi Ruangan
-      if (unsubKondisi) unsubKondisi();
-      unsubKondisi = kondisiRef.onSnapshot(snap => {
-        kondisiData = {};
-        originalKondisi = {};
-        snap.forEach(doc => {
-          const data = doc.data();
-          const id = doc.id;
-          kondisiData[id] = { ...data };
-          originalKondisi[id] = JSON.parse(JSON.stringify(data));
-        });
-        // Reset modified yang mungkin sudah ada
-        modifiedIds.clear();
-        isDirty = false;
-        updateSaveUI();
-        renderTable();
-      }, err => {
-        showToast('Gagal memuat kondisi ruangan: '+err.message, 'error');
-      });
-    }
-
-    // ============================================================
-    // RENDER TABLE
-    // ============================================================
-    function renderTable() {
-      const search = searchInput.value.toLowerCase().trim();
-
-      // Gabungkan ruangan dengan kondisi
-      let rows = ruanganList.map(r => {
-        const kondisi = kondisiData[r.id] || {};
-        return {
-          ruanganId: r.id,
-          ruanganNama: r.nama,
-          kondisi: kondisi,
-          // default jika belum ada
-          pondasi: kondisi.pondasi || 'Baik',
-          lantai: kondisi.lantai || 'Baik',
-          dinding: kondisi.dinding || 'Baik',
-          plafon: kondisi.plafon || 'Baik',
-          atap: kondisi.atap || 'Baik',
-          listrik: kondisi.listrik || 'Aman',
-          rencana: kondisi.rencanaPerbaikan || '',
-        };
-      });
-
-      // Filter
-      if (search) {
-        rows = rows.filter(r => r.ruanganNama.toLowerCase().includes(search));
-      }
-
-      if (rows.length === 0) {
-        tbody.innerHTML = '';
-        emptyMsg.style.display = 'block';
-        filterInfo.textContent = search ? 'Tidak ditemukan' : '';
-        return;
-      }
-      emptyMsg.style.display = 'none';
-      filterInfo.textContent = search ? `Menampilkan ${rows.length} ruangan` : '';
-
-      // Hitung status fisik (ambil yang terburuk)
-      const statusUrut = { 'Baik':0, 'Rusak Ringan':1, 'Rusak Sedang':2, 'Rusak Berat':3 };
-      tbody.innerHTML = '';
-      rows.forEach((row, idx) => {
-        const kondisiFields = [row.pondasi, row.lantai, row.dinding, row.plafon, row.atap];
-        // Ambil status terburuk
-        let worst = 'Baik';
-        let worstVal = 0;
-        kondisiFields.forEach(s => {
-          const v = statusUrut[s] || 0;
-          if (v > worstVal) { worstVal = v; worst = s; }
-        });
-        const kondisiBadge = `<span class="badge ${worst.toLowerCase().replace(' ','-')}">${worst}</span>`;
-
-        const listrikBadge = `<span class="badge ${row.listrik.toLowerCase().replace(' ','-')}">${row.listrik}</span>`;
-
-        // Rencana perbaikan
-        const rencanaText = row.rencana ? (row.rencana.length > 30 ? row.rencana.substring(0,30)+'…' : row.rencana) : '—';
-
-        const tr = document.createElement('tr');
-        tr.dataset.id = row.ruanganId;
-        tr.innerHTML = `
-          <td>${idx+1}</td>
-          <td><strong>${row.ruanganNama}</strong></td>
-          <td>${kondisiBadge}</td>
-          <td>${listrikBadge}</td>
-          <td style="font-size:13px; color:#3a5a3a;">${rencanaText}</td>
-          <td>
-            <div class="actions">
-              <button class="edit admin-edit" data-id="${row.ruanganId}" title="Edit Kondisi">✏️</button>
-              <button class="history admin-edit" data-id="${row.ruanganId}" title="Riwayat Perbaikan">📜</button>
+    <div class="container">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <div class="left">
+                <div class="tab-nav" id="tabNav">
+                    <button class="active" data-tab="aktif">📦 Data Aktif</button>
+                    <button data-tab="nonaktif">📋 Data Nonaktif</button>
+                </div>
+                <input type="text" id="searchInput" placeholder="🔍 Cari..." style="flex:1; min-width:120px;" />
+                <div class="filter-row">
+                    <select id="filterRuang">
+                        <option value="">🏢 Semua Ruang</option>
+                    </select>
+                    <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
+                </div>
+                <span id="filterInfo" class="filter-info" style="display:none;"></span>
             </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+            <div class="right">
+                <span class="status" id="statusIndicator">✅ Semua tersimpan</span>
+                <button class="btn btn-save" id="saveBtn">💾 Simpan</button>
+                <button class="btn" id="defBtn">📋 Definisi</button>
+            </div>
+        </div>
 
-      // Attach events
-      tbody.querySelectorAll('.edit').forEach(btn => {
-        btn.addEventListener('click', () => openEditModal(btn.dataset.id));
-      });
-      tbody.querySelectorAll('.history').forEach(btn => {
-        btn.addEventListener('click', () => openHistoryModal(btn.dataset.id));
-      });
+        <!-- TAB PANE: AKTIF -->
+        <div class="tab-pane active" id="pane-aktif">
+            <div class="table-wrapper">
+                <table id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th data-field="no" style="cursor:default; width:36px; resize:none;" class="text-center">No</th>
+                            <th data-field="namaBarang" style="min-width:100px;" class="text-center">Nama Barang <span class="sort-icon">↕</span></th>
+                            <th data-field="jumlahBarang" style="min-width:60px;" class="text-center">Jumlah <span class="sort-icon">↕</span></th>
+                            <th data-field="anggaranSatuan" style="min-width:100px;" class="text-center">Anggaran / satuan (Rp.) <span class="sort-icon">↕</span></th>
+                            <th data-field="tahunPerolehan" style="min-width:60px;" class="text-center">Tahun <span class="sort-icon">↕</span></th>
+                            <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
+                            <th data-field="baik" style="min-width:50px;" class="text-center">Baik <span class="sort-icon">↕</span></th>
+                            <th data-field="rusakRingan" style="min-width:50px;" class="text-center">Rusak Ringan <span class="sort-icon">↕</span></th>
+                            <th data-field="rusakSedang" style="min-width:50px;" class="text-center">Rusak Sedang <span class="sort-icon">↕</span></th>
+                            <th data-field="rusakBerat" style="min-width:50px;" class="text-center">Rusak Berat <span class="sort-icon">↕</span></th>
+                            <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
+                            <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
+                            <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
+                            <th style="width:70px; resize:none;" class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyMessage" class="no-data">Belum ada data. Klik tombol ➕ di kolom Aksi untuk menambahkan.</div>
+        </div>
 
-      updateAdminUI();
-    }
+        <!-- TAB PANE: NONAKTIF -->
+        <div class="tab-pane" id="pane-nonaktif">
+            <div class="table-wrapper">
+                <table id="nonaktifTable">
+                    <thead>
+                        <tr>
+                            <th data-field="no" style="cursor:default; width:36px; resize:none;" class="text-center">No</th>
+                            <th data-field="namaBarang" style="min-width:100px;" class="text-center">Nama Barang <span class="sort-icon">↕</span></th>
+                            <th data-field="jumlahBarang" style="min-width:60px;" class="text-center">Jumlah <span class="sort-icon">↕</span></th>
+                            <th data-field="anggaranSatuan" style="min-width:100px;" class="text-center">Anggaran / satuan (Rp.) <span class="sort-icon">↕</span></th>
+                            <th data-field="tahunPerolehan" style="min-width:60px;" class="text-center">Tahun <span class="sort-icon">↕</span></th>
+                            <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
+                            <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
+                            <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
+                            <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
+                            <th style="width:70px; resize:none;" class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nonaktifBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyNonaktif" class="no-data">Tidak ada data nonaktif.</div>
+        </div>
+    </div>
 
-    // ============================================================
-    // EDIT MODAL
-    // ============================================================
-    const modalEdit = document.getElementById('modalEdit');
-    const editRuanganId = document.getElementById('editRuanganId');
-    const editRuanganNama = document.getElementById('editRuanganNama');
-    const editRuanganDisplay = document.getElementById('editRuanganDisplay');
-    const e_pondasi = document.getElementById('e_pondasi');
-    const e_lantai = document.getElementById('e_lantai');
-    const e_dinding = document.getElementById('e_dinding');
-    const e_plafon = document.getElementById('e_plafon');
-    const e_atap = document.getElementById('e_atap');
-    const e_listrik = document.getElementById('e_listrik');
-    const e_rencana = document.getElementById('e_rencana');
-    const editCancel = document.getElementById('editCancel');
-    const editSave = document.getElementById('editSave');
+    <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
 
-    function openEditModal(ruanganId) {
-      if (!isAdmin) {
-        showToast('Harus login sebagai admin', 'error');
-        return;
-      }
-      const ruangan = ruanganList.find(r => r.id === ruanganId);
-      if (!ruangan) {
-        showToast('Ruangan tidak ditemukan', 'error');
-        return;
-      }
-      editRuanganId.value = ruanganId;
-      editRuanganNama.value = ruangan.nama;
-      editRuanganDisplay.textContent = '📍 ' + ruangan.nama;
+    <!-- MODAL SOFT DELETE (Hapus Buku) -->
+    <div class="modal-soft" id="modalSoft">
+        <div class="modal-content">
+            <h2>📤 Hapus Buku (Nonaktifkan)</h2>
+            <p style="color:#4a5a4a; margin-bottom:12px;">Data akan dipindahkan ke tab Data Nonaktif.</p>
+            <input type="hidden" id="softItemId" />
+            <label>Tanggal Nonaktif</label>
+            <input type="text" id="softTanggal" />
+            <label>Alasan Nonaktif</label>
+            <select id="softAlasan">
+                <option value="Rusak">Rusak</option>
+                <option value="Kadaluwarsa">Kadaluwarsa</option>
+                <option value="Hilang">Hilang</option>
+                <option value="Tidak Terpakai">Tidak Terpakai</option>
+                <option value="Diganti">Diganti</option>
+                <option value="Lainnya">Lainnya</option>
+            </select>
+            <div class="btn-group">
+                <button class="btn-cancel" id="softCancel">Batal</button>
+                <button class="btn-confirm" id="softConfirm">Konfirmasi Nonaktif</button>
+            </div>
+        </div>
+    </div>
 
-      const kondisi = kondisiData[ruanganId] || {};
-      e_pondasi.value = kondisi.pondasi || 'Baik';
-      e_lantai.value = kondisi.lantai || 'Baik';
-      e_dinding.value = kondisi.dinding || 'Baik';
-      e_plafon.value = kondisi.plafon || 'Baik';
-      e_atap.value = kondisi.atap || 'Baik';
-      e_listrik.value = kondisi.listrik || 'Aman';
-      e_rencana.value = kondisi.rencanaPerbaikan || '';
+    <!-- TOAST & LOADING -->
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span>Memuat…</span>
+    </div>
 
-      modalEdit.classList.add('show');
-    }
+    <script>
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
+            authDomain: "sarprasnbs.firebaseapp.com",
+            projectId: "sarprasnbs",
+            storageBucket: "sarprasnbs.firebasestorage.app",
+            messagingSenderId: "604042513677",
+            appId: "1:604042513677:web:3d186ae98c9dd8fe09f444"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-    function closeEditModal() {
-      modalEdit.classList.remove('show');
-    }
-
-    editCancel.addEventListener('click', closeEditModal);
-    modalEdit.addEventListener('click', (e) => {
-      if (e.target === modalEdit) closeEditModal();
-    });
-
-    editSave.addEventListener('click', async () => {
-      const ruanganId = editRuanganId.value;
-      if (!ruanganId) return;
-      const data = {
-        pondasi: e_pondasi.value,
-        lantai: e_lantai.value,
-        dinding: e_dinding.value,
-        plafon: e_plafon.value,
-        atap: e_atap.value,
-        listrik: e_listrik.value,
-        rencanaPerbaikan: e_rencana.value.trim(),
-        ruanganId: ruanganId,
-        ruanganNama: editRuanganNama.value,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      try {
-        showLoading(true);
-        // Cek apakah dokumen sudah ada
-        const docRef = kondisiRef.doc(ruanganId);
-        const docSnap = await docRef.get();
-        if (docSnap.exists) {
-          await docRef.update(data);
-        } else {
-          await docRef.set(data);
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
-        showToast('Data kondisi berhasil disimpan', 'success');
-        closeEditModal();
-        // Data akan refresh via listener
-      } catch (err) {
-        showToast('Gagal menyimpan: '+err.message, 'error');
-      } finally {
-        showLoading(false);
-      }
-    });
 
-    // ============================================================
-    // HISTORY MODAL
-    // ============================================================
-    const modalHistory = document.getElementById('modalHistory');
-    const historyRuanganId = document.getElementById('historyRuanganId');
-    const historyRuanganName = document.getElementById('historyRuanganName');
-    const historyList = document.getElementById('historyList');
-    const historyAddBtn = document.getElementById('historyAddBtn');
-    const historyForm = document.getElementById('historyForm');
-    const h_tanggal = document.getElementById('h_tanggal');
-    const h_jenis = document.getElementById('h_jenis');
-    const h_deskripsi = document.getElementById('h_deskripsi');
-    const h_statusSebelum = document.getElementById('h_statusSebelum');
-    const h_statusSesudah = document.getElementById('h_statusSesudah');
-    const h_biaya = document.getElementById('h_biaya');
-    const historyFormCancel = document.getElementById('historyFormCancel');
-    const historyFormSave = document.getElementById('historyFormSave');
-    const historyClose = document.getElementById('historyClose');
-
-    let currentHistoryRuanganId = null;
-    let historyUnsub = null;
-
-    function openHistoryModal(ruanganId) {
-      const ruangan = ruanganList.find(r => r.id === ruanganId);
-      if (!ruangan) {
-        showToast('Ruangan tidak ditemukan', 'error');
-        return;
-      }
-      currentHistoryRuanganId = ruanganId;
-      historyRuanganId.value = ruanganId;
-      historyRuanganName.textContent = '📍 ' + ruangan.nama;
-      historyForm.style.display = 'none';
-      historyAddBtn.textContent = '➕ Tambah Riwayat';
-
-      // Reset form
-      const today = new Date().toISOString().split('T')[0];
-      h_tanggal.value = today;
-      h_jenis.value = 'Kondisi';
-      h_deskripsi.value = '';
-      h_statusSebelum.value = '';
-      h_statusSesudah.value = '';
-      h_biaya.value = '0';
-
-      // Load riwayat
-      loadHistory(ruanganId);
-
-      modalHistory.classList.add('show');
-    }
-
-    function loadHistory(ruanganId) {
-      if (historyUnsub) historyUnsub();
-      historyUnsub = riwayatRef
-        .where('ruanganId', '==', ruanganId)
-        .orderBy('tanggal', 'desc')
-        .onSnapshot(snap => {
-          historyList.innerHTML = '';
-          if (snap.empty) {
-            historyList.innerHTML = '<div style="padding:16px;text-align:center;color:#7a8a7a;">Belum ada riwayat perbaikan.</div>';
-            return;
-          }
-          snap.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            const tgl = data.tanggal ? data.tanggal.toDate().toLocaleDateString('id-ID') : '-';
-            const statusBefore = data.statusSebelum || '-';
-            const statusAfter = data.statusSesudah || '-';
-            const biaya = data.biaya ? 'Rp '+formatRupiah(data.biaya) : '';
-            div.innerHTML = `
-              <span class="date">${tgl}</span>
-              <span class="desc"><strong>${data.jenis || 'Perbaikan'}</strong> ${data.deskripsi || ''}</span>
-              <span style="font-size:12px; color:#4a5a4a;">${statusBefore} → ${statusAfter}</span>
-              <span style="font-size:12px; color:#2d6a4f; font-weight:600;">${biaya}</span>
-            `;
-            historyList.appendChild(div);
-          });
-        }, err => {
-          showToast('Gagal memuat riwayat: '+err.message, 'error');
-        });
-    }
-
-    function closeHistoryModal() {
-      if (historyUnsub) historyUnsub();
-      historyUnsub = null;
-      modalHistory.classList.remove('show');
-    }
-
-    historyClose.addEventListener('click', closeHistoryModal);
-    modalHistory.addEventListener('click', (e) => {
-      if (e.target === modalHistory) closeHistoryModal();
-    });
-
-    historyAddBtn.addEventListener('click', () => {
-      if (historyForm.style.display === 'none') {
-        historyForm.style.display = 'block';
-        historyAddBtn.textContent = '✖ Tutup Form';
-      } else {
-        historyForm.style.display = 'none';
-        historyAddBtn.textContent = '➕ Tambah Riwayat';
-      }
-    });
-
-    historyFormCancel.addEventListener('click', () => {
-      historyForm.style.display = 'none';
-      historyAddBtn.textContent = '➕ Tambah Riwayat';
-    });
-
-    historyFormSave.addEventListener('click', async () => {
-      if (!currentHistoryRuanganId) {
-        showToast('Ruangan tidak valid', 'error');
-        return;
-      }
-      const tanggal = h_tanggal.value;
-      const jenis = h_jenis.value;
-      const deskripsi = h_deskripsi.value.trim();
-      const statusSebelum = h_statusSebelum.value.trim();
-      const statusSesudah = h_statusSesudah.value.trim();
-      const biaya = parseInt(h_biaya.value) || 0;
-
-      if (!tanggal) {
-        showToast('Tanggal wajib diisi', 'error');
-        return;
-      }
-      if (!deskripsi) {
-        showToast('Deskripsi perbaikan wajib diisi', 'error');
-        return;
-      }
-
-      try {
-        showLoading(true);
-        await riwayatRef.add({
-          ruanganId: currentHistoryRuanganId,
-          tanggal: new Date(tanggal + 'T00:00:00'),
-          jenis: jenis,
-          deskripsi: deskripsi,
-          statusSebelum: statusSebelum,
-          statusSesudah: statusSesudah,
-          biaya: biaya,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        showToast('Riwayat perbaikan ditambahkan', 'success');
-        // Reset form
-        h_deskripsi.value = '';
-        h_statusSebelum.value = '';
-        h_statusSesudah.value = '';
-        h_biaya.value = '0';
-        historyForm.style.display = 'none';
-        historyAddBtn.textContent = '➕ Tambah Riwayat';
-        // Data akan refresh via listener
-      } catch (err) {
-        showToast('Gagal menambah riwayat: '+err.message, 'error');
-      } finally {
-        showLoading(false);
-      }
-    });
-
-    // ============================================================
-    // SAVE (untuk perubahan yang dimodifikasi via edit modal sudah langsung simpan)
-    // Tapi kita tetap sediakan tombol save untuk kemungkinan perubahan lain
-    // Di sini kita hanya gunakan untuk update massal jika ada yang dimodifikasi di tabel (tidak ada)
-    // Namun kita tetap implementasikan untuk konsistensi.
-    // ============================================================
-    async function saveChanges() {
-      if (!isAdmin) {
-        showToast('Anda harus login sebagai admin', 'error');
-        return;
-      }
-      if (modifiedIds.size === 0) {
-        showToast('Tidak ada perubahan untuk disimpan', 'info');
-        return;
-      }
-      showLoading(true);
-      try {
-        const batch = db.batch();
-        let count = 0;
-        for (const id of modifiedIds) {
-          const data = kondisiData[id];
-          if (!data) continue;
-          const ref = kondisiRef.doc(id);
-          batch.set(ref, data, { merge: true });
-          count++;
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
         }
-        await batch.commit();
-        showToast(`${count} perubahan berhasil disimpan`, 'success');
-        modifiedIds.clear();
-        isDirty = false;
-        // Reset original
-        Object.keys(kondisiData).forEach(id => {
-          originalKondisi[id] = JSON.parse(JSON.stringify(kondisiData[id]));
+
+        function formatRupiah(angka) {
+            if (angka === undefined || angka === null || isNaN(angka)) return '0';
+            return Number(angka).toLocaleString('id-ID');
+        }
+
+        function parseAngka(str) {
+            if (typeof str === 'string') {
+                str = str.replace(/\./g, '').replace(/\s/g, '');
+                str = str.replace(',', '.');
+            }
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
+        }
+
+        // ============================================================
+        // ADMIN SESSION
+        // ============================================================
+        const ADMIN_PASS = 'sarpras123';
+        const SESSION_KEY = 'nbs_admin_session';
+        let isAdmin = false;
+
+        function getAdminSession() {
+            return localStorage.getItem(SESSION_KEY) === 'true';
+        }
+
+        function setAdminSession(val) {
+            localStorage.setItem(SESSION_KEY, val ? 'true' : 'false');
+            isAdmin = val;
+            updateAdminUI();
+        }
+
+        function logoutAdmin() {
+            setAdminSession(false);
+            showToast('Anda logout dari mode admin', 'info');
+            window.location.reload();
+        }
+
+        function updateAdminUI() {
+            const btn = document.getElementById('adminToggle');
+            if (isAdmin) {
+                btn.textContent = '🔓 Admin (aktif)';
+                btn.classList.add('active');
+                btn.onclick = () => {
+                    if (confirm('Logout dari mode admin?')) logoutAdmin();
+                };
+            } else {
+                btn.textContent = '🔐 Admin';
+                btn.classList.remove('active');
+                btn.onclick = () => {
+                    const pass = prompt('Masukkan password admin:');
+                    if (pass === ADMIN_PASS) {
+                        setAdminSession(true);
+                        showToast('Mode admin aktif', 'success');
+                    } else if (pass !== null) {
+                        showToast('Password salah!', 'error');
+                    }
+                };
+            }
+            // Update button visibility
+            document.querySelectorAll('.delete-row, .add-row-below, .restore-row, .permanent-delete, .soft-delete').forEach(btn => {
+                btn.style.display = isAdmin ? 'inline-block' : 'none';
+            });
+            document.getElementById('defBtn').style.display = isAdmin ? 'inline-block' : 'none';
+            document.querySelectorAll('td select').forEach(sel => {
+                sel.disabled = !isAdmin;
+            });
+            const firstBtn = document.getElementById('firstRowBtn');
+            if (firstBtn) {
+                firstBtn.style.display = isAdmin ? 'inline-block' : 'none';
+                firstBtn.disabled = !isAdmin;
+            }
+        }
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let currentTab = 'aktif';
+        let sortField = 'namaBarang';
+        let sortAsc = true;
+        let filterRuang = '';
+        let allItems = [];
+        let originalData = {};
+        let modifiedIds = new Set();
+        let isDirty = false;
+
+        let nonaktifItems = [];
+        let nonaktifOriginalData = {};
+        let nonaktifModifiedIds = new Set();
+        let nonaktifIsDirty = false;
+
+        let definitions = {
+            ruangan: [],
+            gedung: [],
+            jenis: [],
+            sumberDana: [],
+            barang: []
+        };
+        let ruangNames = [];
+        let ruangGedungMap = {};
+        let barangJenisMap = {};
+        let definitionsReady = false;
+
+        const tbody = document.getElementById('inventoryBody');
+        const nonaktifBody = document.getElementById('nonaktifBody');
+        const searchInput = document.getElementById('searchInput');
+        const filterRuangSelect = document.getElementById('filterRuang');
+        const filterInfo = document.getElementById('filterInfo');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const defBtn = document.getElementById('defBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const emptyMsg = document.getElementById('emptyMessage');
+        const emptyNonaktif = document.getElementById('emptyNonaktif');
+
+        const inventoryRef = db.collection('inventory');
+        const nonaktifRef = db.collection('inventory_nonaktif');
+        let unsubscribeInventory = null;
+        let unsubscribeNonaktif = null;
+        let unsubscribeListeners = [];
+
+        // Modal soft delete
+        const modalSoft = document.getElementById('modalSoft');
+        const softItemId = document.getElementById('softItemId');
+        const softTanggal = document.getElementById('softTanggal');
+        const softAlasan = document.getElementById('softAlasan');
+        const softCancel = document.getElementById('softCancel');
+        const softConfirm = document.getElementById('softConfirm');
+        let flatpickrInstance = null;
+
+        // ============================================================
+        // FUNGSI TAB
+        // ============================================================
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById('pane-' + tab).classList.add('active');
+            document.querySelectorAll('.tab-nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            if (tab === 'aktif') {
+                applyFiltersAndSort();
+            } else {
+                renderNonaktifItems();
+            }
+            updateAdminUI();
+        }
+
+        // ============================================================
+        // LISTENER DEFINISI (REALTIME)
+        // ============================================================
+        function startDefinitionListeners() {
+            const unsubRuang = db.collection('ruangan').orderBy('nama').onSnapshot(snap => {
+                definitions.ruangan = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, gedung: d.data().gedung || '' }));
+                ruangGedungMap = {};
+                definitions.ruangan.forEach(r => {
+                    ruangGedungMap[r.nama] = r.gedung || '';
+                });
+                ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean);
+                populateFilterRuang();
+                if (definitionsReady) refreshAfterDefinitionChange();
+            }, err => showToast('Gagal memuat ruangan: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubRuang);
+
+            const unsubBarang = db.collection('barang').orderBy('nama').onSnapshot(snap => {
+                definitions.barang = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, jenis: d.data().jenis || '' }));
+                barangJenisMap = {};
+                definitions.barang.forEach(b => {
+                    barangJenisMap[b.nama] = b.jenis || '';
+                });
+                if (definitionsReady) refreshAfterDefinitionChange();
+            }, err => showToast('Gagal memuat barang: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubBarang);
+
+            const unsubSumber = db.collection('sumber_dana').orderBy('nama').onSnapshot(snap => {
+                definitions.sumberDana = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                if (definitionsReady) refreshAfterDefinitionChange();
+            }, err => showToast('Gagal memuat sumber dana: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubSumber);
+
+            const unsubGedung = db.collection('gedung').orderBy('nama').onSnapshot(snap => {
+                definitions.gedung = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+            }, err => showToast('Gagal memuat gedung: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubGedung);
+
+            definitionsReady = true;
+        }
+
+        function refreshAfterDefinitionChange() {
+            if (currentTab === 'aktif') applyFiltersAndSort();
+            else renderNonaktifItems();
+        }
+
+        // ============================================================
+        // LOAD INVENTORY (AKTIF)
+        // ============================================================
+        function loadInventory() {
+            if (unsubscribeInventory) unsubscribeInventory();
+            unsubscribeInventory = inventoryRef.onSnapshot(snapshot => {
+                allItems = [];
+                originalData = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    allItems.push({ id: doc.id, data: data });
+                    originalData[doc.id] = JSON.parse(JSON.stringify(data));
+                });
+                modifiedIds.clear();
+                isDirty = false;
+                updateSaveUI();
+                if (currentTab === 'aktif') applyFiltersAndSort();
+            }, err => {
+                console.error('Snapshot error:', err);
+                showToast('Gagal memuat data aktif: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // LOAD NONAKTIF INVENTORY
+        // ============================================================
+        function loadNonaktif() {
+            if (unsubscribeNonaktif) unsubscribeNonaktif();
+            unsubscribeNonaktif = nonaktifRef.orderBy('nonaktifAt', 'desc').onSnapshot(snapshot => {
+                nonaktifItems = [];
+                nonaktifOriginalData = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    nonaktifItems.push({ id: doc.id, data: data });
+                    nonaktifOriginalData[doc.id] = JSON.parse(JSON.stringify(data));
+                });
+                nonaktifModifiedIds.clear();
+                nonaktifIsDirty = false;
+                if (currentTab === 'nonaktif') renderNonaktifItems();
+            }, err => {
+                console.error('Snapshot error nonaktif:', err);
+                showToast('Gagal memuat data nonaktif: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // FILTER & SORT (AKTIF)
+        // ============================================================
+        function applyFiltersAndSort() {
+            const search = searchInput.value.toLowerCase().trim();
+            const ruangFilter = filterRuangSelect.value;
+
+            let filtered = allItems.slice();
+
+            if (ruangFilter) {
+                filtered = filtered.filter(item => item.data.ruang === ruangFilter);
+            }
+
+            if (search) {
+                filtered = filtered.filter(item =>
+                    (item.data.namaBarang && item.data.namaBarang.toLowerCase().includes(search)) ||
+                    (item.data.ruang && item.data.ruang.toLowerCase().includes(search)) ||
+                    (item.data.lokasiGedung && item.data.lokasiGedung.toLowerCase().includes(search)) ||
+                    (item.data.jenis && item.data.jenis.toLowerCase().includes(search)) ||
+                    (item.data.asalPerolehan && item.data.asalPerolehan.toLowerCase().includes(search)) ||
+                    (item.data.anggaranSatuan && String(item.data.anggaranSatuan).includes(search))
+                );
+            }
+
+            if (sortField && sortField !== 'no') {
+                filtered.sort((a, b) => {
+                    let valA = a.data[sortField] ?? '';
+                    let valB = b.data[sortField] ?? '';
+                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat', 'anggaranSatuan'].includes(sortField)) {
+                        valA = Number(valA) || 0;
+                        valB = Number(valB) || 0;
+                        return sortAsc ? valA - valB : valB - valA;
+                    } else {
+                        valA = String(valA).toLowerCase();
+                        valB = String(valB).toLowerCase();
+                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                });
+            }
+
+            renderItems(filtered);
+            updateSortIcons();
+            updateFilterInfo(ruangFilter);
+            updateAdminUI();
+        }
+
+        // ============================================================
+        // RENDER AKTIF
+        // ============================================================
+        function renderItems(items) {
+            tbody.innerHTML = '';
+            if (items.length === 0) {
+                let btnHtml = '';
+                if (isAdmin) {
+                    btnHtml = `<button class="first-row-btn" id="firstRowBtn">➕ Tambah Baris Pertama</button>`;
+                }
+                emptyMsg.innerHTML = `Belum ada data. ${btnHtml}`;
+                emptyMsg.style.display = 'block';
+                const firstBtn = document.getElementById('firstRowBtn');
+                if (firstBtn) firstBtn.addEventListener('click', addFirstRow);
+                return;
+            }
+            emptyMsg.style.display = 'none';
+
+            items.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.dataset.id = item.id;
+
+                const selectFields = {
+                    namaBarang: { list: definitions.barang, placeholder: 'Pilih Barang' },
+                    asalPerolehan: { list: definitions.sumberDana, placeholder: 'Pilih Sumber Dana' },
+                    ruang: { list: definitions.ruangan, placeholder: 'Pilih Ruang' }
+                };
+
+                const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
+                    'asalPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
+                ];
+
+                const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat'];
+
+                let html = '';
+                fieldKeys.forEach((key) => {
+                    let value = item.data[key] ?? '';
+                    if (key === 'no') value = idx + 1;
+                    if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat'].includes(key)) {
+                        value = Number(value) || 0;
+                    }
+
+                    const isModified = modifiedIds.has(item.id);
+                    const extraClass = isModified ? ' modified' : '';
+                    let classAttr = '';
+
+                    if (key === 'anggaranSatuan') {
+                        classAttr = ' class="text-right' + extraClass + '"';
+                        value = formatRupiah(value);
+                    } else if (centerKeys.includes(key) || key === 'no') {
+                        classAttr = ' class="text-center' + extraClass + '"';
+                    } else {
+                        classAttr = ' class="' + extraClass + '"';
+                    }
+
+                    if (key === 'no') {
+                        html += `<td${classAttr}>${value}</td>`;
+                    } else if (selectFields[key]) {
+                        const selectData = selectFields[key];
+                        const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
+                        const disabled = isAdmin ? '' : 'disabled';
+                        html += `<td class="text-center${extraClass}">
+                            <select data-key="${key}" data-id="${item.id}" ${disabled}>
+                                ${optionsHtml}
+                            </select>
+                        </td>`;
+                    } else if (key === 'lokasiGedung' || key === 'jenis') {
+                        let displayVal = '';
+                        if (key === 'lokasiGedung') {
+                            displayVal = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
+                        } else if (key === 'jenis') {
+                            displayVal = barangJenisMap[item.data.namaBarang] || item.data.jenis || '';
+                        }
+                        html += `<td class="text-center${extraClass}">
+                            <span class="readonly-value" data-key="${key}" data-id="${item.id}">${displayVal}</span>
+                        </td>`;
+                    } else {
+                        const editable = isAdmin ? 'contenteditable="true"' : '';
+                        html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
+                    }
+                });
+
+                const actionCol = `
+                    <td class="text-center">
+                        <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
+                            <button class="add-row-below" data-id="${item.id}" title="Tambah baris">➕</button>
+                            <button class="soft-delete" data-id="${item.id}" title="Nonaktifkan">📤</button>
+                            <button class="delete-row" data-id="${item.id}" title="Hapus Permanen">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                html += actionCol;
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+
+            // Event listener
+            tbody.querySelectorAll('td select').forEach(sel => {
+                sel.addEventListener('change', onSelectChange);
+                if (sel.dataset.key === 'ruang') {
+                    sel.addEventListener('change', autoFillGedung);
+                }
+                if (sel.dataset.key === 'namaBarang') {
+                    sel.addEventListener('change', autoFillJenis);
+                }
+            });
+
+            tbody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
+                td.addEventListener('input', onCellInput);
+                td.addEventListener('blur', onCellBlur);
+                if (!isAdmin) td.contentEditable = 'false';
+            });
+
+            tbody.querySelectorAll('.add-row-below').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    addRowBelow(id);
+                });
+            });
+
+            tbody.querySelectorAll('.soft-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    openSoftModal(id);
+                });
+            });
+
+            tbody.querySelectorAll('.delete-row').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    if (confirm('Hapus permanen data ini? Tindakan tidak bisa dibatalkan.')) {
+                        permanentDeleteActive(id);
+                    }
+                });
+            });
+
+            // Sinkronkan select
+            tbody.querySelectorAll('tr').forEach(tr => {
+                const id = tr.dataset.id;
+                const item = allItems.find(it => it.id === id);
+                if (!item) return;
+                const ruangSelect = tr.querySelector('select[data-key="ruang"]');
+                if (ruangSelect && item.data.ruang) ruangSelect.value = item.data.ruang;
+                const barangSelect = tr.querySelector('select[data-key="namaBarang"]');
+                if (barangSelect && item.data.namaBarang) barangSelect.value = item.data.namaBarang;
+            });
+        }
+
+        // ============================================================
+        // RENDER NONAKTIF
+        // ============================================================
+        function renderNonaktifItems() {
+            nonaktifBody.innerHTML = '';
+            if (nonaktifItems.length === 0) {
+                emptyNonaktif.style.display = 'block';
+                return;
+            }
+            emptyNonaktif.style.display = 'none';
+
+            const selectFields = {
+                namaBarang: { list: definitions.barang, placeholder: 'Pilih Barang' },
+                asalPerolehan: { list: definitions.sumberDana, placeholder: 'Pilih Sumber Dana' },
+                ruang: { list: definitions.ruangan, placeholder: 'Pilih Ruang' }
+            };
+
+            const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
+                'asalPerolehan', 'ruang', 'lokasiGedung', 'jenis'
+            ];
+            const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan'];
+
+            nonaktifItems.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.dataset.id = item.id;
+                let html = '';
+                fieldKeys.forEach((key) => {
+                    let value = item.data[key] ?? '';
+                    if (key === 'no') value = idx + 1;
+                    if (['jumlahBarang', 'tahunPerolehan'].includes(key)) {
+                        value = Number(value) || 0;
+                    }
+                    const isModified = nonaktifModifiedIds.has(item.id);
+                    const extraClass = isModified ? ' modified' : '';
+                    let classAttr = '';
+
+                    if (key === 'anggaranSatuan') {
+                        classAttr = ' class="text-right' + extraClass + '"';
+                        value = formatRupiah(value);
+                    } else if (centerKeys.includes(key) || key === 'no') {
+                        classAttr = ' class="text-center' + extraClass + '"';
+                    } else {
+                        classAttr = ' class="' + extraClass + '"';
+                    }
+
+                    if (key === 'no') {
+                        html += `<td${classAttr}>${value}</td>`;
+                    } else if (selectFields[key]) {
+                        const selectData = selectFields[key];
+                        const optionsHtml = buildSelectOptions(selectData.list, value, selectData.placeholder);
+                        const disabled = isAdmin ? '' : 'disabled';
+                        html += `<td class="text-center${extraClass}">
+                            <select data-key="${key}" data-id="${item.id}" ${disabled}>
+                                ${optionsHtml}
+                            </select>
+                        </td>`;
+                    } else if (key === 'lokasiGedung' || key === 'jenis') {
+                        let displayVal = '';
+                        if (key === 'lokasiGedung') {
+                            displayVal = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
+                        } else if (key === 'jenis') {
+                            displayVal = barangJenisMap[item.data.namaBarang] || item.data.jenis || '';
+                        }
+                        html += `<td class="text-center${extraClass}">
+                            <span class="readonly-value" data-key="${key}" data-id="${item.id}">${displayVal}</span>
+                        </td>`;
+                    } else {
+                        const editable = isAdmin ? 'contenteditable="true"' : '';
+                        html += `<td ${editable} data-key="${key}" data-id="${item.id}"${classAttr}>${value}</td>`;
+                    }
+                });
+
+                const actionCol = `
+                    <td class="text-center">
+                        <div class="actions-cell" style="display:${isAdmin ? 'flex' : 'none'};">
+                            <button class="restore-row" data-id="${item.id}" title="Kembalikan">↩️</button>
+                            <button class="permanent-delete" data-id="${item.id}" title="Hapus permanen">❌</button>
+                        </div>
+                    </td>
+                `;
+                html += actionCol;
+                tr.innerHTML = html;
+                nonaktifBody.appendChild(tr);
+            });
+
+            // Event listener select
+            nonaktifBody.querySelectorAll('td select').forEach(sel => {
+                sel.addEventListener('change', onNonaktifSelectChange);
+                if (sel.dataset.key === 'ruang') {
+                    sel.addEventListener('change', nonaktifAutoFillGedung);
+                }
+                if (sel.dataset.key === 'namaBarang') {
+                    sel.addEventListener('change', nonaktifAutoFillJenis);
+                }
+            });
+
+            nonaktifBody.querySelectorAll('td[contenteditable="true"]').forEach(td => {
+                td.addEventListener('input', onNonaktifCellInput);
+                td.addEventListener('blur', onNonaktifCellBlur);
+                if (!isAdmin) td.contentEditable = 'false';
+            });
+
+            nonaktifBody.querySelectorAll('.restore-row').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    restoreItem(id);
+                });
+            });
+
+            nonaktifBody.querySelectorAll('.permanent-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isAdmin) return;
+                    const id = e.target.dataset.id;
+                    if (confirm('Hapus permanen data ini? Tindakan tidak bisa dibatalkan.')) {
+                        permanentDeleteNonaktif(id);
+                    }
+                });
+            });
+
+            // Sinkronkan select
+            nonaktifBody.querySelectorAll('tr').forEach(tr => {
+                const id = tr.dataset.id;
+                const item = nonaktifItems.find(it => it.id === id);
+                if (!item) return;
+                const ruangSelect = tr.querySelector('select[data-key="ruang"]');
+                if (ruangSelect && item.data.ruang) ruangSelect.value = item.data.ruang;
+                const barangSelect = tr.querySelector('select[data-key="namaBarang"]');
+                if (barangSelect && item.data.namaBarang) barangSelect.value = item.data.namaBarang;
+            });
+        }
+
+        // ============================================================
+        // EVENT HANDLER NONAKTIF
+        // ============================================================
+        function onNonaktifSelectChange(e) {
+            const sel = e.target;
+            const id = sel.dataset.id;
+            const key = sel.dataset.key;
+            const newValue = sel.value;
+            const item = nonaktifItems.find(it => it.id === id);
+            if (!item) return;
+            item.data[key] = newValue;
+            nonaktifModifiedIds.add(id);
+            sel.classList.add('modified');
+            nonaktifIsDirty = true;
+            updateSaveUI();
+            const orig = nonaktifOriginalData[id];
+            if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                nonaktifModifiedIds.delete(id);
+                sel.classList.remove('modified');
+                if (nonaktifModifiedIds.size === 0) nonaktifIsDirty = false;
+                updateSaveUI();
+            }
+        }
+
+        function nonaktifAutoFillGedung(e) {
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const id = tr.dataset.id;
+            const ruangVal = sel.value;
+            const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
+            if (!gedungSpan) return;
+            const gedung = ruangGedungMap[ruangVal] || '';
+            gedungSpan.textContent = gedung;
+            const item = nonaktifItems.find(it => it.id === id);
+            if (item) {
+                item.data.lokasiGedung = gedung;
+                nonaktifModifiedIds.add(id);
+                nonaktifIsDirty = true;
+                updateSaveUI();
+            }
+        }
+
+        function nonaktifAutoFillJenis(e) {
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const id = tr.dataset.id;
+            const barangVal = sel.value;
+            const jenisSpan = tr.querySelector('span[data-key="jenis"]');
+            if (!jenisSpan) return;
+            const jenis = barangJenisMap[barangVal] || '';
+            jenisSpan.textContent = jenis;
+            const item = nonaktifItems.find(it => it.id === id);
+            if (item) {
+                item.data.jenis = jenis;
+                nonaktifModifiedIds.add(id);
+                nonaktifIsDirty = true;
+                updateSaveUI();
+            }
+        }
+
+        function onNonaktifCellInput(e) {
+            const td = e.target;
+            const id = td.dataset.id;
+            const key = td.dataset.key;
+            let rawText = td.textContent.trim();
+            const item = nonaktifItems.find(it => it.id === id);
+            if (!item) return;
+            if (key === 'anggaranSatuan') {
+                item.data[key] = parseAngka(rawText);
+            } else {
+                let parsedValue = rawText;
+                if (['jumlahBarang', 'tahunPerolehan'].includes(key)) {
+                    parsedValue = parseFloat(rawText) || 0;
+                }
+                item.data[key] = parsedValue;
+            }
+            nonaktifModifiedIds.add(id);
+            td.classList.add('modified');
+            nonaktifIsDirty = true;
+            updateSaveUI();
+            const orig = nonaktifOriginalData[id];
+            if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                nonaktifModifiedIds.delete(id);
+                td.classList.remove('modified');
+                if (nonaktifModifiedIds.size === 0) nonaktifIsDirty = false;
+                updateSaveUI();
+            }
+        }
+
+        function onNonaktifCellBlur(e) {
+            const td = e.target;
+            const key = td.dataset.key;
+            if (key === 'anggaranSatuan') {
+                const id = td.dataset.id;
+                const item = nonaktifItems.find(it => it.id === id);
+                if (item) {
+                    td.textContent = formatRupiah(item.data[key] || 0);
+                }
+            }
+        }
+
+        // ============================================================
+        // MODAL SOFT DELETE
+        // ============================================================
+        function openSoftModal(id) {
+            softItemId.value = id;
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            softTanggal.value = `${yyyy}-${mm}-${dd}`;
+            softAlasan.value = 'Rusak';
+            modalSoft.classList.add('show');
+            if (!flatpickrInstance) {
+                flatpickrInstance = flatpickr(softTanggal, {
+                    dateFormat: 'Y-m-d',
+                    locale: 'id',
+                    defaultDate: today
+                });
+            } else {
+                flatpickrInstance.setDate(today);
+            }
+        }
+
+        function closeSoftModal() {
+            modalSoft.classList.remove('show');
+        }
+
+        softCancel.addEventListener('click', closeSoftModal);
+        modalSoft.addEventListener('click', (e) => {
+            if (e.target === modalSoft) closeSoftModal();
         });
-        updateSaveUI();
-      } catch (err) {
-        showToast('Gagal menyimpan: '+err.message, 'error');
-      } finally {
-        showLoading(false);
-      }
-    }
 
-    // ============================================================
-    // UPDATE SAVE UI
-    // ============================================================
-    function updateSaveUI() {
-      if (isDirty && modifiedIds.size > 0) {
-        saveBtn.classList.add('dirty');
-        saveBtn.textContent = `💾 Simpan (${modifiedIds.size})`;
-        statusIndicator.textContent = `⚠️ ${modifiedIds.size} perubahan belum disimpan`;
-        statusIndicator.className = 'status dirty';
-      } else {
-        saveBtn.classList.remove('dirty');
-        saveBtn.textContent = '💾 Simpan';
-        statusIndicator.textContent = '✅ Semua tersimpan';
-        statusIndicator.className = 'status';
-      }
-    }
+        softConfirm.addEventListener('click', async () => {
+            const id = softItemId.value;
+            if (!id) return;
+            const tanggal = softTanggal.value;
+            const alasan = softAlasan.value;
+            if (!tanggal) {
+                showToast('Tanggal harus diisi', 'error');
+                return;
+            }
+            try {
+                showLoading(true);
+                const docSnap = await inventoryRef.doc(id).get();
+                if (!docSnap.exists) {
+                    showToast('Data tidak ditemukan', 'error');
+                    return;
+                }
+                const data = docSnap.data();
+                const nonaktifData = {
+                    ...data,
+                    nonaktifAt: new Date(tanggal + 'T00:00:00'),
+                    alasanNonaktif: alasan,
+                    originalId: id
+                };
+                await nonaktifRef.add(nonaktifData);
+                await inventoryRef.doc(id).delete();
+                showToast('Data dinonaktifkan', 'success');
+                closeSoftModal();
+            } catch (err) {
+                showToast('Gagal: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        });
 
-    // ============================================================
-    // SEARCH
-    // ============================================================
-    searchInput.addEventListener('input', renderTable);
+        // ============================================================
+        // RESTORE & PERMANENT DELETE (NONAKTIF)
+        // ============================================================
+        async function restoreItem(id) {
+            if (!confirm('Kembalikan data ini ke data aktif?')) return;
+            try {
+                showLoading(true);
+                const docSnap = await nonaktifRef.doc(id).get();
+                if (!docSnap.exists) {
+                    showToast('Data tidak ditemukan', 'error');
+                    return;
+                }
+                const data = docSnap.data();
+                const { nonaktifAt, alasanNonaktif, originalId, ...restoreData } = data;
+                await inventoryRef.add(restoreData);
+                await nonaktifRef.doc(id).delete();
+                showToast('Data berhasil dikembalikan', 'success');
+            } catch (err) {
+                showToast('Gagal restore: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
 
-    // ============================================================
-    // ADMIN TOGGLE
-    // ============================================================
-    document.getElementById('adminToggle').addEventListener('click', () => {
-      // handler di updateAdminUI
-    });
+        async function permanentDeleteNonaktif(id) {
+            if (!confirm('Hapus permanen data ini? Tindakan tidak bisa dibatalkan.')) return;
+            try {
+                showLoading(true);
+                await nonaktifRef.doc(id).delete();
+                showToast('Data dihapus permanen', 'success');
+            } catch (err) {
+                showToast('Gagal hapus permanen: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
 
-    // ============================================================
-    // SAVE BUTTON
-    // ============================================================
-    saveBtn.addEventListener('click', saveChanges);
+        async function permanentDeleteActive(id) {
+            if (!confirm('Hapus permanen data ini? Tindakan tidak bisa dibatalkan.')) return;
+            try {
+                showLoading(true);
+                await inventoryRef.doc(id).delete();
+                showToast('Data dihapus permanen', 'success');
+            } catch (err) {
+                showToast('Gagal hapus permanen: ' + err.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
 
-    // ============================================================
-    // WINDOW BEFORE UNLOAD
-    // ============================================================
-    window.addEventListener('beforeunload', (e) => {
-      if (isDirty && modifiedIds.size > 0) {
-        e.preventDefault();
-        e.returnValue = 'Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
-        return e.returnValue;
-      }
-    });
+        // ============================================================
+        // AUTO-FILL FUNCTIONS (AKTIF)
+        // ============================================================
+        function autoFillGedung(e) {
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const id = tr.dataset.id;
+            const ruangVal = sel.value;
+            const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
+            if (!gedungSpan) return;
+            const gedung = ruangGedungMap[ruangVal] || '';
+            gedungSpan.textContent = gedung;
+            const item = allItems.find(it => it.id === id);
+            if (item) {
+                item.data.lokasiGedung = gedung;
+                modifiedIds.add(id);
+                isDirty = true;
+                updateSaveUI();
+            }
+        }
 
-    // ============================================================
-    // INIT
-    // ============================================================
-    isAdmin = getAdminSession();
-    updateAdminUI();
-    startListeners();
+        function autoFillJenis(e) {
+            const sel = e.target;
+            const tr = sel.closest('tr');
+            const id = tr.dataset.id;
+            const barangVal = sel.value;
+            const jenisSpan = tr.querySelector('span[data-key="jenis"]');
+            if (!jenisSpan) return;
+            const jenis = barangJenisMap[barangVal] || '';
+            jenisSpan.textContent = jenis;
+            const item = allItems.find(it => it.id === id);
+            if (item) {
+                item.data.jenis = jenis;
+                modifiedIds.add(id);
+                isDirty = true;
+                updateSaveUI();
+            }
+        }
 
-    console.log('Halaman kondisi & keamanan ruangan loaded.');
-  </script>
+        // ============================================================
+        // EVENT HANDLER SELECT (AKTIF)
+        // ============================================================
+        function onSelectChange(e) {
+            const sel = e.target;
+            const id = sel.dataset.id;
+            const key = sel.dataset.key;
+            const newValue = sel.value;
+            const item = allItems.find(it => it.id === id);
+            if (!item) return;
+            item.data[key] = newValue;
+            modifiedIds.add(id);
+            sel.classList.add('modified');
+            isDirty = true;
+            updateSaveUI();
+            const orig = originalData[id];
+            if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                modifiedIds.delete(id);
+                sel.classList.remove('modified');
+                if (modifiedIds.size === 0) isDirty = false;
+                updateSaveUI();
+            }
+        }
+
+        // ============================================================
+        // EVENT HANDLER CONTENTEDITABLE (AKTIF)
+        // ============================================================
+        function onCellInput(e) {
+            const td = e.target;
+            const id = td.dataset.id;
+            const key = td.dataset.key;
+            let rawText = td.textContent.trim();
+            const item = allItems.find(it => it.id === id);
+            if (!item) return;
+            if (key === 'anggaranSatuan') {
+                item.data[key] = parseAngka(rawText);
+            } else {
+                let parsedValue = rawText;
+                if (['jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat'].includes(key)) {
+                    parsedValue = parseFloat(rawText) || 0;
+                }
+                item.data[key] = parsedValue;
+            }
+            modifiedIds.add(id);
+            td.classList.add('modified');
+            isDirty = true;
+            updateSaveUI();
+            const orig = originalData[id];
+            if (orig && JSON.stringify(orig) === JSON.stringify(item.data)) {
+                modifiedIds.delete(id);
+                td.classList.remove('modified');
+                if (modifiedIds.size === 0) isDirty = false;
+                updateSaveUI();
+            }
+        }
+
+        function onCellBlur(e) {
+            const td = e.target;
+            const key = td.dataset.key;
+            if (key === 'anggaranSatuan') {
+                const id = td.dataset.id;
+                const item = allItems.find(it => it.id === id);
+                if (item) {
+                    td.textContent = formatRupiah(item.data[key] || 0);
+                }
+            }
+        }
+
+        // ============================================================
+        // ADD ROW
+        // ============================================================
+        function addRowBelow(id) {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin', 'error');
+                return;
+            }
+            const sourceItem = allItems.find(it => it.id === id);
+            if (!sourceItem) {
+                showToast('Data sumber tidak ditemukan', 'error');
+                return;
+            }
+            const sourceData = sourceItem.data;
+            const newData = {
+                namaBarang: sourceData.namaBarang || '',
+                jumlahBarang: sourceData.jumlahBarang || 0,
+                tahunPerolehan: sourceData.tahunPerolehan || 0,
+                asalPerolehan: sourceData.asalPerolehan || '',
+                baik: sourceData.baik || 0,
+                rusakRingan: sourceData.rusakRingan || 0,
+                rusakSedang: sourceData.rusakSedang || 0,
+                rusakBerat: sourceData.rusakBerat || 0,
+                ruang: sourceData.ruang || '',
+                lokasiGedung: sourceData.lokasiGedung || '',
+                jenis: sourceData.jenis || '',
+                anggaranSatuan: sourceData.anggaranSatuan || 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            inventoryRef.add(newData).then(() => {
+                showToast('Baris baru ditambahkan (copy dari baris ini)', 'success');
+            }).catch(err => {
+                showToast('Gagal menambah baris: ' + err.message, 'error');
+            });
+        }
+
+        function addFirstRow() {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin', 'error');
+                return;
+            }
+            const newData = {
+                namaBarang: '',
+                jumlahBarang: 0,
+                tahunPerolehan: 0,
+                asalPerolehan: '',
+                baik: 0,
+                rusakRingan: 0,
+                rusakSedang: 0,
+                rusakBerat: 0,
+                ruang: '',
+                lokasiGedung: '',
+                jenis: '',
+                anggaranSatuan: 0,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            inventoryRef.add(newData).then(() => {
+                showToast('Baris pertama ditambahkan', 'success');
+            }).catch(err => {
+                showToast('Gagal menambah baris: ' + err.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // SAVE CHANGES (untuk kedua tab)
+        // ============================================================
+        async function saveChanges() {
+            if (!isAdmin) {
+                showToast('Anda harus login sebagai admin untuk menyimpan', 'error');
+                return;
+            }
+            if (currentTab === 'aktif') {
+                if (modifiedIds.size === 0 && !isDirty) {
+                    showToast('Tidak ada perubahan untuk disimpan', 'info');
+                    return;
+                }
+                showLoading(true);
+                try {
+                    const batch = db.batch();
+                    let count = 0;
+                    for (const id of modifiedIds) {
+                        const item = allItems.find(it => it.id === id);
+                        if (!item) continue;
+                        const ref = inventoryRef.doc(id);
+                        batch.update(ref, item.data);
+                        count++;
+                    }
+                    await batch.commit();
+                    showToast(`${count} perubahan berhasil disimpan`, 'success');
+                    modifiedIds.clear();
+                    isDirty = false;
+                    allItems.forEach(item => {
+                        originalData[item.id] = JSON.parse(JSON.stringify(item.data));
+                    });
+                    updateSaveUI();
+                    document.querySelectorAll('#inventoryBody td select.modified, #inventoryBody td.modified').forEach(el => el.classList.remove('modified'));
+                } catch (err) {
+                    showToast('Gagal menyimpan: ' + err.message, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            } else {
+                if (nonaktifModifiedIds.size === 0 && !nonaktifIsDirty) {
+                    showToast('Tidak ada perubahan untuk disimpan', 'info');
+                    return;
+                }
+                showLoading(true);
+                try {
+                    const batch = db.batch();
+                    let count = 0;
+                    for (const id of nonaktifModifiedIds) {
+                        const item = nonaktifItems.find(it => it.id === id);
+                        if (!item) continue;
+                        const ref = nonaktifRef.doc(id);
+                        batch.update(ref, item.data);
+                        count++;
+                    }
+                    await batch.commit();
+                    showToast(`${count} perubahan berhasil disimpan`, 'success');
+                    nonaktifModifiedIds.clear();
+                    nonaktifIsDirty = false;
+                    nonaktifItems.forEach(item => {
+                        nonaktifOriginalData[item.id] = JSON.parse(JSON.stringify(item.data));
+                    });
+                    updateSaveUI();
+                    document.querySelectorAll('#nonaktifBody td select.modified, #nonaktifBody td.modified').forEach(el => el.classList.remove('modified'));
+                } catch (err) {
+                    showToast('Gagal menyimpan: ' + err.message, 'error');
+                } finally {
+                    showLoading(false);
+                }
+            }
+        }
+
+        // ============================================================
+        // UPDATE SAVE UI
+        // ============================================================
+        function updateSaveUI() {
+            const hasDirty = (currentTab === 'aktif' && isDirty && modifiedIds.size > 0) ||
+                (currentTab === 'nonaktif' && nonaktifIsDirty && nonaktifModifiedIds.size > 0);
+            const count = currentTab === 'aktif' ? modifiedIds.size : nonaktifModifiedIds.size;
+            if (hasDirty) {
+                saveBtn.classList.add('dirty');
+                saveBtn.textContent = `💾 Simpan (${count})`;
+                statusIndicator.textContent = `⚠️ ${count} perubahan belum disimpan`;
+                statusIndicator.className = 'status dirty';
+            } else {
+                saveBtn.classList.remove('dirty');
+                saveBtn.textContent = '💾 Simpan';
+                statusIndicator.textContent = '✅ Semua tersimpan';
+                statusIndicator.className = 'status';
+            }
+        }
+
+        // ============================================================
+        // SORT ICONS
+        // ============================================================
+        function updateSortIcons() {
+            document.querySelectorAll('#inventoryTable th[data-field]').forEach(th => {
+                const field = th.dataset.field;
+                const icon = th.querySelector('.sort-icon');
+                if (!icon) return;
+                if (field === sortField) {
+                    icon.textContent = sortAsc ? ' ▲' : ' ▼';
+                    icon.classList.add('active');
+                } else {
+                    icon.textContent = ' ↕';
+                    icon.classList.remove('active');
+                }
+            });
+        }
+
+        // ============================================================
+        // UTILITY
+        // ============================================================
+        function populateFilterRuang() {
+            const sorted = ruangNames.slice().sort((a, b) => a.localeCompare(b));
+            filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
+            sorted.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                filterRuangSelect.appendChild(opt);
+            });
+            if (filterRuang) filterRuangSelect.value = filterRuang;
+        }
+
+        function buildSelectOptions(list, selectedValue, placeholder = '') {
+            const sorted = list.slice().sort((a, b) => a.nama.localeCompare(b.nama));
+            let html = `<option value="">${placeholder}</option>`;
+            sorted.forEach(item => {
+                const sel = (item.nama === selectedValue) ? 'selected' : '';
+                html += `<option value="${item.nama}" ${sel}>${item.nama}</option>`;
+            });
+            return html;
+        }
+
+        function updateFilterInfo(ruang) {
+            if (ruang) {
+                filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
+                filterInfo.style.display = 'inline-block';
+                resetFilterBtn.style.display = 'inline-block';
+            } else {
+                filterInfo.style.display = 'none';
+                resetFilterBtn.style.display = 'none';
+            }
+        }
+
+        // ============================================================
+        // EVENT LISTENERS
+        // ============================================================
+        document.querySelectorAll('.tab-nav button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+            });
+        });
+
+        document.querySelectorAll('#inventoryTable th[data-field]').forEach(th => {
+            th.addEventListener('click', () => {
+                const field = th.dataset.field;
+                if (field === 'no') return;
+                if (sortField === field) sortAsc = !sortAsc;
+                else {
+                    sortField = field;
+                    sortAsc = true;
+                }
+                applyFiltersAndSort();
+            });
+        });
+
+        filterRuangSelect.addEventListener('change', () => {
+            filterRuang = filterRuangSelect.value;
+            applyFiltersAndSort();
+        });
+
+        resetFilterBtn.addEventListener('click', () => {
+            filterRuangSelect.value = '';
+            filterRuang = '';
+            applyFiltersAndSort();
+        });
+
+        searchInput.addEventListener('input', () => {
+            if (currentTab === 'aktif') applyFiltersAndSort();
+            else renderNonaktifItems();
+        });
+
+        saveBtn.addEventListener('click', saveChanges);
+
+        defBtn.addEventListener('click', () => {
+            if (!isAdmin) {
+                showToast('Harus login sebagai admin', 'error');
+                return;
+            }
+            window.location.href = 'definisi.html';
+        });
+
+        window.addEventListener('beforeunload', (e) => {
+            const hasDirty = (currentTab === 'aktif' && isDirty && modifiedIds.size > 0) ||
+                (currentTab === 'nonaktif' && nonaktifIsDirty && nonaktifModifiedIds.size > 0);
+            if (hasDirty) {
+                e.preventDefault();
+                e.returnValue = 'Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
+                return e.returnValue;
+            }
+        });
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        isAdmin = getAdminSession();
+        updateAdminUI();
+
+        loadInventory();
+        loadNonaktif();
+        startDefinitionListeners();
+
+        switchTab('aktif');
+
+        setTimeout(() => {
+            if (allItems.length > 0 && definitionsReady) {
+                applyFiltersAndSort();
+            }
+        }, 1000);
+
+        console.log('Sarpras page loaded dengan fitur nonaktif.');
+    </script>
 </body>
 </html>
