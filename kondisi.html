@@ -76,75 +76,6 @@
       width: 100%;
     }
 
-    /* ===== STATISTIK ===== */
-    .stats-container {
-      background: #fff;
-      border-radius: 16px;
-      padding: 20px 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px 40px;
-    }
-    .stats-container .total {
-      grid-column: 1 / -1;
-      font-size: 18px;
-      font-weight: 700;
-      color: #1a3d2e;
-      border-bottom: 1px solid #eef4ee;
-      padding-bottom: 10px;
-      margin-bottom: 4px;
-    }
-    .stats-container .total span {
-      font-size: 28px;
-      color: #2d6a4f;
-    }
-    .stats-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .stats-group h3 {
-      font-size: 15px;
-      font-weight: 600;
-      color: #2a4a3a;
-      margin-bottom: 2px;
-    }
-    .stat-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 14px;
-    }
-    .stat-row .label {
-      min-width: 100px;
-      font-weight: 500;
-      color: #3a5a3a;
-    }
-    .stat-row .bar-wrapper {
-      flex: 1;
-      height: 20px;
-      background: #eef4ee;
-      border-radius: 30px;
-      overflow: hidden;
-      position: relative;
-    }
-    .stat-row .bar-fill {
-      height: 100%;
-      border-radius: 30px;
-      transition: width 0.4s ease;
-    }
-    .stat-row .value {
-      min-width: 60px;
-      text-align: right;
-      font-weight: 600;
-      color: #1a3d2e;
-    }
-    .stat-row .value.angka {
-      min-width: 40px;
-    }
-
     /* ===== TOOLBAR ===== */
     .toolbar {
       display: flex;
@@ -558,19 +489,6 @@
       .container {
         padding: 16px;
       }
-      .stats-container {
-        grid-template-columns: 1fr;
-        gap: 16px;
-        padding: 16px;
-      }
-      .stat-row .label {
-        min-width: 80px;
-        font-size: 13px;
-      }
-      .stat-row .value {
-        min-width: 50px;
-        font-size: 13px;
-      }
       .toolbar {
         flex-direction: column;
         align-items: stretch;
@@ -596,9 +514,6 @@
       }
     }
     @media (max-width: 480px) {
-      .stats-container {
-        padding: 12px;
-      }
       .stat-row {
         flex-wrap: wrap;
         gap: 4px;
@@ -628,51 +543,6 @@
   </header>
 
   <div class="container">
-    <!-- ===== STATISTIK ===== -->
-    <div class="stats-container" id="statsContainer">
-      <div class="total">🏠 Total Ruangan: <span id="statTotal">0</span></div>
-
-      <div class="stats-group">
-        <h3>🏗️ Kondisi Fisik</h3>
-        <div class="stat-row" id="rowBaik">
-          <span class="label">Baik</span>
-          <div class="bar-wrapper"><div class="bar-fill" id="barBaik" style="width:0%;"></div></div>
-          <span class="value" id="valBaik">0%</span>
-        </div>
-        <div class="stat-row" id="rowRingan">
-          <span class="label">Rusak Ringan</span>
-          <div class="bar-wrapper"><div class="bar-fill" id="barRingan" style="width:0%;"></div></div>
-          <span class="value" id="valRingan">0%</span>
-        </div>
-        <div class="stat-row" id="rowSedang">
-          <span class="label">Rusak Sedang</span>
-          <div class="bar-wrapper"><div class="bar-fill" id="barSedang" style="width:0%;"></div></div>
-          <span class="value" id="valSedang">0%</span>
-        </div>
-        <div class="stat-row" id="rowBerat">
-          <span class="label">Rusak Berat</span>
-          <div class="bar-wrapper"><div class="bar-fill" id="barBerat" style="width:0%;"></div></div>
-          <span class="value" id="valBerat">0%</span>
-        </div>
-      </div>
-
-      <div class="stats-group">
-        <h3>⚡ Keamanan Listrik</h3>
-        <div class="stat-row">
-          <span class="label">Aman</span>
-          <span class="value angka" id="statListrikAman">0</span>
-        </div>
-        <div class="stat-row">
-          <span class="label">Kurang Aman</span>
-          <span class="value angka" id="statListrikKurang">0</span>
-        </div>
-        <div class="stat-row">
-          <span class="label">Tidak Aman</span>
-          <span class="value angka" id="statListrikTidak">0</span>
-        </div>
-      </div>
-    </div>
-
     <!-- ===== TOOLBAR ===== -->
     <div class="toolbar">
       <div class="left">
@@ -706,7 +576,7 @@
           <tr>
             <th style="width:40px;">No</th>
             <th>Nama Ruangan</th>
-            <th style="min-width:120px;">Kondisi Fisik (%)</th>
+            <th style="min-width:120px;">Kerusakan Fisik (%)</th>
             <th style="min-width:130px;">Detail Kondisi</th>
             <th style="min-width:120px;">Keamanan Listrik</th>
             <th style="min-width:100px;">Rencana Perbaikan</th>
@@ -872,7 +742,7 @@
         case 'Baik': return 0;
         case 'Rusak Ringan': return 30;
         case 'Rusak Sedang': return 50;
-        case 'Rusak Berat': return 80; // sesuai permintaan 80% untuk rusak berat
+        case 'Rusak Berat': return 80;
         default: return 0;
       }
     }
@@ -881,7 +751,7 @@
     function getDamagePercentage(pondasi, lantai, dinding, plafon, atap) {
       const total = statusToDamage(pondasi) + statusToDamage(lantai) + statusToDamage(dinding) + 
                     statusToDamage(plafon) + statusToDamage(atap);
-      return total / 5; // rata-rata (masing-masing 20% bobot)
+      return total / 5;
     }
 
     // ============================================================
@@ -1016,7 +886,6 @@
       filteredRows = allRows.filter(r => {
         if (search && !r.nama.toLowerCase().includes(search)) return false;
         if (filterKond) {
-          // Filter berdasarkan status terburuk (untuk konsistensi dengan statistik)
           const worst = getWorstStatus([r.pondasi, r.lantai, r.dinding, r.plafon, r.atap]);
           if (worst !== filterKond) return false;
         }
@@ -1024,10 +893,7 @@
         return true;
       });
 
-      // Update statistik
-      updateStats();
-
-      // Render tabel
+      // Render tabel (statistik dihapus)
       if (filteredRows.length === 0) {
         tbody.innerHTML = '';
         emptyMsg.style.display = 'block';
@@ -1039,12 +905,9 @@
 
       tbody.innerHTML = '';
       filteredRows.forEach((row, idx) => {
-        // Hitung persentase kerusakan rata-rata
         const damage = getDamagePercentage(row.pondasi, row.lantai, row.dinding, row.plafon, row.atap);
         const rounded = Math.round(damage);
         const color = getColor(damage);
-        // Status terburuk untuk keperluan badge (opsional, tapi kita tampilkan persentase)
-        // Kita tetap tampilkan badge persentase dengan warna latar sesuai persentase
 
         const detailHtml = [
           ['Pondasi', row.pondasi],
@@ -1098,53 +961,6 @@
         if (v > worstVal) { worstVal = v; worst = s; }
       });
       return worst;
-    }
-
-    // ============================================================
-    // STATISTIK (PERSENTASE + WARNA GRADASI) - tetap berdasarkan status terburuk
-    // ============================================================
-    function updateStats() {
-      const total = allRows.length;
-      document.getElementById('statTotal').textContent = total;
-
-      let baik = 0, rr = 0, rs = 0, rb = 0;
-      allRows.forEach(r => {
-        const statuses = [r.pondasi, r.lantai, r.dinding, r.plafon, r.atap];
-        const worst = getWorstStatus(statuses);
-        if (worst === 'Baik') baik++;
-        else if (worst === 'Rusak Ringan') rr++;
-        else if (worst === 'Rusak Sedang') rs++;
-        else if (worst === 'Rusak Berat') rb++;
-      });
-
-      const pBaik = total ? (baik / total) * 100 : 0;
-      const pRingan = total ? (rr / total) * 100 : 0;
-      const pSedang = total ? (rs / total) * 100 : 0;
-      const pBerat = total ? (rb / total) * 100 : 0;
-
-      updateBar('barBaik', 'valBaik', pBaik);
-      updateBar('barRingan', 'valRingan', pRingan);
-      updateBar('barSedang', 'valSedang', pSedang);
-      updateBar('barBerat', 'valBerat', pBerat);
-
-      let listrikAman = 0, listrikKurang = 0, listrikTidak = 0;
-      allRows.forEach(r => {
-        if (r.listrik === 'Aman') listrikAman++;
-        else if (r.listrik === 'Kurang Aman') listrikKurang++;
-        else if (r.listrik === 'Tidak Aman') listrikTidak++;
-      });
-      document.getElementById('statListrikAman').textContent = listrikAman;
-      document.getElementById('statListrikKurang').textContent = listrikKurang;
-      document.getElementById('statListrikTidak').textContent = listrikTidak;
-    }
-
-    function updateBar(barId, valId, percent) {
-      const bar = document.getElementById(barId);
-      const val = document.getElementById(valId);
-      const rounded = Math.round(percent);
-      bar.style.width = rounded + '%';
-      bar.style.background = getColor(percent);
-      val.textContent = rounded + '%';
     }
 
     // ============================================================
