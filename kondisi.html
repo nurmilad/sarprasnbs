@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kondisi & Keamanan Ruangan - Nurmilad</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    /* ===== RESET & BASE ===== */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f4f7f4;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #1a2e1a;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
+      color: #fff;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .header h1 { font-size: 22px; display: flex; align-items: center; gap: 12px; }
+    .header .back {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 6px 16px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 30px;
+      transition: 0.2s;
+    }
+    .header .back:hover { background: rgba(255,255,255,0.1); }
+    .header .admin-status {
+      background: rgba(255,200,0,0.15);
+      padding: 4px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(255,200,0,0.25);
+      color: #ffd966;
+      display: none;
+    }
+    .header .admin-status.show { display: inline-block; }
+
+    /* ===== CONTAINER ===== */
+    .container { flex:1; max-width:1400px; margin:0 auto; padding:24px; width:100%; }
+
+    /* ===== TOOLBAR ===== */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      background: #fff;
+      padding: 12px 20px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .toolbar .left {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      flex:1;
+    }
+    .toolbar .left input {
+      padding: 8px 16px;
+      border: 1px solid #ccc;
+      border-radius: 30px;
+      font-size: 14px;
+      flex:1;
+      min-width:180px;
+    }
+    .toolbar .left .filter-info {
+      font-size: 13px;
+      color: #3a5a3a;
+      background: #e8f0e8;
+      padding: 2px 14px;
+      border-radius: 30px;
+    }
+    .toolbar .right {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .toolbar .admin-toggle {
+      background: rgba(0,0,0,0.05);
+      border: 1px solid #ccc;
+      padding: 6px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+    .toolbar .admin-toggle.active {
+      background: #b03a2e;
+      color: #fff;
+      border-color: #b03a2e;
+    }
+    .toolbar .status {
+      font-size: 13px;
+      color: #5a6a5a;
+      padding: 4px 14px;
+      background: #f0f4f0;
+      border-radius: 20px;
+    }
+    .toolbar .btn-save {
+      padding: 8px 24px;
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      background: #2d6a4f;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+    .toolbar .btn-save:hover { background: #1a4d2e; }
+    .toolbar .btn-save.dirty {
+      background: #b03a2e;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
+
+    /* ===== TABLE ===== */
+    .table-wrapper {
+      background: #fff;
+      border-radius: 16px;
+      overflow: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      min-width: 900px;
+    }
+    th {
+      background: #eaf0ea;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: #1a3d2e;
+      position: sticky;
+      top:0;
+      z-index:5;
+    }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #eef4ee;
+      vertical-align: middle;
+    }
+    tr:hover { background: #f6faf6; }
+
+    /* Status badge */
+    .badge {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 70px;
+    }
+    .badge.bagus { background: #d4edda; color: #155724; }
+    .badge.baik { background: #d4edda; color: #155724; }
+    .badge.rusak-ringan { background: #fff3cd; color: #856404; }
+    .badge.rusak-sedang { background: #ffeaa7; color: #856404; }
+    .badge.rusak-berat { background: #f8d7da; color: #721c24; }
+    .badge.aman { background: #d4edda; color: #155724; }
+    .badge.kurang-aman { background: #fff3cd; color: #856404; }
+    .badge.tidak-aman { background: #f8d7da; color: #721c24; }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .actions button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: 0.2s;
+    }
+    .actions button.edit { color: #2d6a4f; }
+    .actions button.edit:hover { background: #e0f0e0; }
+    .actions button.history { color: #2c6f9b; }
+    .actions button.history:hover { background: #dcecf5; }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #7a8a7a;
+      font-size: 16px;
+    }
+
+    /* ===== MODAL ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: #fff;
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 {
+      margin-bottom: 16px;
+      color: #1a3d2e;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .modal-content label {
+      display: block;
+      margin: 12px 0 4px;
+      font-weight: 600;
+      color: #2a4a3a;
+      font-size: 14px;
+    }
+    .modal-content select,
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .modal-content textarea { resize: vertical; min-height: 60px; }
+    .modal-content .row-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .modal-content .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      justify-content: flex-end;
+    }
+    .modal-content .btn-group button {
+      padding: 10px 28px;
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .modal-content .btn-group .save { background: #2d6a4f; color: #fff; }
+    .modal-content .btn-group .save:hover { background: #1a4d2e; }
+    .modal-content .btn-group .cancel { background: #e0e8e0; color: #2a4a3a; }
+    .modal-content .btn-group .cancel:hover { background: #d0d8d0; }
+    .modal-content .btn-group .danger { background: #b03a2e; color: #fff; }
+    .modal-content .btn-group .danger:hover { background: #8a2e24; }
+
+    /* Riwayat dalam modal */
+    .history-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin: 8px 0 16px;
+      border: 1px solid #eef4ee;
+      border-radius: 8px;
+    }
+    .history-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eef4ee;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item .date { color: #5a6a5a; font-weight: 600; }
+    .history-item .desc { flex:1; margin:0 12px; }
+    .history-item .status-badge { font-size: 11px; }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      padding: 14px 28px;
+      border-radius: 12px;
+      color: #fff;
+      font-weight: 500;
+      font-size: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      animation: slideUp 0.3s ease;
+    }
+    .toast.success { background: #2d6a4f; }
+    .toast.error { background: #c0392b; }
+    .toast.info { background: #2c6f9b; }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(20px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      font-size: 18px;
+      color: #1a3d2e;
+      font-weight: 600;
+    }
+    .loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #dce4dc;
+      border-top-color: #2d6a4f;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 14px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .footer {
+      text-align: center;
+      padding: 16px;
+      color: #5a6a5a;
+      font-size: 14px;
+      border-top: 1px solid #dce4dc;
+      background: #fff;
+      margin-top: 20px;
+    }
+
+    @media (max-width:700px) {
+      .header { padding:12px 16px; }
+      .container { padding:16px; }
+      .toolbar { flex-direction:column; align-items:stretch; }
+      .modal-content { max-width:95%; padding:24px; }
+      .row-fields { grid-template-columns:1fr !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>🏗️ Kondisi &amp; Keamanan Ruangan</h1>
+    <div>
+      <span class="admin-status" id="adminStatus">🔑 Mode Admin</span>
+      <a href="index.html" class="back">← Kembali</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="left">
+        <input type="text" id="searchInput" placeholder="🔍 Cari ruangan..." />
+        <span class="filter-info" id="filterInfo"></span>
+      </div>
+      <div class="right">
+        <span class="status" id="statusIndicator">✅ Semua tersimpan</span>
+        <button class="btn-save" id="saveBtn">💾 Simpan</button>
+        <button class="admin-toggle" id="adminToggle">🔐 Admin</button>
+      </div>
+    </div>
+
+    <!-- Tabel -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:40px;">No</th>
+            <th>Nama Ruangan</th>
+            <th style="min-width:120px;">Kondisi Fisik</th>
+            <th style="min-width:120px;">Keamanan Listrik</th>
+            <th style="min-width:100px;">Rencana Perbaikan</th>
+            <th style="width:120px;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="kondisiBody"></tbody>
+      </table>
+    </div>
+    <div id="emptyMessage" class="no-data">Belum ada data ruangan. Pastikan data ruangan sudah diisi di halaman Definisi.</div>
+  </div>
+
+  <div class="footer">&copy; 2026 Nurmilad Boarding School</div>
+
+  <!-- ===== MODAL EDIT KONDISI ===== -->
+  <div class="modal" id="modalEdit">
+    <div class="modal-content">
+      <h2 id="modalEditTitle">✏️ Edit Kondisi &amp; Keamanan</h2>
+      <input type="hidden" id="editRuanganId" />
+      <input type="hidden" id="editRuanganNama" />
+
+      <div style="margin-bottom:12px; padding:8px 14px; background:#f0f6f0; border-radius:8px; font-weight:600; color:#1a3d2e;" id="editRuanganDisplay"></div>
+
+      <h3 style="margin-top:8px; font-size:16px; color:#1a3d2e;">🏠 Kondisi Fisik</h3>
+      <div class="row-fields">
+        <div><label>Pondasi</label><select id="e_pondasi"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
+        <div><label>Lantai</label><select id="e_lantai"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
+        <div><label>Dinding</label><select id="e_dinding"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
+        <div><label>Plafon</label><select id="e_plafon"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
+        <div><label>Atap</label><select id="e_atap"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Sedang">Rusak Sedang</option><option value="Rusak Berat">Rusak Berat</option></select></div>
+      </div>
+
+      <h3 style="margin-top:16px; font-size:16px; color:#1a3d2e;">⚡ Keamanan Listrik</h3>
+      <div style="margin-bottom:8px;">
+        <label>Status Listrik</label>
+        <select id="e_listrik"><option value="Aman">Aman</option><option value="Kurang Aman">Kurang Aman</option><option value="Tidak Aman">Tidak Aman</option></select>
+      </div>
+
+      <h3 style="margin-top:16px; font-size:16px; color:#1a3d2e;">📋 Rencana Tindakan / Perbaikan</h3>
+      <textarea id="e_rencana" rows="2" placeholder="Misal: Perbaikan atap bocor, ganti instalasi listrik..."></textarea>
+
+      <div class="btn-group">
+        <button class="cancel" id="editCancel">Batal</button>
+        <button class="save" id="editSave">Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL RIWAYAT PERBAIKAN ===== -->
+  <div class="modal" id="modalHistory">
+    <div class="modal-content">
+      <h2 id="historyTitle">📜 Riwayat Perbaikan</h2>
+      <input type="hidden" id="historyRuanganId" />
+      <div id="historyRuanganName" style="font-weight:600; color:#2d6a4f; margin-bottom:12px;"></div>
+
+      <div id="historyList" class="history-list">
+        <!-- item akan di-render -->
+      </div>
+
+      <button class="btn-save" id="historyAddBtn" style="width:100%; margin-bottom:12px;">➕ Tambah Riwayat</button>
+
+      <!-- Form tambah riwayat (toggle) -->
+      <div id="historyForm" style="display:none; border-top:1px solid #eef4ee; padding-top:16px;">
+        <h3 style="font-size:16px; color:#1a3d2e;">Tambah Riwayat</h3>
+        <label>Tanggal</label>
+        <input type="date" id="h_tanggal" />
+        <label>Jenis Perbaikan</label>
+        <select id="h_jenis"><option value="Kondisi">Kondisi Fisik</option><option value="Listrik">Keamanan Listrik</option></select>
+        <label>Deskripsi</label>
+        <textarea id="h_deskripsi" rows="2" placeholder="Uraian perbaikan..."></textarea>
+        <div class="row-fields">
+          <div><label>Status Sebelum</label><input type="text" id="h_statusSebelum" placeholder="Baik / Aman" /></div>
+          <div><label>Status Sesudah</label><input type="text" id="h_statusSesudah" placeholder="Baik / Aman" /></div>
+        </div>
+        <label>Biaya (Rp)</label>
+        <input type="number" id="h_biaya" step="1000" value="0" />
+        <div class="btn-group">
+          <button class="cancel" id="historyFormCancel">Batal</button>
+          <button class="save" id="historyFormSave">Simpan Riwayat</button>
+        </div>
+      </div>
+
+      <div class="btn-group" style="margin-top:8px;">
+        <button class="cancel" id="historyClose">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST & LOADING ===== -->
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="loading-overlay hidden" id="loadingOverlay">
+    <div class="spinner"></div>
+    <span>Memuat…</span>
+  </div>
+
+  <script>
+    // ============================================================
+    // FIREBASE CONFIG
+    // ============================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkwJDCIjf1o5hQf52UPp13eRsjWPsVGV0",
+      authDomain: "sarprasnbs.firebaseapp.com",
+      projectId: "sarprasnbs",
+      storageBucket: "sarprasnbs.firebasestorage.app",
+      messagingSenderId: "604042513677",
+      appId: "1:604042513677:web:3d186ae98c9dd8fe09f444"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    function showToast(msg, type='info') {
+      const container = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast '+type;
+      t.textContent = msg;
+      container.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+    }
+    function showLoading(show) {
+      document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+    }
+    function formatRupiah(angka) {
+      if (!angka) return '0';
+      return Number(angka).toLocaleString('id-ID');
+    }
+
+    // ============================================================
+    // ADMIN SESSION
+    // ============================================================
+    const ADMIN_PASS = 'sarpras123';
+    const SESSION_KEY = 'nbs_admin_session';
+    let isAdmin = false;
+
+    function getAdminSession() {
+      return localStorage.getItem(SESSION_KEY) === 'true';
+    }
+    function setAdminSession(val) {
+      localStorage.setItem(SESSION_KEY, val ? 'true' : 'false');
+      isAdmin = val;
+      updateAdminUI();
+    }
+    function logoutAdmin() {
+      setAdminSession(false);
+      showToast('Anda logout dari mode admin', 'info');
+      window.location.reload();
+    }
+
+    function updateAdminUI() {
+      const btn = document.getElementById('adminToggle');
+      const statusEl = document.getElementById('adminStatus');
+      if (isAdmin) {
+        btn.textContent = '🔓 Admin (aktif)';
+        btn.classList.add('active');
+        statusEl.classList.add('show');
+        statusEl.textContent = '🔑 Mode Admin';
+        btn.onclick = () => {
+          if (confirm('Logout dari mode admin?')) logoutAdmin();
+        };
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+        document.querySelectorAll('.admin-edit').forEach(el => el.style.display = 'inline-block');
+      } else {
+        btn.textContent = '🔐 Admin';
+        btn.classList.remove('active');
+        statusEl.classList.remove('show');
+        btn.onclick = () => {
+          const pass = prompt('Masukkan password admin:');
+          if (pass === ADMIN_PASS) {
+            setAdminSession(true);
+            showToast('Mode admin aktif', 'success');
+          } else if (pass !== null) {
+            showToast('Password salah!', 'error');
+          }
+        };
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.admin-edit').forEach(el => el.style.display = 'none');
+      }
+      // Tombol di modal juga ikut
+      document.querySelectorAll('.admin-edit-btn').forEach(el => el.style.display = isAdmin ? 'inline-block' : 'none');
+      document.querySelectorAll('.admin-edit-only').forEach(el => el.style.display = isAdmin ? '' : 'none');
+    }
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    let ruanganList = [];           // data ruangan dari koleksi 'ruangan'
+    let kondisiData = {};          // key: ruanganId, value: data kondisi + keamanan
+    let originalKondisi = {};      // untuk deteksi perubahan
+    let modifiedIds = new Set();
+    let isDirty = false;
+
+    const tbody = document.getElementById('kondisiBody');
+    const searchInput = document.getElementById('searchInput');
+    const filterInfo = document.getElementById('filterInfo');
+    const saveBtn = document.getElementById('saveBtn');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const emptyMsg = document.getElementById('emptyMessage');
+
+    // Koleksi
+    const ruanganRef = db.collection('ruangan');
+    const kondisiRef = db.collection('kondisi_ruangan');
+    const riwayatRef = db.collection('riwayat_perbaikan');
+
+    let unsubRuangan = null;
+    let unsubKondisi = null;
+    let unsubRiwayat = null;
+
+    // ============================================================
+    // LOAD DATA
+    // ============================================================
+    function startListeners() {
+      // 1) Ruangan
+      if (unsubRuangan) unsubRuangan();
+      unsubRuangan = ruanganRef.orderBy('nama').onSnapshot(snap => {
+        ruanganList = [];
+        snap.forEach(doc => {
+          const data = doc.data();
+          ruanganList.push({ id: doc.id, nama: data.nama || 'Tanpa Nama' });
+        });
+        // Jika kondisiData sudah ada, render ulang
+        if (Object.keys(kondisiData).length > 0 || ruanganList.length > 0) {
+          renderTable();
+        } else {
+          // Belum ada kondisi, tampilkan placeholder
+          renderTable();
+        }
+      }, err => {
+        showToast('Gagal memuat ruangan: '+err.message, 'error');
+      });
+
+      // 2) Kondisi Ruangan
+      if (unsubKondisi) unsubKondisi();
+      unsubKondisi = kondisiRef.onSnapshot(snap => {
+        kondisiData = {};
+        originalKondisi = {};
+        snap.forEach(doc => {
+          const data = doc.data();
+          const id = doc.id;
+          kondisiData[id] = { ...data };
+          originalKondisi[id] = JSON.parse(JSON.stringify(data));
+        });
+        // Reset modified yang mungkin sudah ada
+        modifiedIds.clear();
+        isDirty = false;
+        updateSaveUI();
+        renderTable();
+      }, err => {
+        showToast('Gagal memuat kondisi ruangan: '+err.message, 'error');
+      });
+    }
+
+    // ============================================================
+    // RENDER TABLE
+    // ============================================================
+    function renderTable() {
+      const search = searchInput.value.toLowerCase().trim();
+
+      // Gabungkan ruangan dengan kondisi
+      let rows = ruanganList.map(r => {
+        const kondisi = kondisiData[r.id] || {};
+        return {
+          ruanganId: r.id,
+          ruanganNama: r.nama,
+          kondisi: kondisi,
+          // default jika belum ada
+          pondasi: kondisi.pondasi || 'Baik',
+          lantai: kondisi.lantai || 'Baik',
+          dinding: kondisi.dinding || 'Baik',
+          plafon: kondisi.plafon || 'Baik',
+          atap: kondisi.atap || 'Baik',
+          listrik: kondisi.listrik || 'Aman',
+          rencana: kondisi.rencanaPerbaikan || '',
+        };
+      });
+
+      // Filter
+      if (search) {
+        rows = rows.filter(r => r.ruanganNama.toLowerCase().includes(search));
+      }
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '';
+        emptyMsg.style.display = 'block';
+        filterInfo.textContent = search ? 'Tidak ditemukan' : '';
+        return;
+      }
+      emptyMsg.style.display = 'none';
+      filterInfo.textContent = search ? `Menampilkan ${rows.length} ruangan` : '';
+
+      // Hitung status fisik (ambil yang terburuk)
+      const statusUrut = { 'Baik':0, 'Rusak Ringan':1, 'Rusak Sedang':2, 'Rusak Berat':3 };
+      tbody.innerHTML = '';
+      rows.forEach((row, idx) => {
+        const kondisiFields = [row.pondasi, row.lantai, row.dinding, row.plafon, row.atap];
+        // Ambil status terburuk
+        let worst = 'Baik';
+        let worstVal = 0;
+        kondisiFields.forEach(s => {
+          const v = statusUrut[s] || 0;
+          if (v > worstVal) { worstVal = v; worst = s; }
+        });
+        const kondisiBadge = `<span class="badge ${worst.toLowerCase().replace(' ','-')}">${worst}</span>`;
+
+        const listrikBadge = `<span class="badge ${row.listrik.toLowerCase().replace(' ','-')}">${row.listrik}</span>`;
+
+        // Rencana perbaikan
+        const rencanaText = row.rencana ? (row.rencana.length > 30 ? row.rencana.substring(0,30)+'…' : row.rencana) : '—';
+
+        const tr = document.createElement('tr');
+        tr.dataset.id = row.ruanganId;
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td><strong>${row.ruanganNama}</strong></td>
+          <td>${kondisiBadge}</td>
+          <td>${listrikBadge}</td>
+          <td style="font-size:13px; color:#3a5a3a;">${rencanaText}</td>
+          <td>
+            <div class="actions">
+              <button class="edit admin-edit" data-id="${row.ruanganId}" title="Edit Kondisi">✏️</button>
+              <button class="history admin-edit" data-id="${row.ruanganId}" title="Riwayat Perbaikan">📜</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Attach events
+      tbody.querySelectorAll('.edit').forEach(btn => {
+        btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+      });
+      tbody.querySelectorAll('.history').forEach(btn => {
+        btn.addEventListener('click', () => openHistoryModal(btn.dataset.id));
+      });
+
+      updateAdminUI();
+    }
+
+    // ============================================================
+    // EDIT MODAL
+    // ============================================================
+    const modalEdit = document.getElementById('modalEdit');
+    const editRuanganId = document.getElementById('editRuanganId');
+    const editRuanganNama = document.getElementById('editRuanganNama');
+    const editRuanganDisplay = document.getElementById('editRuanganDisplay');
+    const e_pondasi = document.getElementById('e_pondasi');
+    const e_lantai = document.getElementById('e_lantai');
+    const e_dinding = document.getElementById('e_dinding');
+    const e_plafon = document.getElementById('e_plafon');
+    const e_atap = document.getElementById('e_atap');
+    const e_listrik = document.getElementById('e_listrik');
+    const e_rencana = document.getElementById('e_rencana');
+    const editCancel = document.getElementById('editCancel');
+    const editSave = document.getElementById('editSave');
+
+    function openEditModal(ruanganId) {
+      if (!isAdmin) {
+        showToast('Harus login sebagai admin', 'error');
+        return;
+      }
+      const ruangan = ruanganList.find(r => r.id === ruanganId);
+      if (!ruangan) {
+        showToast('Ruangan tidak ditemukan', 'error');
+        return;
+      }
+      editRuanganId.value = ruanganId;
+      editRuanganNama.value = ruangan.nama;
+      editRuanganDisplay.textContent = '📍 ' + ruangan.nama;
+
+      const kondisi = kondisiData[ruanganId] || {};
+      e_pondasi.value = kondisi.pondasi || 'Baik';
+      e_lantai.value = kondisi.lantai || 'Baik';
+      e_dinding.value = kondisi.dinding || 'Baik';
+      e_plafon.value = kondisi.plafon || 'Baik';
+      e_atap.value = kondisi.atap || 'Baik';
+      e_listrik.value = kondisi.listrik || 'Aman';
+      e_rencana.value = kondisi.rencanaPerbaikan || '';
+
+      modalEdit.classList.add('show');
+    }
+
+    function closeEditModal() {
+      modalEdit.classList.remove('show');
+    }
+
+    editCancel.addEventListener('click', closeEditModal);
+    modalEdit.addEventListener('click', (e) => {
+      if (e.target === modalEdit) closeEditModal();
+    });
+
+    editSave.addEventListener('click', async () => {
+      const ruanganId = editRuanganId.value;
+      if (!ruanganId) return;
+      const data = {
+        pondasi: e_pondasi.value,
+        lantai: e_lantai.value,
+        dinding: e_dinding.value,
+        plafon: e_plafon.value,
+        atap: e_atap.value,
+        listrik: e_listrik.value,
+        rencanaPerbaikan: e_rencana.value.trim(),
+        ruanganId: ruanganId,
+        ruanganNama: editRuanganNama.value,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      try {
+        showLoading(true);
+        // Cek apakah dokumen sudah ada
+        const docRef = kondisiRef.doc(ruanganId);
+        const docSnap = await docRef.get();
+        if (docSnap.exists) {
+          await docRef.update(data);
+        } else {
+          await docRef.set(data);
+        }
+        showToast('Data kondisi berhasil disimpan', 'success');
+        closeEditModal();
+        // Data akan refresh via listener
+      } catch (err) {
+        showToast('Gagal menyimpan: '+err.message, 'error');
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    // ============================================================
+    // HISTORY MODAL
+    // ============================================================
+    const modalHistory = document.getElementById('modalHistory');
+    const historyRuanganId = document.getElementById('historyRuanganId');
+    const historyRuanganName = document.getElementById('historyRuanganName');
+    const historyList = document.getElementById('historyList');
+    const historyAddBtn = document.getElementById('historyAddBtn');
+    const historyForm = document.getElementById('historyForm');
+    const h_tanggal = document.getElementById('h_tanggal');
+    const h_jenis = document.getElementById('h_jenis');
+    const h_deskripsi = document.getElementById('h_deskripsi');
+    const h_statusSebelum = document.getElementById('h_statusSebelum');
+    const h_statusSesudah = document.getElementById('h_statusSesudah');
+    const h_biaya = document.getElementById('h_biaya');
+    const historyFormCancel = document.getElementById('historyFormCancel');
+    const historyFormSave = document.getElementById('historyFormSave');
+    const historyClose = document.getElementById('historyClose');
+
+    let currentHistoryRuanganId = null;
+    let historyUnsub = null;
+
+    function openHistoryModal(ruanganId) {
+      const ruangan = ruanganList.find(r => r.id === ruanganId);
+      if (!ruangan) {
+        showToast('Ruangan tidak ditemukan', 'error');
+        return;
+      }
+      currentHistoryRuanganId = ruanganId;
+      historyRuanganId.value = ruanganId;
+      historyRuanganName.textContent = '📍 ' + ruangan.nama;
+      historyForm.style.display = 'none';
+      historyAddBtn.textContent = '➕ Tambah Riwayat';
+
+      // Reset form
+      const today = new Date().toISOString().split('T')[0];
+      h_tanggal.value = today;
+      h_jenis.value = 'Kondisi';
+      h_deskripsi.value = '';
+      h_statusSebelum.value = '';
+      h_statusSesudah.value = '';
+      h_biaya.value = '0';
+
+      // Load riwayat
+      loadHistory(ruanganId);
+
+      modalHistory.classList.add('show');
+    }
+
+    function loadHistory(ruanganId) {
+      if (historyUnsub) historyUnsub();
+      historyUnsub = riwayatRef
+        .where('ruanganId', '==', ruanganId)
+        .orderBy('tanggal', 'desc')
+        .onSnapshot(snap => {
+          historyList.innerHTML = '';
+          if (snap.empty) {
+            historyList.innerHTML = '<div style="padding:16px;text-align:center;color:#7a8a7a;">Belum ada riwayat perbaikan.</div>';
+            return;
+          }
+          snap.forEach(doc => {
+            const data = doc.data();
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            const tgl = data.tanggal ? data.tanggal.toDate().toLocaleDateString('id-ID') : '-';
+            const statusBefore = data.statusSebelum || '-';
+            const statusAfter = data.statusSesudah || '-';
+            const biaya = data.biaya ? 'Rp '+formatRupiah(data.biaya) : '';
+            div.innerHTML = `
+              <span class="date">${tgl}</span>
+              <span class="desc"><strong>${data.jenis || 'Perbaikan'}</strong> ${data.deskripsi || ''}</span>
+              <span style="font-size:12px; color:#4a5a4a;">${statusBefore} → ${statusAfter}</span>
+              <span style="font-size:12px; color:#2d6a4f; font-weight:600;">${biaya}</span>
+            `;
+            historyList.appendChild(div);
+          });
+        }, err => {
+          showToast('Gagal memuat riwayat: '+err.message, 'error');
+        });
+    }
+
+    function closeHistoryModal() {
+      if (historyUnsub) historyUnsub();
+      historyUnsub = null;
+      modalHistory.classList.remove('show');
+    }
+
+    historyClose.addEventListener('click', closeHistoryModal);
+    modalHistory.addEventListener('click', (e) => {
+      if (e.target === modalHistory) closeHistoryModal();
+    });
+
+    historyAddBtn.addEventListener('click', () => {
+      if (historyForm.style.display === 'none') {
+        historyForm.style.display = 'block';
+        historyAddBtn.textContent = '✖ Tutup Form';
+      } else {
+        historyForm.style.display = 'none';
+        historyAddBtn.textContent = '➕ Tambah Riwayat';
+      }
+    });
+
+    historyFormCancel.addEventListener('click', () => {
+      historyForm.style.display = 'none';
+      historyAddBtn.textContent = '➕ Tambah Riwayat';
+    });
+
+    historyFormSave.addEventListener('click', async () => {
+      if (!currentHistoryRuanganId) {
+        showToast('Ruangan tidak valid', 'error');
+        return;
+      }
+      const tanggal = h_tanggal.value;
+      const jenis = h_jenis.value;
+      const deskripsi = h_deskripsi.value.trim();
+      const statusSebelum = h_statusSebelum.value.trim();
+      const statusSesudah = h_statusSesudah.value.trim();
+      const biaya = parseInt(h_biaya.value) || 0;
+
+      if (!tanggal) {
+        showToast('Tanggal wajib diisi', 'error');
+        return;
+      }
+      if (!deskripsi) {
+        showToast('Deskripsi perbaikan wajib diisi', 'error');
+        return;
+      }
+
+      try {
+        showLoading(true);
+        await riwayatRef.add({
+          ruanganId: currentHistoryRuanganId,
+          tanggal: new Date(tanggal + 'T00:00:00'),
+          jenis: jenis,
+          deskripsi: deskripsi,
+          statusSebelum: statusSebelum,
+          statusSesudah: statusSesudah,
+          biaya: biaya,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        showToast('Riwayat perbaikan ditambahkan', 'success');
+        // Reset form
+        h_deskripsi.value = '';
+        h_statusSebelum.value = '';
+        h_statusSesudah.value = '';
+        h_biaya.value = '0';
+        historyForm.style.display = 'none';
+        historyAddBtn.textContent = '➕ Tambah Riwayat';
+        // Data akan refresh via listener
+      } catch (err) {
+        showToast('Gagal menambah riwayat: '+err.message, 'error');
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    // ============================================================
+    // SAVE (untuk perubahan yang dimodifikasi via edit modal sudah langsung simpan)
+    // Tapi kita tetap sediakan tombol save untuk kemungkinan perubahan lain
+    // Di sini kita hanya gunakan untuk update massal jika ada yang dimodifikasi di tabel (tidak ada)
+    // Namun kita tetap implementasikan untuk konsistensi.
+    // ============================================================
+    async function saveChanges() {
+      if (!isAdmin) {
+        showToast('Anda harus login sebagai admin', 'error');
+        return;
+      }
+      if (modifiedIds.size === 0) {
+        showToast('Tidak ada perubahan untuk disimpan', 'info');
+        return;
+      }
+      showLoading(true);
+      try {
+        const batch = db.batch();
+        let count = 0;
+        for (const id of modifiedIds) {
+          const data = kondisiData[id];
+          if (!data) continue;
+          const ref = kondisiRef.doc(id);
+          batch.set(ref, data, { merge: true });
+          count++;
+        }
+        await batch.commit();
+        showToast(`${count} perubahan berhasil disimpan`, 'success');
+        modifiedIds.clear();
+        isDirty = false;
+        // Reset original
+        Object.keys(kondisiData).forEach(id => {
+          originalKondisi[id] = JSON.parse(JSON.stringify(kondisiData[id]));
+        });
+        updateSaveUI();
+      } catch (err) {
+        showToast('Gagal menyimpan: '+err.message, 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // ============================================================
+    // UPDATE SAVE UI
+    // ============================================================
+    function updateSaveUI() {
+      if (isDirty && modifiedIds.size > 0) {
+        saveBtn.classList.add('dirty');
+        saveBtn.textContent = `💾 Simpan (${modifiedIds.size})`;
+        statusIndicator.textContent = `⚠️ ${modifiedIds.size} perubahan belum disimpan`;
+        statusIndicator.className = 'status dirty';
+      } else {
+        saveBtn.classList.remove('dirty');
+        saveBtn.textContent = '💾 Simpan';
+        statusIndicator.textContent = '✅ Semua tersimpan';
+        statusIndicator.className = 'status';
+      }
+    }
+
+    // ============================================================
+    // SEARCH
+    // ============================================================
+    searchInput.addEventListener('input', renderTable);
+
+    // ============================================================
+    // ADMIN TOGGLE
+    // ============================================================
+    document.getElementById('adminToggle').addEventListener('click', () => {
+      // handler di updateAdminUI
+    });
+
+    // ============================================================
+    // SAVE BUTTON
+    // ============================================================
+    saveBtn.addEventListener('click', saveChanges);
+
+    // ============================================================
+    // WINDOW BEFORE UNLOAD
+    // ============================================================
+    window.addEventListener('beforeunload', (e) => {
+      if (isDirty && modifiedIds.size > 0) {
+        e.preventDefault();
+        e.returnValue = 'Ada perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
+        return e.returnValue;
+      }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    isAdmin = getAdminSession();
+    updateAdminUI();
+    startListeners();
+
+    console.log('Halaman kondisi & keamanan ruangan loaded.');
+  </script>
+</body>
+</html>
