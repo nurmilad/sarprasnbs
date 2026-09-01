@@ -180,6 +180,22 @@
       top: 0;
       z-index: 5;
       white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    th:hover {
+      background: #dce8dc;
+    }
+    th .sort-icon {
+      margin-left: 6px;
+      font-size: 12px;
+      opacity: 0.4;
+      display: inline-block;
+    }
+    th .sort-icon.active {
+      opacity: 1;
+      font-weight: 700;
     }
     td {
       padding: 10px 16px;
@@ -232,6 +248,28 @@
     }
     .dot.rusak-berat {
       background: #e74c3c;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 70px;
+    }
+    .badge.aman {
+      background: #d4edda;
+      color: #155724;
+    }
+    .badge.kurang-aman {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .badge.tidak-aman {
+      background: #f8d7da;
+      color: #721c24;
     }
 
     .actions {
@@ -574,14 +612,14 @@
       <table>
         <thead>
           <tr>
-            <th style="width:40px;">No</th>
-            <th>Nama Ruangan</th>
-            <th style="min-width:100px;">Gedung</th>
-            <th style="min-width:120px;">Kerusakan Fisik (%)</th>
-            <th style="min-width:130px;">Detail Kondisi</th>
-            <th style="min-width:120px;">Keamanan Listrik</th>
-            <th style="min-width:100px;">Rencana Perbaikan</th>
-            <th style="width:110px;">Aksi</th>
+            <th style="width:40px; cursor:default;">No</th>
+            <th data-sort="nama">Nama Ruangan <span class="sort-icon">↕</span></th>
+            <th data-sort="gedung">Gedung <span class="sort-icon">↕</span></th>
+            <th data-sort="kerusakan" style="min-width:120px;">Kerusakan Fisik (%) <span class="sort-icon">↕</span></th>
+            <th style="min-width:130px; cursor:default;">Detail Kondisi</th>
+            <th data-sort="listrik" style="min-width:120px;">Keamanan Listrik <span class="sort-icon">↕</span></th>
+            <th data-sort="rencana" style="min-width:100px;">Rencana Perbaikan <span class="sort-icon">↕</span></th>
+            <th style="width:110px; cursor:default;">Aksi</th>
           </tr>
         </thead>
         <tbody id="kondisiBody"></tbody>
@@ -812,10 +850,14 @@
     // ============================================================
     // STATE
     // ============================================================
-    let ruanganList = [];        // [{id, nama, gedung}]
+    let ruanganList = [];
     let kondisiData = {};
     let allRows = [];
     let filteredRows = [];
+
+    // Sorting state
+    let sortField = 'nama';
+    let sortAsc = true;
 
     const tbody = document.getElementById('kondisiBody');
     const searchInput = document.getElementById('searchInput');
@@ -832,6 +874,51 @@
     let unsubKondisi = null;
 
     // ============================================================
+    // SORTING FUNCTION
+    // ============================================================
+    function sortRows(rows) {
+      const field = sortField;
+      const asc = sortAsc;
+
+      return rows.slice().sort((a, b) => {
+        let valA, valB;
+
+        switch(field) {
+          case 'nama':
+            valA = a.nama.toLowerCase();
+            valB = b.nama.toLowerCase();
+            break;
+          case 'gedung':
+            valA = a.gedung.toLowerCase();
+            valB = b.gedung.toLowerCase();
+            break;
+          case 'kerusakan':
+            valA = getDamagePercentage(a.pondasi, a.lantai, a.dinding, a.plafon, a.atap);
+            valB = getDamagePercentage(b.pondasi, b.lantai, b.dinding, b.plafon, b.atap);
+            break;
+          case 'listrik':
+            const order = { 'Aman': 0, 'Kurang Aman': 1, 'Tidak Aman': 2 };
+            valA = order[a.listrik] ?? 0;
+            valB = order[b.listrik] ?? 0;
+            break;
+          case 'rencana':
+            valA = (a.rencana || '').toLowerCase();
+            valB = (b.rencana || '').toLowerCase();
+            break;
+          default:
+            valA = a.nama.toLowerCase();
+            valB = b.nama.toLowerCase();
+        }
+
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        } else {
+          return asc ? valA - valB : valB - valA;
+        }
+      });
+    }
+
+    // ============================================================
     // LOAD DATA
     // ============================================================
     function startListeners() {
@@ -843,7 +930,7 @@
           ruanganList.push({
             id: doc.id,
             nama: data.nama || 'Tanpa Nama',
-            gedung: data.gedung || '-'   // ambil field gedung dari koleksi ruangan
+            gedung: data.gedung || '-'
           });
         });
         renderTable();
@@ -900,6 +987,10 @@
         return true;
       });
 
+      // Sorting
+      filteredRows = sortRows(filteredRows);
+
+      // Render
       if (filteredRows.length === 0) {
         tbody.innerHTML = '';
         emptyMsg.style.display = 'block';
@@ -949,6 +1040,9 @@
         tbody.appendChild(tr);
       });
 
+      // Update sorting icons
+      updateSortIcons();
+
       tbody.querySelectorAll('.edit').forEach(btn => {
         btn.addEventListener('click', () => openEditModal(btn.dataset.id));
       });
@@ -969,6 +1063,40 @@
       });
       return worst;
     }
+
+    // ============================================================
+    // SORT ICONS
+    // ============================================================
+    function updateSortIcons() {
+      document.querySelectorAll('th[data-sort]').forEach(th => {
+        const field = th.dataset.sort;
+        const icon = th.querySelector('.sort-icon');
+        if (!icon) return;
+        if (field === sortField) {
+          icon.textContent = sortAsc ? ' ▲' : ' ▼';
+          icon.classList.add('active');
+        } else {
+          icon.textContent = ' ↕';
+          icon.classList.remove('active');
+        }
+      });
+    }
+
+    // ============================================================
+    // HEADER CLICK - SORTING
+    // ============================================================
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const field = th.dataset.sort;
+        if (sortField === field) {
+          sortAsc = !sortAsc;
+        } else {
+          sortField = field;
+          sortAsc = true;
+        }
+        renderTable();
+      });
+    });
 
     // ============================================================
     // EDIT MODAL
@@ -1258,7 +1386,7 @@
     updateAdminUI();
     startListeners();
 
-    console.log('Halaman kondisi & keamanan ruangan loaded (dengan kolom Gedung).');
+    console.log('Halaman kondisi & keamanan ruangan loaded (dengan sorting).');
   </script>
 </body>
 </html>
