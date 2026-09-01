@@ -168,7 +168,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 14px;
-      min-width: 900px;
+      min-width: 1000px;
     }
     th {
       background: #eaf0ea;
@@ -576,6 +576,7 @@
           <tr>
             <th style="width:40px;">No</th>
             <th>Nama Ruangan</th>
+            <th style="min-width:100px;">Gedung</th>
             <th style="min-width:120px;">Kerusakan Fisik (%)</th>
             <th style="min-width:130px;">Detail Kondisi</th>
             <th style="min-width:120px;">Keamanan Listrik</th>
@@ -811,7 +812,7 @@
     // ============================================================
     // STATE
     // ============================================================
-    let ruanganList = [];
+    let ruanganList = [];        // [{id, nama, gedung}]
     let kondisiData = {};
     let allRows = [];
     let filteredRows = [];
@@ -838,7 +839,12 @@
       unsubRuangan = ruanganRef.orderBy('nama').onSnapshot(snap => {
         ruanganList = [];
         snap.forEach(doc => {
-          ruanganList.push({ id: doc.id, nama: doc.data().nama || 'Tanpa Nama' });
+          const data = doc.data();
+          ruanganList.push({
+            id: doc.id,
+            nama: data.nama || 'Tanpa Nama',
+            gedung: data.gedung || '-'   // ambil field gedung dari koleksi ruangan
+          });
         });
         renderTable();
       }, err => {
@@ -858,7 +864,7 @@
     }
 
     // ============================================================
-    // RENDER TABLE & STATS
+    // RENDER TABLE
     // ============================================================
     function renderTable() {
       const search = searchInput.value.toLowerCase().trim();
@@ -871,6 +877,7 @@
         return {
           id: r.id,
           nama: r.nama,
+          gedung: r.gedung || '-',
           pondasi: k.pondasi || 'Baik',
           lantai: k.lantai || 'Baik',
           dinding: k.dinding || 'Baik',
@@ -884,7 +891,7 @@
 
       // Filter
       filteredRows = allRows.filter(r => {
-        if (search && !r.nama.toLowerCase().includes(search)) return false;
+        if (search && !r.nama.toLowerCase().includes(search) && !r.gedung.toLowerCase().includes(search)) return false;
         if (filterKond) {
           const worst = getWorstStatus([r.pondasi, r.lantai, r.dinding, r.plafon, r.atap]);
           if (worst !== filterKond) return false;
@@ -893,7 +900,6 @@
         return true;
       });
 
-      // Render tabel (statistik dihapus)
       if (filteredRows.length === 0) {
         tbody.innerHTML = '';
         emptyMsg.style.display = 'block';
@@ -928,6 +934,7 @@
         tr.innerHTML = `
           <td>${idx + 1}</td>
           <td><strong>${row.nama}</strong></td>
+          <td>${row.gedung}</td>
           <td><span class="badge-persen" style="background:${color};">${rounded}%</span></td>
           <td><div class="kondisi-detail">${detailHtml}</div></td>
           <td><span class="badge ${listrikClass}">${row.listrik}</span></td>
@@ -992,7 +999,7 @@
       }
       editRuanganId.value = ruanganId;
       editRuanganNama.value = ruangan.nama;
-      editRuanganDisplay.textContent = '📍 ' + ruangan.nama;
+      editRuanganDisplay.textContent = '📍 ' + ruangan.nama + ' (Gedung: ' + (ruangan.gedung || '-') + ')';
 
       const k = kondisiData[ruanganId] || {};
       e_pondasi.value = k.pondasi || 'Baik';
@@ -1070,7 +1077,7 @@
       }
       currentHistoryRuanganId = ruanganId;
       historyRuanganId.value = ruanganId;
-      historyRuanganName.textContent = '📍 ' + ruangan.nama;
+      historyRuanganName.textContent = '📍 ' + ruangan.nama + ' (Gedung: ' + (ruangan.gedung || '-') + ')';
       historyForm.style.display = 'none';
       historyAddBtn.textContent = '➕ Tambah Riwayat';
 
@@ -1198,12 +1205,13 @@
         showToast('Tidak ada data untuk diexport', 'error');
         return;
       }
-      const headers = ['No', 'Ruangan', 'Persentase Kerusakan', 'Pondasi', 'Lantai', 'Dinding', 'Plafon', 'Atap', 'Listrik', 'Rencana Perbaikan'];
+      const headers = ['No', 'Ruangan', 'Gedung', 'Persentase Kerusakan', 'Pondasi', 'Lantai', 'Dinding', 'Plafon', 'Atap', 'Listrik', 'Rencana Perbaikan'];
       const rows = filteredRows.map((r, i) => {
         const damage = getDamagePercentage(r.pondasi, r.lantai, r.dinding, r.plafon, r.atap);
         return [
           i + 1,
           r.nama,
+          r.gedung,
           Math.round(damage) + '%',
           r.pondasi,
           r.lantai,
@@ -1250,7 +1258,7 @@
     updateAdminUI();
     startListeners();
 
-    console.log('Halaman kondisi & keamanan ruangan loaded (persentase gabungan 5 komponen).');
+    console.log('Halaman kondisi & keamanan ruangan loaded (dengan kolom Gedung).');
   </script>
 </body>
 </html>
