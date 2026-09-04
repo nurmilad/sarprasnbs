@@ -92,7 +92,7 @@
             width: 100%;
         }
 
-        /* ===== TOOLBAR dengan TAB ===== */
+        /* ===== TOOLBAR ===== */
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -118,7 +118,7 @@
             border-radius: 30px;
             font-size: 14px;
             background: #fff;
-            min-width: 160px;
+            min-width: 140px;
         }
         .toolbar .left .filter-row {
             display: flex;
@@ -351,18 +351,18 @@
         /* ===== KOLOM AKSI - tombol kecil dalam satu baris ===== */
         .actions-cell {
             display: flex;
-            gap: 2px; /* lebih rapat */
+            gap: 2px;
             align-items: center;
-            flex-wrap: nowrap; /* jangan turun ke baris berikutnya */
+            flex-wrap: nowrap;
             justify-content: center;
         }
         .actions-cell button {
             background: transparent;
             border: none;
             cursor: pointer;
-            font-size: 12px; /* lebih kecil */
+            font-size: 12px;
             font-weight: normal;
-            padding: 0px 3px; /* padding minimal */
+            padding: 0px 3px;
             border-radius: 3px;
             transition: 0.2s;
             line-height: 1.4;
@@ -504,6 +504,46 @@
             background: #d0d8d0;
         }
 
+        /* ===== HIDE/UNHIDE DROPDOWN ===== */
+        .dropdown-col {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-col-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: #fff;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            z-index: 20;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+        .dropdown-col-content.show {
+            display: block;
+        }
+        .dropdown-col-content label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-weight: 400;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .dropdown-col-content label:hover {
+            background: #f0f4f0;
+        }
+        .dropdown-col-content input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #2d6a4f;
+        }
+
         /* ===== MOBILE ===== */
         @media (max-width: 700px) {
             .table-wrapper {
@@ -543,6 +583,11 @@
             .actions-cell button {
                 font-size: 11px;
                 padding: 0 2px;
+            }
+            .dropdown-col-content {
+                right: auto;
+                left: 0;
+                min-width: 180px;
             }
         }
 
@@ -629,7 +674,6 @@
         <h1>🏗️ Sarpras NBS</h1>
         <div class="right-group">
             <a href="index.html" class="back">← Kembali</a>
-            <!-- LINK KE KONDISI.HTML -->
             <a href="kondisi.html" class="back" style="background:rgba(255,255,255,0.1);">🔧 Kondisi</a>
             <button class="admin-toggle-btn" id="adminToggle">🔐 Admin</button>
         </div>
@@ -645,8 +689,17 @@
                 </div>
                 <input type="text" id="searchInput" placeholder="🔍 Cari..." style="flex:1; min-width:120px;" />
                 <div class="filter-row">
+                    <!-- Filter Zona -->
+                    <select id="filterZona">
+                        <option value="">🌍 Semua Zona</option>
+                    </select>
+                    <!-- Filter Gedung -->
+                    <select id="filterGedung">
+                        <option value="">🏢 Semua Gedung</option>
+                    </select>
+                    <!-- Filter Ruang -->
                     <select id="filterRuang">
-                        <option value="">🏢 Semua Ruang</option>
+                        <option value="">🏠 Semua Ruang</option>
                     </select>
                     <button id="resetFilterBtn" class="reset-filter" style="display:none;">✕ Reset</button>
                 </div>
@@ -656,6 +709,26 @@
                 <span class="status" id="statusIndicator">✅ Semua tersimpan</span>
                 <button class="btn btn-save" id="saveBtn">💾 Simpan</button>
                 <button class="btn" id="defBtn">📋 Definisi</button>
+                <!-- Hide/Unhide Kolom -->
+                <div class="dropdown-col">
+                    <button class="btn" id="toggleColBtn">☰ Kolom</button>
+                    <div class="dropdown-col-content" id="colDropdown">
+                        <label><input type="checkbox" data-col="namaBarang" checked /> Nama Barang</label>
+                        <label><input type="checkbox" data-col="jumlahBarang" checked /> Jumlah</label>
+                        <label><input type="checkbox" data-col="anggaranSatuan" checked /> Anggaran/satuan</label>
+                        <label><input type="checkbox" data-col="tahunPerolehan" checked /> Tahun</label>
+                        <label><input type="checkbox" data-col="asalPerolehan" checked /> Sumber Dana</label>
+                        <label><input type="checkbox" data-col="baik" checked /> Baik</label>
+                        <label><input type="checkbox" data-col="rusakRingan" checked /> Rusak Ringan</label>
+                        <label><input type="checkbox" data-col="rusakSedang" checked /> Rusak Sedang</label>
+                        <label><input type="checkbox" data-col="rusakBerat" checked /> Rusak Berat</label>
+                        <label><input type="checkbox" data-col="ruang" checked /> Ruang</label>
+                        <label><input type="checkbox" data-col="lokasiGedung" checked /> Gedung</label>
+                        <label><input type="checkbox" data-col="zona" checked /> Zona</label>
+                        <label><input type="checkbox" data-col="jenis" checked /> Jenis</label>
+                        <label><input type="checkbox" data-col="aksi" checked /> Aksi</label>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -677,6 +750,7 @@
                             <th data-field="rusakBerat" style="min-width:50px;" class="text-center">Rusak Berat <span class="sort-icon">↕</span></th>
                             <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
                             <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
+                            <th data-field="zona" style="min-width:80px;" class="text-center">Zona <span class="sort-icon">↕</span></th>
                             <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
                             <th style="width:70px; resize:none;" class="text-center">Aksi</th>
                         </tr>
@@ -701,6 +775,7 @@
                             <th data-field="asalPerolehan" style="min-width:90px;" class="text-center">Sumber Dana <span class="sort-icon">↕</span></th>
                             <th data-field="ruang" style="min-width:80px;" class="text-center">Ruang <span class="sort-icon">↕</span></th>
                             <th data-field="lokasiGedung" style="min-width:80px;" class="text-center">Gedung <span class="sort-icon">↕</span></th>
+                            <th data-field="zona" style="min-width:80px;" class="text-center">Zona <span class="sort-icon">↕</span></th>
                             <th data-field="jenis" style="min-width:80px;" class="text-center">Jenis <span class="sort-icon">↕</span></th>
                             <th style="width:70px; resize:none;" class="text-center">Aksi</th>
                         </tr>
@@ -858,6 +933,8 @@
         let currentTab = 'aktif';
         let sortField = 'namaBarang';
         let sortAsc = true;
+        let filterZona = '';
+        let filterGedung = '';
         let filterRuang = '';
         let allItems = [];
         let originalData = {};
@@ -872,18 +949,28 @@
         let definitions = {
             ruangan: [],
             gedung: [],
+            zona: [],
             jenis: [],
             sumberDana: [],
             barang: []
         };
         let ruangNames = [];
         let ruangGedungMap = {};
+        let gedungZonaMap = {};
         let barangJenisMap = {};
         let definitionsReady = false;
+
+        // Untuk filter cascading
+        let zonaNames = [];
+        let gedungNames = [];
+        let gedungByZona = {};
+        let ruangByGedung = {};
 
         const tbody = document.getElementById('inventoryBody');
         const nonaktifBody = document.getElementById('nonaktifBody');
         const searchInput = document.getElementById('searchInput');
+        const filterZonaSelect = document.getElementById('filterZona');
+        const filterGedungSelect = document.getElementById('filterGedung');
         const filterRuangSelect = document.getElementById('filterRuang');
         const filterInfo = document.getElementById('filterInfo');
         const resetFilterBtn = document.getElementById('resetFilterBtn');
@@ -928,18 +1015,52 @@
         // LISTENER DEFINISI (REALTIME)
         // ============================================================
         function startDefinitionListeners() {
+            // Ruangan
             const unsubRuang = db.collection('ruangan').orderBy('nama').onSnapshot(snap => {
                 definitions.ruangan = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, gedung: d.data().gedung || '' }));
                 ruangGedungMap = {};
+                ruangNames = [];
+                ruangByGedung = {};
                 definitions.ruangan.forEach(r => {
                     ruangGedungMap[r.nama] = r.gedung || '';
+                    ruangNames.push(r.nama);
+                    if (!ruangByGedung[r.gedung]) ruangByGedung[r.gedung] = [];
+                    ruangByGedung[r.gedung].push(r.nama);
                 });
-                ruangNames = definitions.ruangan.map(r => r.nama).filter(Boolean);
+                ruangNames = ruangNames.filter(Boolean);
                 populateFilterRuang();
                 if (definitionsReady) refreshAfterDefinitionChange();
             }, err => showToast('Gagal memuat ruangan: ' + err.message, 'error'));
             unsubscribeListeners.push(unsubRuang);
 
+            // Gedung
+            const unsubGedung = db.collection('gedung').orderBy('nama').onSnapshot(snap => {
+                definitions.gedung = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, zona: d.data().zona || '' }));
+                gedungZonaMap = {};
+                gedungNames = [];
+                gedungByZona = {};
+                definitions.gedung.forEach(g => {
+                    gedungZonaMap[g.nama] = g.zona || '';
+                    gedungNames.push(g.nama);
+                    if (!gedungByZona[g.zona]) gedungByZona[g.zona] = [];
+                    gedungByZona[g.zona].push(g.nama);
+                });
+                gedungNames = gedungNames.filter(Boolean);
+                populateFilterGedung();
+                if (definitionsReady) refreshAfterDefinitionChange();
+            }, err => showToast('Gagal memuat gedung: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubGedung);
+
+            // Zona
+            const unsubZona = db.collection('zona').orderBy('nama').onSnapshot(snap => {
+                definitions.zona = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
+                zonaNames = definitions.zona.map(z => z.nama).filter(Boolean);
+                populateFilterZona();
+                if (definitionsReady) refreshAfterDefinitionChange();
+            }, err => showToast('Gagal memuat zona: ' + err.message, 'error'));
+            unsubscribeListeners.push(unsubZona);
+
+            // Barang
             const unsubBarang = db.collection('barang').orderBy('nama').onSnapshot(snap => {
                 definitions.barang = snap.docs.map(d => ({ id: d.id, nama: d.data().nama, jenis: d.data().jenis || '' }));
                 barangJenisMap = {};
@@ -950,16 +1071,12 @@
             }, err => showToast('Gagal memuat barang: ' + err.message, 'error'));
             unsubscribeListeners.push(unsubBarang);
 
+            // Sumber Dana
             const unsubSumber = db.collection('sumber_dana').orderBy('nama').onSnapshot(snap => {
                 definitions.sumberDana = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
                 if (definitionsReady) refreshAfterDefinitionChange();
             }, err => showToast('Gagal memuat sumber dana: ' + err.message, 'error'));
             unsubscribeListeners.push(unsubSumber);
-
-            const unsubGedung = db.collection('gedung').orderBy('nama').onSnapshot(snap => {
-                definitions.gedung = snap.docs.map(d => ({ id: d.id, nama: d.data().nama }));
-            }, err => showToast('Gagal memuat gedung: ' + err.message, 'error'));
-            unsubscribeListeners.push(unsubGedung);
 
             definitionsReady = true;
         }
@@ -967,6 +1084,67 @@
         function refreshAfterDefinitionChange() {
             if (currentTab === 'aktif') applyFiltersAndSort();
             else renderNonaktifItems();
+            // Update dropdown cascading
+            populateFilterZona();
+            populateFilterGedung();
+            populateFilterRuang();
+        }
+
+        // ============================================================
+        // FILTER DROPDOWN POPULATE (CASCADING)
+        // ============================================================
+        function populateFilterZona() {
+            const currentVal = filterZonaSelect.value;
+            filterZonaSelect.innerHTML = '<option value="">🌍 Semua Zona</option>';
+            zonaNames.sort().forEach(z => {
+                const opt = document.createElement('option');
+                opt.value = z;
+                opt.textContent = z;
+                filterZonaSelect.appendChild(opt);
+            });
+            if (currentVal && zonaNames.includes(currentVal)) filterZonaSelect.value = currentVal;
+            else filterZonaSelect.value = '';
+            filterZona = filterZonaSelect.value;
+            // Trigger cascading update
+            populateFilterGedung();
+            populateFilterRuang();
+        }
+
+        function populateFilterGedung() {
+            const currentVal = filterGedungSelect.value;
+            let options = gedungNames;
+            if (filterZona) {
+                options = gedungByZona[filterZona] || [];
+            }
+            filterGedungSelect.innerHTML = '<option value="">🏢 Semua Gedung</option>';
+            options.sort().forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.textContent = g;
+                filterGedungSelect.appendChild(opt);
+            });
+            if (currentVal && options.includes(currentVal)) filterGedungSelect.value = currentVal;
+            else filterGedungSelect.value = '';
+            filterGedung = filterGedungSelect.value;
+            populateFilterRuang();
+        }
+
+        function populateFilterRuang() {
+            const currentVal = filterRuangSelect.value;
+            let options = ruangNames;
+            if (filterGedung) {
+                options = ruangByGedung[filterGedung] || [];
+            }
+            filterRuangSelect.innerHTML = '<option value="">🏠 Semua Ruang</option>';
+            options.sort().forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                filterRuangSelect.appendChild(opt);
+            });
+            if (currentVal && options.includes(currentVal)) filterRuangSelect.value = currentVal;
+            else filterRuangSelect.value = '';
+            filterRuang = filterRuangSelect.value;
         }
 
         // ============================================================
@@ -1019,10 +1197,25 @@
         // ============================================================
         function applyFiltersAndSort() {
             const search = searchInput.value.toLowerCase().trim();
+            const zonaFilter = filterZonaSelect.value;
+            const gedungFilter = filterGedungSelect.value;
             const ruangFilter = filterRuangSelect.value;
 
             let filtered = allItems.slice();
 
+            // Filter berdasarkan zona (via gedung)
+            if (zonaFilter) {
+                filtered = filtered.filter(item => {
+                    const gedung = ruangGedungMap[item.data.ruang] || '';
+                    return gedungZonaMap[gedung] === zonaFilter;
+                });
+            }
+            if (gedungFilter) {
+                filtered = filtered.filter(item => {
+                    const gedung = ruangGedungMap[item.data.ruang] || '';
+                    return gedung === gedungFilter;
+                });
+            }
             if (ruangFilter) {
                 filtered = filtered.filter(item => item.data.ruang === ruangFilter);
             }
@@ -1056,7 +1249,7 @@
 
             renderItems(filtered);
             updateSortIcons();
-            updateFilterInfo(ruangFilter);
+            updateFilterInfo();
             updateAdminUI();
         }
 
@@ -1089,7 +1282,7 @@
                 };
 
                 const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
-                    'asalPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat', 'ruang', 'lokasiGedung', 'jenis'
+                    'asalPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat', 'ruang', 'lokasiGedung', 'zona', 'jenis'
                 ];
 
                 const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan', 'baik', 'rusakRingan', 'rusakSedang', 'rusakBerat'];
@@ -1126,10 +1319,13 @@
                                 ${optionsHtml}
                             </select>
                         </td>`;
-                    } else if (key === 'lokasiGedung' || key === 'jenis') {
+                    } else if (key === 'lokasiGedung' || key === 'jenis' || key === 'zona') {
                         let displayVal = '';
                         if (key === 'lokasiGedung') {
                             displayVal = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
+                        } else if (key === 'zona') {
+                            const gedung = ruangGedungMap[item.data.ruang] || '';
+                            displayVal = gedungZonaMap[gedung] || '';
                         } else if (key === 'jenis') {
                             displayVal = barangJenisMap[item.data.namaBarang] || item.data.jenis || '';
                         }
@@ -1160,7 +1356,7 @@
             tbody.querySelectorAll('td select').forEach(sel => {
                 sel.addEventListener('change', onSelectChange);
                 if (sel.dataset.key === 'ruang') {
-                    sel.addEventListener('change', autoFillGedung);
+                    sel.addEventListener('change', autoFillGedungZona);
                 }
                 if (sel.dataset.key === 'namaBarang') {
                     sel.addEventListener('change', autoFillJenis);
@@ -1208,7 +1404,20 @@
                 if (ruangSelect && item.data.ruang) ruangSelect.value = item.data.ruang;
                 const barangSelect = tr.querySelector('select[data-key="namaBarang"]');
                 if (barangSelect && item.data.namaBarang) barangSelect.value = item.data.namaBarang;
+                // Update readonly fields
+                const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
+                const zonaSpan = tr.querySelector('span[data-key="zona"]');
+                if (gedungSpan) {
+                    gedungSpan.textContent = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
+                }
+                if (zonaSpan) {
+                    const gedung = ruangGedungMap[item.data.ruang] || '';
+                    zonaSpan.textContent = gedungZonaMap[gedung] || '';
+                }
             });
+
+            // Apply hide/unhide after render
+            applyColumnVisibility();
         }
 
         // ============================================================
@@ -1229,7 +1438,7 @@
             };
 
             const fieldKeys = ['no', 'namaBarang', 'jumlahBarang', 'anggaranSatuan', 'tahunPerolehan',
-                'asalPerolehan', 'ruang', 'lokasiGedung', 'jenis'
+                'asalPerolehan', 'ruang', 'lokasiGedung', 'zona', 'jenis'
             ];
             const centerKeys = ['no', 'jumlahBarang', 'tahunPerolehan'];
 
@@ -1267,10 +1476,13 @@
                                 ${optionsHtml}
                             </select>
                         </td>`;
-                    } else if (key === 'lokasiGedung' || key === 'jenis') {
+                    } else if (key === 'lokasiGedung' || key === 'jenis' || key === 'zona') {
                         let displayVal = '';
                         if (key === 'lokasiGedung') {
                             displayVal = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
+                        } else if (key === 'zona') {
+                            const gedung = ruangGedungMap[item.data.ruang] || '';
+                            displayVal = gedungZonaMap[gedung] || '';
                         } else if (key === 'jenis') {
                             displayVal = barangJenisMap[item.data.namaBarang] || item.data.jenis || '';
                         }
@@ -1300,7 +1512,7 @@
             nonaktifBody.querySelectorAll('td select').forEach(sel => {
                 sel.addEventListener('change', onNonaktifSelectChange);
                 if (sel.dataset.key === 'ruang') {
-                    sel.addEventListener('change', nonaktifAutoFillGedung);
+                    sel.addEventListener('change', nonaktifAutoFillGedungZona);
                 }
                 if (sel.dataset.key === 'namaBarang') {
                     sel.addEventListener('change', nonaktifAutoFillJenis);
@@ -1340,7 +1552,19 @@
                 if (ruangSelect && item.data.ruang) ruangSelect.value = item.data.ruang;
                 const barangSelect = tr.querySelector('select[data-key="namaBarang"]');
                 if (barangSelect && item.data.namaBarang) barangSelect.value = item.data.namaBarang;
+                const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
+                const zonaSpan = tr.querySelector('span[data-key="zona"]');
+                if (gedungSpan) {
+                    gedungSpan.textContent = ruangGedungMap[item.data.ruang] || item.data.lokasiGedung || '';
+                }
+                if (zonaSpan) {
+                    const gedung = ruangGedungMap[item.data.ruang] || '';
+                    zonaSpan.textContent = gedungZonaMap[gedung] || '';
+                }
             });
+
+            // Apply hide/unhide for nonaktif
+            applyColumnVisibilityNonaktif();
         }
 
         // ============================================================
@@ -1367,15 +1591,16 @@
             }
         }
 
-        function nonaktifAutoFillGedung(e) {
+        function nonaktifAutoFillGedungZona(e) {
             const sel = e.target;
             const tr = sel.closest('tr');
             const id = tr.dataset.id;
             const ruangVal = sel.value;
             const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
-            if (!gedungSpan) return;
+            const zonaSpan = tr.querySelector('span[data-key="zona"]');
             const gedung = ruangGedungMap[ruangVal] || '';
-            gedungSpan.textContent = gedung;
+            if (gedungSpan) gedungSpan.textContent = gedung;
+            if (zonaSpan) zonaSpan.textContent = gedungZonaMap[gedung] || '';
             const item = nonaktifItems.find(it => it.id === id);
             if (item) {
                 item.data.lokasiGedung = gedung;
@@ -1563,15 +1788,16 @@
         // ============================================================
         // AUTO-FILL FUNCTIONS (AKTIF)
         // ============================================================
-        function autoFillGedung(e) {
+        function autoFillGedungZona(e) {
             const sel = e.target;
             const tr = sel.closest('tr');
             const id = tr.dataset.id;
             const ruangVal = sel.value;
             const gedungSpan = tr.querySelector('span[data-key="lokasiGedung"]');
-            if (!gedungSpan) return;
+            const zonaSpan = tr.querySelector('span[data-key="zona"]');
             const gedung = ruangGedungMap[ruangVal] || '';
-            gedungSpan.textContent = gedung;
+            if (gedungSpan) gedungSpan.textContent = gedung;
+            if (zonaSpan) zonaSpan.textContent = gedungZonaMap[gedung] || '';
             const item = allItems.find(it => it.id === id);
             if (item) {
                 item.data.lokasiGedung = gedung;
@@ -1842,18 +2068,6 @@
         // ============================================================
         // UTILITY
         // ============================================================
-        function populateFilterRuang() {
-            const sorted = ruangNames.slice().sort((a, b) => a.localeCompare(b));
-            filterRuangSelect.innerHTML = '<option value="">🏢 Semua Ruang</option>';
-            sorted.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r;
-                opt.textContent = r;
-                filterRuangSelect.appendChild(opt);
-            });
-            if (filterRuang) filterRuangSelect.value = filterRuang;
-        }
-
         function buildSelectOptions(list, selectedValue, placeholder = '') {
             const sorted = list.slice().sort((a, b) => a.nama.localeCompare(b.nama));
             let html = `<option value="">${placeholder}</option>`;
@@ -1864,9 +2078,13 @@
             return html;
         }
 
-        function updateFilterInfo(ruang) {
-            if (ruang) {
-                filterInfo.textContent = `Menampilkan: Ruang ${ruang}`;
+        function updateFilterInfo() {
+            let parts = [];
+            if (filterZonaSelect.value) parts.push('Zona: ' + filterZonaSelect.value);
+            if (filterGedungSelect.value) parts.push('Gedung: ' + filterGedungSelect.value);
+            if (filterRuangSelect.value) parts.push('Ruang: ' + filterRuangSelect.value);
+            if (parts.length > 0) {
+                filterInfo.textContent = 'Filter: ' + parts.join(' | ');
                 filterInfo.style.display = 'inline-block';
                 resetFilterBtn.style.display = 'inline-block';
             } else {
@@ -1874,6 +2092,108 @@
                 resetFilterBtn.style.display = 'none';
             }
         }
+
+        // ============================================================
+        // HIDE/UNHIDE KOLOM
+        // ============================================================
+        function applyColumnVisibility() {
+            const checkboxes = document.querySelectorAll('#colDropdown input[data-col]');
+            checkboxes.forEach(cb => {
+                const colKey = cb.dataset.col;
+                const visible = cb.checked;
+                // Cari index kolom di tabel aktif
+                const thead = document.querySelector('#inventoryTable thead tr');
+                const tbodyRows = document.querySelectorAll('#inventoryTable tbody tr');
+                if (!thead) return;
+                const ths = thead.querySelectorAll('th');
+                let colIndex = -1;
+                ths.forEach((th, idx) => {
+                    const field = th.dataset.field;
+                    if (field === colKey) colIndex = idx;
+                });
+                if (colIndex === -1) return;
+                // Sembunyikan/tampilkan th
+                if (ths[colIndex]) {
+                    ths[colIndex].style.display = visible ? '' : 'none';
+                }
+                // Sembunyikan/tampilkan td di tbody
+                tbodyRows.forEach(row => {
+                    const tds = row.querySelectorAll('td');
+                    if (tds[colIndex]) {
+                        tds[colIndex].style.display = visible ? '' : 'none';
+                    }
+                });
+            });
+        }
+
+        function applyColumnVisibilityNonaktif() {
+            const checkboxes = document.querySelectorAll('#colDropdown input[data-col]');
+            checkboxes.forEach(cb => {
+                const colKey = cb.dataset.col;
+                const visible = cb.checked;
+                const thead = document.querySelector('#nonaktifTable thead tr');
+                const tbodyRows = document.querySelectorAll('#nonaktifTable tbody tr');
+                if (!thead) return;
+                const ths = thead.querySelectorAll('th');
+                let colIndex = -1;
+                ths.forEach((th, idx) => {
+                    const field = th.dataset.field;
+                    if (field === colKey) colIndex = idx;
+                });
+                if (colIndex === -1) return;
+                if (ths[colIndex]) {
+                    ths[colIndex].style.display = visible ? '' : 'none';
+                }
+                tbodyRows.forEach(row => {
+                    const tds = row.querySelectorAll('td');
+                    if (tds[colIndex]) {
+                        tds[colIndex].style.display = visible ? '' : 'none';
+                    }
+                });
+            });
+        }
+
+        // Event listener untuk checkbox hide/unhide
+        document.querySelectorAll('#colDropdown input[data-col]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                // Simpan state di localStorage
+                const col = cb.dataset.col;
+                localStorage.setItem('hide_col_' + col, cb.checked ? 'visible' : 'hidden');
+                if (currentTab === 'aktif') {
+                    applyColumnVisibility();
+                } else {
+                    applyColumnVisibilityNonaktif();
+                }
+            });
+        });
+
+        // Restore state dari localStorage
+        function restoreColumnStates() {
+            document.querySelectorAll('#colDropdown input[data-col]').forEach(cb => {
+                const col = cb.dataset.col;
+                const saved = localStorage.getItem('hide_col_' + col);
+                if (saved === 'hidden') {
+                    cb.checked = false;
+                } else {
+                    cb.checked = true;
+                }
+            });
+        }
+
+        // Toggle dropdown kolom
+        document.getElementById('toggleColBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dropdown = document.getElementById('colDropdown');
+            dropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('colDropdown');
+            const btn = document.getElementById('toggleColBtn');
+            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         // ============================================================
         // EVENT LISTENERS
@@ -1897,14 +2217,34 @@
             });
         });
 
+        // Filter cascading events
+        filterZonaSelect.addEventListener('change', () => {
+            filterZona = filterZonaSelect.value;
+            populateFilterGedung();
+            populateFilterRuang();
+            applyFiltersAndSort();
+        });
+
+        filterGedungSelect.addEventListener('change', () => {
+            filterGedung = filterGedungSelect.value;
+            populateFilterRuang();
+            applyFiltersAndSort();
+        });
+
         filterRuangSelect.addEventListener('change', () => {
             filterRuang = filterRuangSelect.value;
             applyFiltersAndSort();
         });
 
         resetFilterBtn.addEventListener('click', () => {
+            filterZonaSelect.value = '';
+            filterGedungSelect.value = '';
             filterRuangSelect.value = '';
+            filterZona = '';
+            filterGedung = '';
             filterRuang = '';
+            populateFilterGedung();
+            populateFilterRuang();
             applyFiltersAndSort();
         });
 
@@ -1943,15 +2283,18 @@
         loadNonaktif();
         startDefinitionListeners();
 
+        restoreColumnStates();
+
         switchTab('aktif');
 
         setTimeout(() => {
             if (allItems.length > 0 && definitionsReady) {
                 applyFiltersAndSort();
+                applyColumnVisibility();
             }
         }, 1000);
 
-        console.log('Sarpras page loaded dengan fitur nonaktif.');
+        console.log('Sarpras page loaded dengan filter Zona-Gedung-Ruang, kolom Zona, dan hide/unhide kolom.');
     </script>
 </body>
 </html>
