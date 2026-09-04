@@ -181,7 +181,7 @@
             color: #7a8a7a;
         }
 
-        /* Modal umum */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -373,15 +373,34 @@
     </header>
     <div class="container">
         <div class="tabs">
-            <button class="active" data-tab="gedung">Gedung</button>
+            <button class="active" data-tab="zona">Zona</button>
+            <button data-tab="gedung">Gedung</button>
             <button data-tab="ruangan">Ruangan</button>
             <button data-tab="jenis">Jenis</button>
             <button data-tab="barang">Barang</button>
             <button data-tab="sumber_dana">Sumber Dana</button>
         </div>
 
-        <!-- Tab Gedung -->
-        <div id="tab-gedung" class="tab-content active">
+        <!-- Tab Zona -->
+        <div id="tab-zona" class="tab-content active">
+            <div class="top-bar">
+                <div class="left">
+                    <input type="text" placeholder="Cari zona..." class="search-def" data-col="zona" />
+                </div>
+                <div class="right">
+                    <button class="import-btn" data-col="zona">📥 Impor</button>
+                    <button class="add-def" data-col="zona">➕ Tambah</button>
+                </div>
+            </div>
+            <table>
+                <thead><tr><th>No</th><th>Nama Zona</th><th>Aksi</th></tr></thead>
+                <tbody id="list-zona"></tbody>
+            </table>
+            <div class="no-data" id="empty-zona">Belum ada data zona.</div>
+        </div>
+
+        <!-- Tab Gedung (dengan kolom Zona) -->
+        <div id="tab-gedung" class="tab-content">
             <div class="top-bar">
                 <div class="left">
                     <input type="text" placeholder="Cari gedung..." class="search-def" data-col="gedung" />
@@ -392,13 +411,20 @@
                 </div>
             </div>
             <table>
-                <thead><tr><th>No</th><th>Nama Gedung</th><th>Aksi</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Gedung</th>
+                        <th>Zona</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
                 <tbody id="list-gedung"></tbody>
             </table>
             <div class="no-data" id="empty-gedung">Belum ada data gedung.</div>
         </div>
 
-        <!-- Tab Ruangan -->
+        <!-- Tab Ruangan (tidak berubah) -->
         <div id="tab-ruangan" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -444,7 +470,7 @@
             <div class="no-data" id="empty-jenis">Belum ada data jenis.</div>
         </div>
 
-        <!-- Tab Barang (dengan kolom statistik dari inventory dan nonaktif) -->
+        <!-- Tab Barang -->
         <div id="tab-barang" class="tab-content">
             <div class="top-bar">
                 <div class="left">
@@ -503,6 +529,12 @@
             <div id="modalFields">
                 <label id="labelName">Nama</label>
                 <input type="text" id="f_name" />
+
+                <!-- Field khusus gedung: zona -->
+                <div id="fieldGedung" style="display:none;">
+                    <label>Zona</label>
+                    <select id="f_zona"><option value="">Pilih Zona</option></select>
+                </div>
 
                 <!-- Field khusus ruangan -->
                 <div id="fieldRuangan" style="display:none;">
@@ -588,13 +620,14 @@
         // Tabs
         const tabs = document.querySelectorAll('.tabs button');
         const contents = {
+            zona: document.getElementById('tab-zona'),
             gedung: document.getElementById('tab-gedung'),
             ruangan: document.getElementById('tab-ruangan'),
             jenis: document.getElementById('tab-jenis'),
             barang: document.getElementById('tab-barang'),
             sumber_dana: document.getElementById('tab-sumber_dana')
         };
-        let currentTab = 'gedung';
+        let currentTab = 'zona';
 
         tabs.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -607,14 +640,13 @@
             });
         });
 
-        // ========== INVENTORY AGREGAT (AKTIF & NONAKTIF) ==========
-        let inventoryAggregates = {};      // untuk data aktif (inventory)
-        let nonaktifAggregates = {};       // untuk data nonaktif (inventory_nonaktif)
+        // ========== INVENTORY AGREGAT (tetap) ==========
+        let inventoryAggregates = {};
+        let nonaktifAggregates = {};
         let invUnsubscribe = null;
         let nonaktifUnsubscribe = null;
 
         function loadInventoryAggregates() {
-            // Listener untuk inventory aktif
             if (invUnsubscribe) invUnsubscribe();
             invUnsubscribe = db.collection('inventory').onSnapshot(snapshot => {
                 inventoryAggregates = {};
@@ -633,7 +665,6 @@
                 if (currentTab === 'barang') refreshBarangTab();
             }, err => showToast('Gagal memuat agregasi inventory: ' + err.message, 'error'));
 
-            // Listener untuk inventory nonaktif
             if (nonaktifUnsubscribe) nonaktifUnsubscribe();
             nonaktifUnsubscribe = db.collection('inventory_nonaktif').onSnapshot(snapshot => {
                 nonaktifAggregates = {};
@@ -660,17 +691,20 @@
         const editId = document.getElementById('editId');
         const editCol = document.getElementById('editCol');
         const f_name = document.getElementById('f_name');
+        const f_zona = document.getElementById('f_zona'); // untuk gedung
         const f_panjang = document.getElementById('f_panjang');
         const f_lebar = document.getElementById('f_lebar');
         const f_luas = document.getElementById('f_luas');
         const f_gedung = document.getElementById('f_gedung');
         const f_jenis = document.getElementById('f_jenis');
+        const fieldGedung = document.getElementById('fieldGedung');
         const fieldRuangan = document.getElementById('fieldRuangan');
         const fieldJenis = document.getElementById('fieldJenis');
         const labelName = document.getElementById('labelName');
         const modalCancel = document.getElementById('modalCancel');
         const modalSave = document.getElementById('modalSave');
 
+        // Auto hitung luas
         f_panjang.addEventListener('input', autoHitungLuas);
         f_lebar.addEventListener('input', autoHitungLuas);
 
@@ -693,11 +727,21 @@
             editCol.value = col;
             f_name.value = data.nama || '';
 
+            // Sembunyikan semua field khusus
+            fieldGedung.style.display = 'none';
             fieldRuangan.style.display = 'none';
             fieldJenis.style.display = 'none';
             labelName.textContent = 'Nama';
 
-            if (col === 'ruangan') {
+            if (col === 'zona') {
+                // Hanya nama, tidak ada field tambahan
+                labelName.textContent = 'Nama Zona';
+            } else if (col === 'gedung') {
+                fieldGedung.style.display = 'block';
+                labelName.textContent = 'Nama Gedung';
+                // Populate dropdown zona dari koleksi zona
+                populateZonaDropdown(data.zona || '');
+            } else if (col === 'ruangan') {
                 fieldRuangan.style.display = 'block';
                 labelName.textContent = 'Nama Ruang';
                 f_panjang.value = data.panjang || '';
@@ -715,12 +759,13 @@
                     }
                 }
                 populateGedungDropdown(data.gedung || '');
-            }
-
-            if (col === 'barang') {
+            } else if (col === 'barang') {
                 fieldJenis.style.display = 'block';
                 labelName.textContent = 'Nama Barang';
                 populateJenisDropdown(data.jenis || '');
+            } else {
+                // jenis, sumber_dana hanya nama
+                labelName.textContent = 'Nama';
             }
 
             modal.classList.add('show');
@@ -734,6 +779,22 @@
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
         });
+
+        // Populate zona dropdown untuk modal gedung
+        function populateZonaDropdown(selected) {
+            const sel = f_zona;
+            sel.innerHTML = '<option value="">Pilih Zona</option>';
+            db.collection('zona').orderBy('nama').get().then(snap => {
+                snap.forEach(doc => {
+                    const nama = doc.data().nama;
+                    const opt = document.createElement('option');
+                    opt.value = nama;
+                    opt.textContent = nama;
+                    if (nama === selected) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            }).catch(err => showToast('Gagal memuat zona', 'error'));
+        }
 
         function populateGedungDropdown(selected) {
             const sel = f_gedung;
@@ -776,7 +837,9 @@
 
             let data = { nama };
 
-            if (col === 'ruangan') {
+            if (col === 'gedung') {
+                data.zona = f_zona.value || '';
+            } else if (col === 'ruangan') {
                 const p = parseFloat(f_panjang.value) || 0;
                 const l = parseFloat(f_lebar.value) || 0;
                 let luas = parseFloat(f_luas.value) || 0;
@@ -790,9 +853,7 @@
                 data.lebar = l;
                 data.luas = luas;
                 data.gedung = f_gedung.value || '';
-            }
-
-            if (col === 'barang') {
+            } else if (col === 'barang') {
                 data.jenis = f_jenis.value || '';
             }
 
@@ -858,13 +919,14 @@
                 for (const nama of lines) {
                     const docRef = ref.doc();
                     let data = { nama };
-                    if (col === 'ruangan') {
+                    if (col === 'gedung') {
+                        data.zona = '';
+                    } else if (col === 'ruangan') {
                         data.panjang = 0;
                         data.lebar = 0;
                         data.luas = 0;
                         data.gedung = '';
-                    }
-                    if (col === 'barang') {
+                    } else if (col === 'barang') {
                         data.jenis = '';
                     }
                     batch.set(docRef, data);
@@ -912,6 +974,11 @@
                 let rowHtml = `<td>${idx + 1}</td>`;
                 rowHtml += `<td>${item.nama || ''}</td>`;
 
+                // Untuk gedung: tambahkan kolom zona
+                if (col === 'gedung') {
+                    rowHtml += `<td>${item.zona || ''}</td>`;
+                }
+
                 if (col === 'ruangan') {
                     rowHtml += `<td>${item.panjang || 0}</td>`;
                     rowHtml += `<td>${item.lebar || 0}</td>`;
@@ -926,7 +993,6 @@
                     rowHtml += `<td>${agg.rusakSedang}</td>`;
                     rowHtml += `<td>${agg.rusakBerat}</td>`;
                     rowHtml += `<td>${agg.baik}</td>`;
-                    // Kolom Non Aktif
                     const nonaktif = nonaktifAggregates[item.nama] || 0;
                     rowHtml += `<td>${nonaktif}</td>`;
                 }
@@ -989,10 +1055,11 @@
         });
 
         // ========== INIT ==========
+        loadCollection('zona');
         loadCollection('gedung');
-        loadInventoryAggregates(); // mulai mendengarkan inventory aktif dan nonaktif
+        loadInventoryAggregates();
 
-        console.log('Definisi page loaded. Fitur agregasi inventory + nonaktif aktif.');
+        console.log('Definisi page loaded dengan fitur Zona dan Gedung terkait.');
     </script>
 </body>
 </html>
